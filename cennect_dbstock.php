@@ -1,17 +1,13 @@
 <?php
-$host = "localhost";
-$user = "root";
-$pass = "";
-$db   = "waste_db";
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "garage_db"; // ຫຼື waste_db ຕາມທີ່ເຈົ້າຕັ້ງ
 
-// ເຊື່ອມຕໍ່ແບບ mysqli (ແບບທີ່ໂປຣເຈັກເຈົ້າໃຊ້ເປັນຫຼັກ)
-$connect = mysqli_connect($host, $user, $pass, $db);
+// ຕ້ອງຊື່ $connect ເພື່ອໃຫ້ຕົງກັບທີ່ໃຊ້ໃນ update.php
+$connect = mysqli_connect($servername, $username, $password, $dbname);
 
-// ກວດສອບການເຊື່ອມຕໍ່
 if (!$connect) {
     die("Connection failed: " . mysqli_connect_error());
 }
-
-// ຕັ້ງຄ່າໃຫ້ຮອງຮັບພາສາລາວ
-mysqli_set_charset($connect, "utf8");
 ?>
