@@ -156,11 +156,11 @@
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label small fw-bold">ທີ່ຢູ່ (Address)</label>
+                        <label class="form-label small fw-bold">ທີ່ຢູ່</label>
                         <textarea id="edit_address" class="form-control" rows="2"></textarea>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label small fw-bold">ໝາຍເຫດ (Remark)</label>
+                        <label class="form-label small fw-bold">ໝາຍເຫດ</label>
                         <textarea id="edit_remark" class="form-control" rows="2"></textarea>
                     </div>
                 </form>

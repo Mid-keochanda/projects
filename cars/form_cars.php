@@ -43,7 +43,8 @@
                         ?>
                     </select>
                     <div class="mt-2 text-end">
-                        <a href="form_customers.php" class="btn btn-sm btn-outline-secondary border-0"><i class="fas fa-user-plus me-1"></i> ເພີ່ມລູກຄ້າໃໝ່</a>
+                       <a href="../customers/form_customers.php" class="btn btn-sm btn-outline-secondary border-0">
+                       <i class="fas fa-user-plus me-1"></i> ເພີ່ມລູກຄ້າໃໝ່</a>
                     </div>
                 </div>
 
