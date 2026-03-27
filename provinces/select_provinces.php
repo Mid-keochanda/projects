@@ -47,7 +47,6 @@
 <body>
 
     <?php
-        // ກວດສອບຊື່ໄຟລ໌ connect ໃຫ້ຖືກຕ້ອງ
         include("../cennect_dbstock.php"); 
         // ດຶງຂໍ້ມູນລຽງຕາມ ID ຈາກນ້ອຍໄປຫາຫຼາຍ
         $sql = mysqli_query($connect, "SELECT * FROM provinces ORDER BY pro_id ASC");
