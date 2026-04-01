@@ -1,7 +1,19 @@
 <?php
 include("../cennect_dbstock.php");
+mysqli_set_charset($connect, "utf8"); // ເພີ່ມກັນພາສາລາວເປັນພາສາຕ່າງດາວ
 
 $service_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+
+if ($service_id <= 0) {
+    die("<h3 style='text-align:center; padding-top:50px;'>ບໍ່ພົບຂໍ້ມູນບິນເລກທີ: $service_id</h3>");
+}
+
+// ==========================================
+// 🌟 ເພີ່ມໃໝ່: ອັບເດດສະຖານະເປັນ 'completed' (ສຳເລັດ)
+// ພໍເປີດໜ້ານີ້ປຸບ ບິນນີ້ຈະປ່ຽນສະຖານະທັນທີ ເພື່ອໃຫ້ຫາຍຈາກຕາຕະລາງໜ້າແລກ
+// ==========================================
+mysqli_query($connect, "UPDATE service_logs SET status = 'completed' WHERE log_id = '$service_id'");
+
 
 // 1. ດຶງຂໍ້ມູນຫົວບິນ
 $sql_head = "SELECT 

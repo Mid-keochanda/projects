@@ -7,7 +7,7 @@
     $tel = $_POST['tel'];
     $pro_id = $_POST['pro_id'];
     $dis_id = $_POST['dis_id'];
-    $vil_id = $_POST['vil_id'];
+    $vill_id = $_POST['vill_id'];
     $status = $_POST['status'];
     $username = $_POST['username'];
     $password = $_POST['password'];
@@ -22,8 +22,8 @@
         });
         </script>";
     }else{
-        $insert = mysqli_query($connect, "insert into users(fname,lname,gender,dob,tel,pro_id,dis_id,vil_id,status,username,password,remark)
-        value('$fname','$lname','$gender','$dob','$tel','$pro_id','$dis_id','$vil_id','$status','$username',password('$password'),'$remark')");
+        $insert = mysqli_query($connect, "insert into users(fname,lname,gender,dob,tel,pro_id,dis_id,vill_id,status,username,password,remark)
+        value('$fname','$lname','$gender','$dob','$tel','$pro_id','$dis_id','$vill_id','$status','$username',password('$password'),'$remark')");
         if($insert){
             echo"<script>Swal.fire({
                 postion: 'top',

@@ -128,7 +128,7 @@
             $('#dis_id').change(function(){
                 var dis_id = $('#dis_id').val();
                 $.post('insert_vill_name.php',{ dis_id : dis_id }, function(output){
-                    $("#vil_id").html(output);
+                    $("#vill_id").html(output);
                 })
             })
 
@@ -142,7 +142,7 @@
                     tel : $("#tel").val(),
                     pro_id : $("#pro_id").val(),
                     dis_id : $("#dis_id").val(),
-                    vil_id : $("#vil_id").val(),
+                    vill_id : $("#vill_id").val(),
                     status : $("#status").val(),
                     username : $("#username").val(),
                     password : $("#password").val(),
@@ -167,10 +167,10 @@
     <?php
         include("../cennect_dbstock.php");
         $user_id = $_GET['user_id'];
-        $sqll = mysqli_query($connect, "SELECT a.pro_id, a.pro_name, b.dis_id, b.dis_name, c.vil_id, c.vil_name, d.* FROM users as d 
+        $sqll = mysqli_query($connect, "SELECT a.pro_id, a.pro_name, b.dis_id, b.dis_name, c.vill_id, c.vill_name, d.* FROM users as d 
                                         LEFT JOIN provinces as a ON a.pro_id=d.pro_id 
                                         LEFT JOIN districts as b ON b.dis_id=d.dis_id 
-                                        LEFT JOIN villages as c ON c.vil_id=d.vil_id 
+                                        LEFT JOIN villages as c ON c.vill_id=d.vill_id 
                                         WHERE d.user_id='$user_id'"); 
         $sql = mysqli_fetch_array($sqll);
     ?>
@@ -239,8 +239,8 @@
                                     </select>
 
                                     <label class="form-label">ບ້ານ:</label>
-                                    <select class="form-select" id="vil_id">
-                                        <option value="<?= $sql['vil_id'];?>"><?= $sql['vil_name'];?></option>
+                                    <select class="form-select" id="vill_id">
+                                        <option value="<?= $sql['vill_id'];?>"><?= $sql['vill_name'];?></option>
                                     </select>
 
                                     <label class="form-label">ສະຖານະ:</label>

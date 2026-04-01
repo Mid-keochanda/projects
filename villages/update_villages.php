@@ -132,12 +132,12 @@
             // ບັນທຶກຂໍ້ມູນ
             $('#save').click(function(){
                 var pro_id = $('#pro_id').val();
-                var vil_id = $('#vil_id').val();
+                var vill_id = $('#vill_id').val();
                 var dis_id = $('#dis_id').val();
-                var vil_name = $('#vil_name').val();
+                var vill_name = $('#vill_name').val();
                 var remark = $('#remark').val();
 
-                if(dis_id == "" || vil_name == ""){
+                if(dis_id == "" || vill_name == ""){
                     Swal.fire({ 
                         icon: 'error', 
                         title: 'ຂໍ້ມູນບໍ່ຄົບ!',
@@ -147,9 +147,9 @@
                 } else {
                     $.get('save_villages.php', {           
                         pro_id: pro_id,
-                        vil_id: vil_id,
+                        vill_id: vill_id,
                         dis_id: dis_id,
-                        vil_name: vil_name,
+                        vill_name: vill_name,
                         remark: remark
                     }, function(output){
                         $('#show').html(output);
@@ -164,15 +164,15 @@
 <?php
     include("../cennect_dbstock.php");
     
-    $vil_id_edit = isset($_GET['vil_id']) ? $_GET['vil_id'] : '';
-    $data = ['pro_id'=>'','pro_name'=>'-- ເລືອກແຂວງ --','dis_id'=>'','dis_name'=>'-- ເລືອກເມືອງ --','vil_id'=>'','vil_name'=>'','remark'=>''];
+    $vill_id_edit = isset($_GET['vill_id']) ? $_GET['vill_id'] : '';
+    $data = ['pro_id'=>'','pro_name'=>'-- ເລືອກແຂວງ --','dis_id'=>'','dis_name'=>'-- ເລືອກເມືອງ --','vill_id'=>'','vill_name'=>'','remark'=>''];
 
-    if($vil_id_edit != ""){
-        $select_edit = mysqli_query($connect, "SELECT a.pro_name, a.pro_id, b.dis_name, b.dis_id, c.vil_id, c.vil_name, c.remark 
+    if($vill_id_edit != ""){
+        $select_edit = mysqli_query($connect, "SELECT a.pro_name, a.pro_id, b.dis_name, b.dis_id, c.vill_id, c.vill_name, c.remark 
             FROM provinces AS a 
             INNER JOIN districts AS b ON a.pro_id = b.pro_id 
             INNER JOIN villages AS c ON b.dis_id = c.dis_id 
-            WHERE c.vil_id='$vil_id_edit'");
+            WHERE c.vill_id='$vill_id_edit'");
         if(mysqli_num_rows($select_edit) > 0) {
             $data = mysqli_fetch_array($select_edit);
         }
@@ -193,7 +193,7 @@
                 
                 <div class="card-body p-5">
                     <form id="villageForm">
-                        <input type="hidden" id="vil_id" value="<?= $data['vil_id'];?>">
+                        <input type="hidden" id="vill_id" value="<?= $data['vill_id'];?>">
                         
                         <div class="row g-4">
                             <div class="col-md-6 col-lg-3">
@@ -218,7 +218,7 @@
 
                             <div class="col-md-6 col-lg-3">
                                 <label class="form-label"><i class="fas fa-home me-2"></i>ຊື່ບ້ານ</label>
-                                <input type="text" id="vil_name" class="form-control" placeholder="ປ້ອນຊື່ບ້ານ..." value="<?= $data['vil_name'];?>">
+                                <input type="text" id="vill_name" class="form-control" placeholder="ປ້ອນຊື່ບ້ານ..." value="<?= $data['vill_name'];?>">
                             </div>
 
                             <div class="col-md-6 col-lg-3">

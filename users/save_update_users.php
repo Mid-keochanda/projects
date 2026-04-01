@@ -8,12 +8,12 @@
     $tel = $_POST['tel'];
     $pro_id = $_POST['pro_id'];
     $dis_id = $_POST['dis_id'];
-    $vil_id = $_POST['vil_id'];
+    $vill_id = $_POST['vill_id'];
     $status = $_POST['status'];
     $username = $_POST['username'];
     $password = $_POST['password'];
     $remark = $_POST['remark'];
-    $update = mysqli_query($connect, "update users set fname='$fname',lname='$lname',gender='$gender',dob='$dob',tel='$tel',pro_id='$pro_id',dis_id='$dis_id',vil_id='$vil_id',status='$status',username='$username',password='$password',remark='$remark' where user_id='$user_id'");
+    $update = mysqli_query($connect, "update users set fname='$fname',lname='$lname',gender='$gender',dob='$dob',tel='$tel',pro_id='$pro_id',dis_id='$dis_id',vill_id='$vill_id',status='$status',username='$username',password='$password',remark='$remark' where user_id='$user_id'");
     if($update){
         echo "<script>
         Swal.fire({

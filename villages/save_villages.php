@@ -1,11 +1,11 @@
 <?php
     include("../cennect_dbstock.php");
    $pro_id = $_GET['pro_id'];
-   $vil_id = $_GET['vil_id'];
+   $vill_id = $_GET['vill_id'];
     $dis_id = $_GET['dis_id'];
-    $vil_name = $_GET['vil_name'];
+    $vill_name = $_GET['vill_name'];
     $remark = $_GET['remark'];
-  $c= mysqli_query($connect, "update villages set pro_id='$pro_id',dis_id='$dis_id',vil_name='$vil_name',remark='$remark' where vil_id='$vil_id'");
+  $c= mysqli_query($connect, "update villages set pro_id='$pro_id',dis_id='$dis_id',vill_name='$vill_name',remark='$remark' where vill_id='$vill_id'");
 if($c){
     echo    "<script>Swal.fire({
         icon: 'success', //error, warning, success, question

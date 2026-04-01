@@ -100,26 +100,54 @@
                 });
             });
 
-            // ບັນທຶກຂໍ້ມູນ
-            $('#save').click(function(){
-                var pro_id = $('#pro_id').val();
-                var dis_id = $('#dis_id').val();
-                var vil_name = $('#vil_name').val();
-                var remark = $('#remark').val();
+          $('#save').click(function(e){
+    e.preventDefault();
+    
+    // ເກັບຂໍ້ມູນຈາກ Form
+    var formData = {
+        pro_id: $('#pro_id').val(),
+        dis_id: $('#dis_id').val(),
+        vill_name: $('#vill_name').val(),
+        remark: $('#remark').val()
+    };
 
-                if(dis_id == "" || vil_name == ""){
-                    Swal.fire({ icon: 'warning', title: 'ຄຳເຕືອນ', text: 'ກະລຸນາເລືອກເມືອງ ແລະ ປ້ອນຊື່ບ້ານ', confirmButtonColor: '#4facfe' });
-                } else {
-                    $.get('insert_villages.php', {           
-                        pro_id: pro_id,
-                        dis_id: dis_id,
-                        vil_name: vil_name,
-                        remark: remark
-                    }, function(output){
-                        $('#show').html(output);
-                    });
-                }
-            });
+    // ກວດສອບເບື້ອງຕົ້ນ
+    if(formData.vill_name == ""){
+        Swal.fire('ກະລຸນາປ້ອນຊື່ບ້ານ', '', 'warning');
+        return;
+    }
+
+    // ປິດປຸ່ມເພື່ອປ້ອງກັນການກົດຊ້ຳ
+    $(this).prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> ກຳລັງບັນທຶກ...');
+
+    $.ajax({
+        url: 'insert_villages.php',
+        type: 'GET',
+        data: formData,
+        success: function(response){
+            if(response.trim() == "success"){
+                // ແຈ້ງເຕືອນເມື່ອສຳເລັດ
+                Swal.fire({
+                    icon: 'success',
+                    title: 'ບັນທຶກສຳເລັດ!',
+                    text: 'ຂໍ້ມູນບ້ານໄດ້ຖືກເພີ່ມເຂົ້າໃນລະບົບແລ້ວ',
+                    showConfirmButton: false,
+                    timer: 1500 // ໃຫ້ມັນຫາຍໄປເອງພ້ອມ Refresh
+                }).then(() => {
+                    location.reload(); // Refresh ໜ້າເວັບເພື່ອໂຊຂໍ້ມູນໃໝ່
+                });
+            } else {
+                // ແຈ້ງເຕືອນເມື່ອມີ Error
+                Swal.fire('ຜິດພາດ!', 'ບໍ່ສາມາດບັນທຶກໄດ້: ' + response, 'error');
+                $('#save').prop('disabled', false).text('ບັນທຶກຂໍ້ມູນ');
+            }
+        },
+        error: function() {
+            Swal.fire('Error!', 'ຕິດຕໍ່ Server ບໍ່ໄດ້', 'error');
+            $('#save').prop('disabled', false).text('ບັນທຶກຂໍ້ມູນ');
+        }
+    });
+});
 
             // SweetAlert Confirm Delete
             $(document).on('click', '.delete', function(e){
@@ -172,7 +200,7 @@
                     </div>
                     <div class="col-lg-3 col-md-6">
                         <label class="form-label">ຊື່ບ້ານ</label>
-                        <input type="text" id="vil_name" class="form-control" placeholder="ປ້ອນຊື່ບ້ານ...">
+                        <input type="text" id="vill_name" class="form-control" placeholder="ປ້ອນຊື່ບ້ານ...">
                     </div>
                     <div class="col-lg-3 col-md-6">
                         <label class="form-label">ໝາຍເຫດ</label>
@@ -210,11 +238,11 @@
         include("../cennect_dbstock.php");
 
         // ໃຊ້ INNER JOIN ເພື່ອຄວາມຊັດເຈນ ແລະ ປ້ອງກັນ Error
-        $query = "SELECT a.pro_name, b.dis_name, c.vil_id, c.dis_id, c.vil_name, c.remark 
+        $query = "SELECT a.pro_name, b.dis_name, c.vill_id, c.dis_id, c.vill_name, c.remark 
                   FROM provinces AS a 
                   INNER JOIN districts AS b ON a.pro_id = b.pro_id 
                   INNER JOIN villages AS c ON b.dis_id = c.dis_id 
-                  ORDER BY c.vil_id DESC";
+                  ORDER BY c.vill_id DESC";
 
         $sql = mysqli_query($connect, $query);
 
@@ -230,14 +258,14 @@
         <td><span class="text-muted fw-bold"><?= $i ?></span></td>
         <td><span class="badge-pro"><?= $form['pro_name']; ?></span></td>
         <td><span class="badge-dis"><?= $form['dis_name']; ?></span></td>
-        <td class="fw-bold"><?= $form['vil_name']; ?></td>
+        <td class="fw-bold"><?= $form['vill_name']; ?></td>
         <td class="text-muted small"><?= $form['remark'] ?: '-'; ?></td>
         <td>
             <div class="d-flex justify-content-center gap-2">
-                <a href="update_villages.php?vil_id=<?= $form['vil_id'];?>" class="btn btn-outline-success btn-action" title="ແກ້ໄຂ">
+                <a href="update_villages.php?vill_id=<?= $form['vill_id'];?>" class="btn btn-outline-success btn-action" title="ແກ້ໄຂ">
                     <i class="bi bi-pencil-square"></i>
                 </a>
-                <a href="delete_villages.php?vil_id=<?= $form['vil_id'];?>" class="btn btn-outline-danger btn-action delete" title="ລົບ">
+                <a href="delete_villages.php?vill_id=<?= $form['vill_id'];?>" class="btn btn-outline-danger btn-action delete" title="ລົບ">
                     <i class="bi bi-trash"></i>
                 </a>
             </div>

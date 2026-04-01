@@ -11,7 +11,7 @@
                                                
             while($show = mysqli_fetch_array($select)){
         ?>
-        <option value="<?= $show['vil_id'];?>"><?= $show['vil_name'];?></option>
+        <option value="<?= $show['vill_id'];?>"><?= $show['vill_name'];?></option>
         <?php
             }
         ?>

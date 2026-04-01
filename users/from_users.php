@@ -176,7 +176,7 @@
                 var tel = $("#tel").val();
                 var pro_id = $("#pro_id").val();
                 var dis_id = $("#dis_id").val();
-                var vil_id = $("#vil_id").val();
+                var vill_id = $("#vill_id").val();
                 var status = $("#status").val();
                 var username = $("#username").val();
                 var password = $("#password").val();
@@ -204,7 +204,7 @@
                         tel : tel,
                         pro_id : pro_id,
                         dis_id : dis_id,
-                        vil_id : vil_id,
+                        vill_id : vill_id,
                         status : status,
                         username : username,
                         password : password,
@@ -293,15 +293,15 @@
                                             ?>
                                         </select>
 
-                                        <label for="vil_id" class="form-label">ເລືອກບ້ານ:</label>
-                                        <select class="form-select" id="vil_id">
+                                        <label for="vill_id" class="form-label">ເລືອກບ້ານ:</label>
+                                        <select class="form-select" id="vill_id">
                                             <option value="">-- ກະລຸນາເລືອກບ້ານ --</option>
                                              <?php
                                                 // ສົມມຸດວ່າເຊື່ອມຕໍ່ DB ແລ້ວ
                                                 include("../cennect_dbstock.php");
                                                 $select = mysqli_query($connect, "select * from villages");
                                                 while($show = mysqli_fetch_array($select)){
-                                                    echo "<option value='".$show['vil_id']."'>".$show['vil_name']."</option>";
+                                                    echo "<option value='".$show['vill_id']."'>".$show['vill_name']."</option>";
                                                 }
                                             ?>
                                         </select>
