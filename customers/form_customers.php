@@ -57,7 +57,10 @@
         <th class="text-center">ເພດ</th>
         <th>ເບີໂທລະສັບ</th>
         <th>ທີ່ຢູ່</th>
-        <th>ວັນທີບັນທຶກ</th> <th>ອັບເດດຫຼ້າສຸດ</th> <th class="text-center">ຈັດການ</th>
+        <th>ວັນທີບັນທຶກ</th> 
+        <th>ອັບເດດຫຼ້າສຸດ</th> 
+        <th>ໝາຍເຫດ</th>
+        <th class="text-center">ຈັດການ</th>
     </tr>
 </thead>
                     </thead>
@@ -98,6 +101,7 @@
                 <i class="bi bi-clock-history me-1"></i><?= $row['date_update']; ?>
             </div>
         </td>
+        <td class="fw-bold"><?= $row['remark']; ?></td>
 
         <td class="text-center">
             <div class="d-flex justify-content-center gap-1">
