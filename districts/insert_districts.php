@@ -1,45 +1,26 @@
 <?php
-session_start();
 include("../cennect_dbstock.php");
 
-// ຮັບຄ່າຈາກ jQuery $.get
-$pro_id = $_GET['pro_id'];
-$dis_name = $_GET['dis_name'];
-$remark = $_GET['remark'];
+if(isset($_GET['dis_name'])){
+    $pro_id = mysqli_real_escape_string($connect, $_GET['pro_id']);
+    $dis_name = mysqli_real_escape_string($connect, $_GET['dis_name']);
+    $remark = mysqli_real_escape_string($connect, $_GET['remark']);
 
-if($pro_id == "" || $dis_name == ""){
-    echo "<script>
-        Swal.fire({
-            icon: 'error',
-            title: 'ຜິດພາດ',
-            text: 'ກະລຸນາປ້ອນຂໍ້ມູນໃຫ້ຄົບຖ້ວນ'
-        });
-    </script>";
-} else {
-    // ຄຳສັ່ງ SQL ບັນທຶກຂໍ້ມູນ
-    $sql = "INSERT INTO districts (pro_id, dis_name, remark) VALUES ('$pro_id', '$dis_name', '$remark')";
-    $query = mysqli_query($connect, $sql);
+    $insert = mysqli_query($connect, "INSERT INTO districts (pro_id, dis_name, remark) VALUES ('$pro_id', '$dis_name', '$remark')");
 
-    if($query){
+    if($insert){
         echo "<script>
             Swal.fire({
                 icon: 'success',
                 title: 'ບັນທຶກສຳເລັດ',
-                text: 'ຂໍ້ມູນເມືອງຖືກເພີ່ມເຂົ້າໃນລະບົບແລ້ວ',
-                timer: 2000,
-                showConfirmButton: false
+                showConfirmButton: false,
+                timer: 1500
             }).then(function() {
-                window.location.reload(); // Refresh ໜ້າເພື່ອໂຊຂໍ້ມູນໃໝ່ໃນຕາຕະລາງ
+                window.location.reload();
             });
         </script>";
     } else {
-        echo "<script>
-            Swal.fire({
-                icon: 'error',
-                title: 'ລົ້ມເຫຼວ',
-                text: 'ບໍ່ສາມາດບັນທຶກຂໍ້ມູນໄດ້: " . mysqli_error($connect) . "'
-            });
-        </script>";
+        echo "<script>Swal.fire('ຜິດພາດ', 'ບໍ່ສາມາດບັນທຶກໄດ້', 'error');</script>";
     }
 }
 ?>

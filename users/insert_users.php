@@ -1,48 +1,28 @@
 <?php
-    include("../cennect_dbstock.php");
-    $fname = $_POST['fname'];
-    $lname = $_POST['lname'];
-    $gender = $_POST['gender'];
-    $dob = $_POST['dob'];
-    $tel = $_POST['tel'];
-    $pro_id = $_POST['pro_id'];
-    $dis_id = $_POST['dis_id'];
-    $vill_id = $_POST['vill_id'];
-    $status = $_POST['status'];
-    $username = $_POST['username'];
-    $password = $_POST['password'];
-    $remark = $_POST['remark'];
+session_start();
+include("../cennect_dbstock.php");
+
+if(isset($_POST['username'])){
+    // ຮັບຄ່າ ແລະ ປ້ອງກັນ SQL Injection
+    $fname    = mysqli_real_escape_string($connect, $_POST['fname']);
+    $lname    = mysqli_real_escape_string($connect, $_POST['lname']);
+    $gender   = mysqli_real_escape_string($connect, $_POST['gender']);
+    $dob      = mysqli_real_escape_string($connect, $_POST['dob']);
+    $tel      = mysqli_real_escape_string($connect, $_POST['tel']);
+    $vill_id  = mysqli_real_escape_string($connect, $_POST['vill_id']);
+    $status   = mysqli_real_escape_string($connect, $_POST['status']);
+    $username = mysqli_real_escape_string($connect, $_POST['username']);
+    $password = mysqli_real_escape_string($connect, $_POST['password']); 
+    $remark   = mysqli_real_escape_string($connect, $_POST['remark']);
+
+    // ຄຳສັ່ງ Insert (ກວດສອບຊື່ Column ໃນ Database ຂອງເຈົ້າໃຫ້ກົງກັນ)
+    $sql = "INSERT INTO users (fname, lname, gender, dob, tel, vill_id, status, username, password, remark) 
+            VALUES ('$fname', '$lname', '$gender', '$dob', '$tel', '$vill_id', '$status', '$username', '$password', '$remark')";
     
-    $sql = mysqli_query($connect, "select *from users where fname='$fname'");
-    $check = mysqli_num_rows($sql);
-    if($check <> 0){
-        echo    "<script>Swal.fire({
-            icon: 'error', //error, warning, success, question
-            title: 'ຊື່ນີ້ມີຢູ່ເເລ້ວ!',//ຫົວຂໍ້
-        });
-        </script>";
-    }else{
-        $insert = mysqli_query($connect, "insert into users(fname,lname,gender,dob,tel,pro_id,dis_id,vill_id,status,username,password,remark)
-        value('$fname','$lname','$gender','$dob','$tel','$pro_id','$dis_id','$vill_id','$status','$username',password('$password'),'$remark')");
-        if($insert){
-            echo"<script>Swal.fire({
-                postion: 'top',
-                icon:'success',
-                title:'ບັນທືກສຳເລັດ',
-                showConfirmButton: false,
-                timer: 1500,
-            })
-                window.setTimeout(function(){
-                location.reload();
-                },1500);
-                </script>";
-        }else{
-            echo"<script>Swal.fire({
-                postion: 'top',
-                icon:'error',
-                title:'ການບັນທືກບໍ່ສຳເລັດ',
-            })
-                </script>";
-        }
+    if(mysqli_query($connect, $sql)){
+        echo "success";
+    } else {
+        echo "Error: " . mysqli_error($connect);
     }
+}
 ?>

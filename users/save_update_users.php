@@ -24,7 +24,7 @@
             timer: 1500,
         })
         window.setTimeout(function(){
-        location='select_form_users.php';
+        location='from_users.php';
     },1500)
         </script>";
     }else{

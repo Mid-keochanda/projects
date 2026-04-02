@@ -1,12 +1,7 @@
-<?php
+<?php 
 @include("../cennect_dbstock.php"); 
-
-// ກວດສອບຕົວປ່ຽນການເຊື່ອມຕໍ່ ຖ້າບໍ່ມີໃຫ້ຢຸດເຮັດວຽກພ້ອມບອກສາເຫດ
 if (!isset($connect)) {
-    die("<div style='text-align:center; padding:50px; font-family:sans-serif;'>
-            <h2 style='color:red;'>Error: ບໍ່ສາມາດເຊື່ອມຕໍ່ຖານຂໍ້ມູນໄດ້!</h2>
-            <p>ກະລຸນາກວດເຊັກໄຟລ໌ <b>../cennect_dbstock.php</b> ວ່າຊື່ຖືກຕ້ອງ ຫຼື ວາງຖືກ Folder ບໍ່?</p>
-         </div>");
+    die("<h2 style='color:red; text-align:center; font-family: Phetsarath OT;'>Error: Connection Failed!</h2>");
 }
 ?>
 <!DOCTYPE html>
@@ -14,216 +9,284 @@ if (!isset($connect)) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ຈັດການຂໍ້ມູນແຂວງ | Modern UI</title>
-    
+    <title>ຈັດການຂໍ້ມູນແຂວງ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> 
-
+    
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@300;400;500;600;700&display=swap');
-        
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --bg-body: #f8f9fc;
+            --text-dark: #2d3436;
+        }
+
         body { 
             font-family: 'Noto Sans Lao', sans-serif; 
-            background-color: #f4f7fe; 
-            color: #2d3436;
+            background-color: var(--bg-body); 
+            color: var(--text-dark); 
         }
 
-        /* Modern Card */
-        .card { 
-            border: none; 
-            border-radius: 20px; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.02);
+        /* Custom Header */
+        .page-header {
+            background: #fff;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 10px;
+            border: 1px solid #edf2f7;
         }
 
-        .header-section {
-            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
-            color: white;
+        .header-title h2 { color: var(--primary-color); font-weight: 500; }
+
+        /* Card & Table */
+        .card-table {
+            background: #fff;
             border-radius: 20px;
-            padding: 20px 20px;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 20px rgba(108, 92, 231, 0.2);
+            border: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+            overflow: hidden;
         }
 
-        /* Table Styling */
-        .table-container {
-        background: white;
-        border-radius: 15px; /* ຫຼຸດຄວາມມົນລົງໜ້ອຍໜຶ່ງໃຫ້ຮັບກັບຂະໜາດທີ່ນ້ອຍລົງ */
-        padding: 15px;       /* ຫຼຸດຈາກ 20px ເຫຼືອ 15px */
-        max-width: 900px;    /* ຈຳກັດຄວາມກວ້າງໃຫ້ເບິ່ງພໍດີ */
-        margin: auto;        /* ໃຫ້ມັນຢູ່ເຄິ່ງກາງໜ້າຈໍ */
-        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    }
+        .table thead {
+            background-color: #f1f4f9;
+        }
+
         .table thead th {
-            background-color: transparent;
-            border-bottom: 2px solid #f1f2f6;
-            color: #b2bec3;
             font-weight: 600;
             text-transform: uppercase;
             font-size: 0.8rem;
+            letter-spacing: 0.5px;
+            padding: 10px;
+            color: #64748b;
+            border: none;
         }
+
         .table tbody tr {
-            border-bottom: 1px solid #f1f2f6;
+            transition: all 0.2s;
+            border-bottom: 1px solid #f1f4f9;
+        }
+
+        .table tbody tr:hover {
+            background-color: rgba(67, 97, 238, 0.02);
+            transform: scale(1.002);
+        }
+
+        /* Buttons & Icons */
+        .btn-add {
+            background: var(--primary-color);
+            color: white;
+            border-radius: 12px;
+            padding: 10px 24px;
+            font-weight: 500;
             transition: 0.3s;
         }
-        .table tbody tr:hover {
-            background-color: #f9faff;
-        }
-        .table td {
-            padding: 18px 12px;
-            vertical-align: middle;
-        }
+        .btn-add:hover { background: var(--secondary-color); color: white; transform: translateY(-2px); }
 
-        /* Form Custom */
-        .form-control {
-            border-radius: 12px;
-            padding: 12px;
-            border: 1px solid #e2e8f0;
-            background-color: #f8fafc;
-        }
-        .form-control:focus {
-            background-color: #fff;
-            box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.1);
-            border-color: #6c5ce7;
-        }
-
-        .btn-save {
-            background-color: #6c5ce7;
-            border: none;
-            border-radius: 12px;
-            padding: 12px;
-            font-weight: 600;
-            color: white;
-        }
-        .btn-save:hover { background-color: #5849c4; color: white; }
-
-        .action-icon {
-            width: 35px;
-            height: 35px;
+        .btn-action {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            border-radius: 10px;
-            transition: 0.3s;
-            text-decoration: none;
+            border: none;
+            transition: 0.2s;
+            margin: 0 2px;
         }
-        .icon-edit { background-color: #fff4e5; color: #ff9f43; }
-        .icon-delete { background-color: #fff0f0; color: #ea5455; }
-        .icon-edit:hover { background-color: #ff9f43; color: white; }
-        .icon-delete:hover { background-color: #ea5455; color: white; }
+
+        .btn-edit-soft { background: #e0e7ff; color: #4361ee; }
+        .btn-edit-soft:hover { background: #4361ee; color: #fff; }
+
+        .btn-delete-soft { background: #fee2e2; color: #ef4444; }
+        .btn-delete-soft:hover { background: #ef4444; color: #fff; }
+
+        /* Modal Customization */
+        .custom-modal { border-radius: 24px; border: none; }
+        .form-control-custom {
+            border-radius: 12px;
+            padding: 12px;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+        }
+        .form-control-custom:focus {
+            box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.1);
+            border-color: var(--primary-color);
+        }
     </style>
-
-    <script>
-        $(function(){
-            $('#save').click(function(){
-                var pro_name = $('#pro_name').val().trim();
-                var remark = $('#remark').val().trim();
-
-                if(pro_name == ""){
-                    Swal.fire({ icon: 'warning', text: 'ກະລຸນາປ້ອນຊື່ແຂວງ', confirmButtonColor: '#6c5ce7' });
-                } else {
-                    $(this).prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
-                    $.get('insert_provinces.php', { pro_name: pro_name, remark: remark }, function(output){
-                        $('#show_script').html(output);
-                        $('#save').prop('disabled', false).html('<i class="fas fa-save me-2"></i>ບັນທຶກ');
-                    });
-                }
-            });
-
-            $(document).on('click', '.btn-delete', function(e){
-                e.preventDefault();
-                var url = $(this).attr('href');
-                Swal.fire({
-                    title: 'ຢືນຢັນການລຶບ?',
-                    text: "ທ່ານຈະບໍ່ສາມາດກູ້ຄືນຂໍ້ມູນນີ້ໄດ້!",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#ea5455',
-                    cancelButtonColor: '#b2bec3',
-                    confirmButtonText: 'ລຶບອອກ',
-                    cancelButtonText: 'ຍົກເລີກ'
-                }).then((result) => {
-                    if (result.isConfirmed) { window.location.href = url; }
-                });
-            });
-        });
-    </script>
 </head>
 <body>
 
-<div class="container py-5">
-    <div class="header-section text-center">
-        <h2 class="fw-bold mb-2">ລະບົບຈັດການຂໍ້ມູນແຂວງ</h2>
-        <p class="mb-0 opacity-75"> ຂໍ້ມູນແຂວງພາຍໃນລະບົບ</p>
+<div class="container py-2">
+    <div class="page-header d-flex flex-column flex-md-row justify-content-between align-items-center">
+        <div class="header-title text-center text-md-start mb-3 mb-md-0">
+            <h2 class="mb-0"><i class="fas fa-map-marked-alt me-2"></i> ຂໍ້ມູນແຂວງ</h2>
+            <p class="text-muted mb-0">ຈັດການ ແລະ ຕິດຕາມລາຍຊື່ແຂວງທັງໝົດໃນລະບົບ</p>
+        </div>
+        <button class="btn btn-add shadow" data-bs-toggle="modal" data-bs-target="#addModal">
+            <i class="fas fa-plus me-2"></i> ເພີ່ມແຂວງໃໝ່
+        </button>
     </div>
 
-    <div class="row g-4">
-        <div class="col-lg-4">
-            <div class="card p-4 h-100">
-                <h5 class="fw-bold mb-4 text-primary">ເພີ່ມຂໍ້ມູນ</h5>
-                <div class="mb-3">
-                    <label class="form-label small fw-bold text-muted">ຊື່ແຂວງ</label>
-                    <input type="text" id="pro_name" class="form-control" placeholder="ປ້ອນຊື່ແຂວງ...">
-                </div>
-                <div class="mb-4">
-                    <label class="form-label small fw-bold text-muted">ໝາຍເຫດ</label>
-                    <textarea id="remark" class="form-control" rows="3" placeholder="ໝາຍເຫດ..."></textarea>
-                </div>
-                <button type="button" class="btn btn-save w-100 shadow-sm" id="save">
-                    <i class="fas fa-save me-2"></i>ບັນທຶກຂໍ້ມູນ
-                </button>
-            </div>
+    <div id="show_script"></div>
+
+    <div class="card card-table">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th width="80" class="text-center">ລຳດັບ</th>
+                        <th class="text-start">ຊື່ແຂວງ</th>
+                        <th>ໝາຍເຫດ</th>
+                        <th width="150" class="text-center">ຈັດການ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php 
+                    $sql = mysqli_query($connect, "SELECT * FROM provinces ORDER BY pro_id DESC");
+                    $i = 1; 
+                    while($row = mysqli_fetch_array($sql)){ 
+                    ?>
+                    <tr>
+                        <td class="text-center fw-bold text-muted"><?= $i++; ?></td>
+                        <td class="text-start">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 35px; height: 35px; font-size: 0.8rem;">
+                                    <i class="fas fa-city"></i>
+                                </div>
+                                <span class="fw-semibold text-dark"><?= $row["pro_name"]; ?></span>
+                            </div>
+                        </td>
+                        <td class="text-muted small"><?= $row["remark"] ?: '<span class="opacity-50">---</span>'; ?></td>
+                        <td class="text-center">
+                            <button class="btn-action btn-edit-soft btn-edit-modal" 
+                                    data-id="<?= $row['pro_id']; ?>" 
+                                    data-name="<?= $row['pro_name']; ?>" 
+                                    data-remark="<?= $row['remark']; ?>"
+                                    title="ແກ້ໄຂ">
+                                <i class="fas fa-pen-to-square"></i>
+                            </button>
+                            <a href="delete.php?pro_id=<?= $row['pro_id']; ?>" class="btn-action btn-delete-soft btn-delete" title="ລຶບ">
+                                <i class="fas fa-trash-can"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    <?php } ?>
+                </tbody>
+            </table>
         </div>
+    </div>
+</div>
 
-        <div class="col-lg-8">
-            <div id="show_script"></div>
-            <div class="table-container shadow-sm">
-                <?php
-                $sql = mysqli_query($connect, "SELECT * FROM provinces ORDER BY pro_id DESC");
-                $count_res = mysqli_query($connect, "SELECT COUNT(pro_id) as total FROM provinces");
-                $row_count = mysqli_fetch_array($count_res);
-                ?>
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h5 class="fw-bold mb-0">ລາຍຊື່ແຂວງ</h5>
-                    <span class="badge bg-soft-primary text-primary px-3 py-2" style="background: #f0f0ff; border-radius: 10px;">
-                        ທັງໝົດ <?= number_format($row_count['total']); ?> ແຂວງ
-                    </span>
+<div class="modal fade" id="addModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content custom-modal">
+            <div class="modal-header border-0 pt-4 px-4 pb-0">
+                <h5 class="fw-bold">✨ ເພີ່ມຂໍ້ມູນແຂວງໃໝ່</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">ຊື່ແຂວງ <span class="text-danger">*</span></label>
+                    <input type="text" id="pro_name" class="form-control form-control-custom" placeholder="ປ້ອນຊື່ແຂວງ...">
                 </div>
-
-                <div class="table-responsive">
-                    <table class="table">
-                        <thead>
-                            <tr class="text-center">
-                                <th>#</th>
-                                <th class="text-start">ຊື່ແຂວງ</th>
-                                <th>ໝາຍເຫດ</th>
-                                <th>ຈັດການ</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php $i = 1; while($mid = mysqli_fetch_array($sql)){ ?>
-                            <tr class="text-center">
-                                <td class="fw-bold text-muted"><?= $i++; ?></td>
-                                <td class="text-start fw-bold"><?= $mid["pro_name"]; ?></td>
-                                <td class="text-muted small"><?= $mid["remark"] ?: '-'; ?></td>
-                                <td>
-                                    <a href="update.php?pro_id=<?= $mid['pro_id']; ?>" class="action-icon icon-edit" title="ແກ້ໄຂ">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <a href="delete.php?pro_id=<?= $mid['pro_id']; ?>" class="action-icon icon-delete btn-delete" title="ລຶບ">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                            <?php } ?>
-                        </tbody>
-                    </table>
+                <div class="mb-0">
+                    <label class="form-label fw-bold small">ໝາຍເຫດ</label>
+                    <textarea id="remark" class="form-control form-control-custom" rows="3" placeholder="ເພີ່ມລາຍລະອຽດເພີ່ມເຕີມ..."></textarea>
                 </div>
+            </div>
+            <div class="modal-footer border-0 pb-4 px-4">
+                <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal" style="border-radius:12px;">ປິດ</button>
+                <button type="button" class="btn btn-add shadow-sm" id="btn_save">ບັນທຶກຂໍ້ມູນ</button>
             </div>
         </div>
     </div>
 </div>
 
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content custom-modal border-top border-warning border-5">
+            <div class="modal-header border-0 pt-4 px-4 pb-0">
+                <h5 class="fw-bold text-warning"><i class="fas fa-edit me-2"></i> ແກ້ໄຂຂໍ້ມູນແຂວງ</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <input type="hidden" id="edit_pro_id">
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">ຊື່ແຂວງ</label>
+                    <input type="text" id="edit_pro_name" class="form-control form-control-custom">
+                </div>
+                <div class="mb-0">
+                    <label class="form-label fw-bold small">ໝາຍເຫດ</label>
+                    <textarea id="edit_remark" class="form-control form-control-custom" rows="3"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pb-4 px-4">
+                <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal" style="border-radius:12px;">ຍົກເລີກ</button>
+                <button type="button" class="btn btn-warning text-white px-4 shadow-sm" id="btn_update" style="border-radius: 12px;">ອັບເດດຂໍ້ມູນ</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    $(function(){
+        // Insert
+        $('#btn_save').click(function(){
+            var pro_name = $('#pro_name').val().trim();
+            var remark = $('#remark').val().trim();
+            if(pro_name == ""){
+                Swal.fire({ icon: 'warning', text: 'ກະລຸນາປ້ອນຊື່ແຂວງ', confirmButtonColor: '#4361ee' });
+            } else {
+                $.get('insert_provinces.php', { pro_name: pro_name, remark: remark }, function(output){
+                    $('#show_script').html(output);
+                    $('#addModal').modal('hide');
+                });
+            }
+        });
+
+        // Open Edit Modal
+        $(document).on('click', '.btn-edit-modal', function(){
+            $('#edit_pro_id').val($(this).data('id'));
+            $('#edit_pro_name').val($(this).data('name'));
+            $('#edit_remark').val($(this).data('remark'));
+            $('#editModal').modal('show');
+        });
+
+        // Update
+        $('#btn_update').click(function(){
+            var pro_id = $('#edit_pro_id').val();
+            var pro_name = $('#edit_pro_name').val();
+            var remark = $('#edit_remark').val();
+            $.get('save_update.php', { pro_id: pro_id, pro_name: pro_name, remark: remark }, function(output){
+                $('#show_script').html(output);
+                $('#editModal').modal('hide');
+            });
+        });
+
+        // Delete
+        $(document).on('click', '.btn-delete', function(e){
+            e.preventDefault();
+            var url = $(this).attr('href');
+            Swal.fire({
+                title: 'ຢືນຢັນການລຶບ?',
+                text: "ທ່ານຈະບໍ່ສາມາດກູ້ຄືນຂໍ້ມູນນີ້ໄດ້!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'ລຶບອອກທັນທີ',
+                cancelButtonText: 'ຍົກເລີກ'
+            }).then((result) => {
+                if (result.isConfirmed) { window.location.href = url; }
+            });
+        });
+    });
+</script>
 </body>
 </html>

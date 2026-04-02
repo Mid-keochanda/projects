@@ -1,3 +1,4 @@
+<?php include("../cennect_dbstock.php"); ?>
 <!DOCTYPE html>
 <html lang="lo">
 <head>
@@ -9,281 +10,219 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
     <style>
-        :root {
-            --glass-bg: rgba(255, 255, 255, 0.9);
-            --primary-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        }
-
-        body { 
-            background-color: #f0f4f8; 
-            font-family: 'Phetsarath OT', sans-serif; 
-            padding: 30px 0;
-            color: #2d3748;
-        }
-
-        .card { 
-            border: none; 
-            border-radius: 20px; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05); 
-            background: var(--glass-bg);
-            margin-bottom: 30px;
-        }
-
-        .card-header { 
-            background: var(--primary-gradient); 
-            border-radius: 20px 20px 0 0 !important;
-            padding: 20px;
-            border-bottom: none;
-        }
-
-        .card-header h4 { font-weight: 700; color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-
-        /* Form Styling */
-        .form-label { font-weight: 600; color: #4a5568; font-size: 0.9rem; margin-bottom: 8px; }
-        .form-control, .form-select { 
-            border-radius: 12px; 
-            padding: 11px 15px; 
-            border: 1px solid #e2e8f0;
-            transition: all 0.2s;
-        }
-        .form-control:focus, .form-select:focus { 
-            box-shadow: 0 0 0 4px rgba(79, 172, 254, 0.1);
-            border-color: #4facfe;
-        }
-
-        /* Button Styling */
-        .btn-custom { 
-            border-radius: 12px; 
-            padding: 12px 25px; 
-            font-weight: 600; 
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .btn-save { background: var(--primary-gradient); color: white; border: none; }
-        .btn-save:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(79, 172, 254, 0.3); color: white; }
-
-        /* Table Styling */
-        .table thead th { 
-            background-color: #f8fafc; 
-            color: #64748b; 
-            font-weight: 700; 
-            text-transform: uppercase; 
-            font-size: 0.8rem;
-            padding: 15px;
-            border-bottom: 2px solid #edf2f7;
-        }
-        .table tbody td { padding: 15px; vertical-align: middle; border-bottom: 1px solid #edf2f7; }
-        
-        .badge-pro { background: #e0f2fe; color: #0369a1; padding: 6px 12px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; }
-        .badge-dis { background: #f0fdf4; color: #166534; padding: 6px 12px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; }
-
-        .btn-action {
-            width: 38px; height: 38px;
-            display: inline-flex; align-items: center; justify-content: center;
-            border-radius: 10px; transition: 0.2s;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@300;400;700&display=swap');
+        body { background-color: #f0f4f8; font-family: 'Noto Sans Lao', sans-serif; padding: 10px 0; }
+        .card { border: none; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); background: white; }
+        .main-header { background: white; padding: 15px; border-radius: 20px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .btn-custom { border-radius: 12px; padding: 10px 20px; font-weight: 600; transition: 0.3s; border: none; }
+        .btn-add { background: linear-gradient(120deg, #4facfe 0%, #00f2fe 100%); color: white; }
     </style>
+</head>
+<body>
 
-    <script>
-        $(function(){
-            // Dependent Dropdown: ເລືອກແຂວງແລ້ວດຶງເມືອງ
-            $("#pro_id").change(function(){
-                var pro_id = $(this).val();
-                $.post("get_idstrict.php", { pro_id: pro_id }, function(output){
-                    $("#dis_id").html(output);  
-                });
+<div class="container">
+    <div class="main-header shadow-sm">
+        <div>
+            <h4 class="fw-bold mb-0 text-primary"><i class="bi bi-house-door-fill me-2"></i>ຈັດການຂໍ້ມູນບ້ານ</h4>
+            <p class="text-muted small mb-0">ບໍລິຫານຈັດການຂໍ້ມູນ ບ້ານ, ເມືອງ ແລະ ແຂວງ</p>
+        </div>
+        <button class="btn btn-add btn-custom" data-bs-toggle="modal" data-bs-target="#villageModal" id="btn_open_add">
+            <i class="fas fa-plus-circle me-2"></i> ເພີ່ມບ້ານໃໝ່
+        </button>
+    </div>
+
+    <div class="card overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="text-center table-light">
+                    <tr>
+                        <th width="80">ລຳດັບ</th>
+                        <th>ແຂວງ</th>
+                        <th>ເມືອງ</th>
+                        <th>ຊື່ບ້ານ</th>
+                        <th>ໝາຍເຫດ</th>
+                        <th width="150">ຈັດການ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php
+                        $query = "SELECT a.pro_name, a.pro_id, b.dis_name, b.dis_id, c.* FROM provinces AS a 
+                                  INNER JOIN districts AS b ON a.pro_id = b.pro_id 
+                                  INNER JOIN villages AS c ON b.dis_id = c.dis_id 
+                                  ORDER BY c.vill_id DESC";
+                        $sql = mysqli_query($connect, $query);
+                        $i = 1;
+                        while($form = mysqli_fetch_array($sql)){
+                    ?>
+                    <tr class="text-center">
+                        <td><?= $i++ ?></td>
+                        <td><span class="badge bg-info text-dark"><?= $form['pro_name']; ?></span></td>
+                        <td><span class="badge bg-success text-white"><?= $form['dis_name']; ?></span></td>
+                        <td class="fw-bold"><?= $form['vill_name']; ?></td>
+                        <td><?= $form['remark'] ?: '-'; ?></td>
+                        <td>
+                            <button class="btn btn-light btn-sm edit-btn" 
+                                    data-id="<?= $form['vill_id'] ?>"
+                                    data-pro="<?= $form['pro_id'] ?>"
+                                    data-dis="<?= $form['dis_id'] ?>"
+                                    data-name="<?= $form['vill_name'] ?>"
+                                    data-remark="<?= $form['remark'] ?>">
+                                <i class="bi bi-pencil text-success"></i>
+                            </button>
+                            <a href="delete_villages.php?vill_id=<?= $form['vill_id'];?>" class="btn btn-light btn-sm delete">
+                                <i class="bi bi-trash text-danger"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    <?php } ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="villageModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg">
+            <div class="modal-header border-0 p-4">
+                <h5 class="modal-title fw-bold" id="modalTitle">ເພີ່ມຂໍ້ມູນບ້ານ</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4 pt-0">
+                <form id="villageForm">
+                    <input type="hidden" id="vill_id">
+                    <div class="mb-3">
+                        <label class="form-label">ເລືອກແຂວງ</label>
+                        <select class="form-select" id="pro_id">
+                            <option value="">-- ເເລືອກແຂວງ --</option>
+                            <?php
+                                $select_pro = mysqli_query($connect, "SELECT * FROM provinces");
+                                while($p = mysqli_fetch_array($select_pro)){
+                                    echo "<option value='".$p['pro_id']."'>".$p['pro_name']."</option>";
+                                }
+                            ?>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">ເລືອກເມືອງ</label>
+                        <select class="form-select" id="dis_id">
+                            <option value="">-- ເລືອກເມືອງ --</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">ຊື່ບ້ານ</label>
+                        <input type="text" id="vill_name" class="form-control" placeholder="ປ້ອນຊື່ບ້ານ...">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">ໝາຍເຫດ</label>
+                        <textarea id="remark" class="form-control" rows="2"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0 p-4 pt-0">
+                <button type="button" class="btn btn-light btn-custom flex-grow-1" data-bs-dismiss="modal">ຍົກເລີກ</button>
+                <button type="button" class="btn btn-add btn-custom flex-grow-1" id="save_btn">ບັນທຶກຂໍ້ມູນ</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="show"></div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    $(function(){
+        // ດຶງຂໍ້ມູນເມືອງ
+        $("#pro_id").change(function(){
+            var pro_id = $(this).val();
+            $.post("get_idstrict.php", { pro_id: pro_id }, function(output){
+                $("#dis_id").html(output);
+                // ຖ້າເປັນການແກ້ໄຂ ໃຫ້ເລືອກເມືອງທີ່ຝາກຄ່າໄວ້
+                var selected_dis = $("#dis_id").data('selected');
+                if(selected_dis) {
+                    $("#dis_id").val(selected_dis);
+                    $("#dis_id").data('selected', ''); 
+                }
             });
+        });
 
-          $('#save').click(function(e){
-    e.preventDefault();
-    
-    // ເກັບຂໍ້ມູນຈາກ Form
-    var formData = {
-        pro_id: $('#pro_id').val(),
+        // ເປີດ Modal ເພີ່ມໃໝ່
+        $('#btn_open_add').click(function(){
+            $('#modalTitle').text('ເພີ່ມຂໍ້ມູນບ້ານ');
+            $('#vill_id').val('');
+            $('#villageForm')[0].reset();
+            $('#dis_id').html('<option value="">-- ເລືອກເມືອງ --</option>');
+        });
+
+        // ປຸ່ມແກ້ໄຂ
+        $('.edit-btn').click(function(){
+            $('#modalTitle').text('ແກ້ໄຂຂໍ້ມູນບ້ານ');
+            var id = $(this).data('id');
+            var pro = $(this).data('pro');
+            var dis = $(this).data('dis');
+            var name = $(this).data('name');
+            var remark = $(this).data('remark');
+
+            $('#vill_id').val(id);
+            $('#pro_id').val(pro).trigger('change');
+            $("#dis_id").data('selected', dis); 
+            $('#vill_name').val(name);
+            $('#remark').val(remark);
+            $('#villageModal').modal('show');
+        });
+
+        // ປຸ່ມບັນທຶກ (ທັງ Insert ແລະ Update)
+$('#save_btn').click(function(){
+    var btn = $(this);
+    var vill_id = $('#vill_id').val(); // ຖ້າມີ ID ແປວ່າແກ້ໄຂ
+    var data = {
+        vill_id: $('#vill_id').val(),
+        pro_id: $('#pro_id').val(), 
         dis_id: $('#dis_id').val(),
         vill_name: $('#vill_name').val(),
         remark: $('#remark').val()
     };
 
-    // ກວດສອບເບື້ອງຕົ້ນ
-    if(formData.vill_name == ""){
-        Swal.fire('ກະລຸນາປ້ອນຊື່ບ້ານ', '', 'warning');
+    if(data.dis_id == "" || data.vill_name == ""){
+        Swal.fire('ແຈ້ງເຕືອນ', 'ກະລຸນາປ້ອນຂໍ້ມູນໃຫ້ຄົບ', 'warning');
         return;
     }
 
-    // ປິດປຸ່ມເພື່ອປ້ອງກັນການກົດຊ້ຳ
-    $(this).prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> ກຳລັງບັນທຶກ...');
+    // ສະແດງ Loading ຢູ່ປຸ່ມ
+    btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
 
-    $.ajax({
-        url: 'insert_villages.php',
-        type: 'GET',
-        data: formData,
-        success: function(response){
-            if(response.trim() == "success"){
-                // ແຈ້ງເຕືອນເມື່ອສຳເລັດ
-                Swal.fire({
-                    icon: 'success',
-                    title: 'ບັນທຶກສຳເລັດ!',
-                    text: 'ຂໍ້ມູນບ້ານໄດ້ຖືກເພີ່ມເຂົ້າໃນລະບົບແລ້ວ',
-                    showConfirmButton: false,
-                    timer: 1500 // ໃຫ້ມັນຫາຍໄປເອງພ້ອມ Refresh
-                }).then(() => {
-                    location.reload(); // Refresh ໜ້າເວັບເພື່ອໂຊຂໍ້ມູນໃໝ່
-                });
-            } else {
-                // ແຈ້ງເຕືອນເມື່ອມີ Error
-                Swal.fire('ຜິດພາດ!', 'ບໍ່ສາມາດບັນທຶກໄດ້: ' + response, 'error');
-                $('#save').prop('disabled', false).text('ບັນທຶກຂໍ້ມູນ');
-            }
-        },
-        error: function() {
-            Swal.fire('Error!', 'ຕິດຕໍ່ Server ບໍ່ໄດ້', 'error');
-            $('#save').prop('disabled', false).text('ບັນທຶກຂໍ້ມູນ');
-        }
+    // ເລືອກ URL ຕາມເງື່ອນໄຂ
+    var url = (vill_id == "") ? 'insert_villages.php' : 'save_villages.php';
+
+    $.get(url, data, function(res){
+        $('#show').html(res);
+        btn.prop('disabled', false).html('ບັນທຶກຂໍ້ມູນ');
+    }).fail(function() {
+        Swal.fire('Error', 'ເຊື່ອມຕໍ່ກັບ Server ບໍ່ໄດ້', 'error');
+        btn.prop('disabled', false).html('ບັນທຶກຂໍ້ມູນ');
     });
 });
 
-            // SweetAlert Confirm Delete
-            $(document).on('click', '.delete', function(e){
-                e.preventDefault();
-                const href = $(this).attr('href');
-                Swal.fire({
-                    title: 'ຢືນຢັນການລົບ?',
-                    text: "ທ່ານຕ້ອງການລົບຂໍ້ມູນບ້ານນີ້ແທ້ຫຼືບໍ່?",
-                    icon: 'error',
-                    showCancelButton: true,
-                    confirmButtonColor: '#ef4444',
-                    cancelButtonColor: '#94a3b8',
-                    confirmButtonText: 'ລົບຂໍ້ມູນ',
-                    cancelButtonText: 'ຍົກເລີກ'
-                }).then((result) => {
-                    if (result.isConfirmed) { window.location.href = href; }
-                });
+        // ລົບຂໍ້ມູນ
+        $(document).on('click', '.delete', function(e){
+            e.preventDefault();
+            const href = $(this).attr('href');
+            Swal.fire({
+                title: 'ຢືນຢັນການລົບ?',
+                text: "ຂໍ້ມູນຈະຖືກລົບອອກຈາກລະບົບ",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'ລົບເລີຍ',
+                cancelButtonText: 'ຍົກເລີກ'
+            }).then((result) => {
+                if (result.isConfirmed) { window.location.href = href; }
             });
         });
-    </script>
-</head>
-<body>
-
-<div class="container">
-    <div class="card">
-        <div class="card-header text-center">
-            <h4><i class="bi bi-house-add-fill me-2"></i> ຈັດການຂໍ້ມູນບ້ານ</h4>
-        </div>
-        <div class="card-body p-4">
-            <form id="villageForm">
-                <div class="row g-3">
-                    <div class="col-lg-3 col-md-6">
-                        <label class="form-label">ຊື່ແຂວງ</label>
-                        <select class="form-select" id="pro_id">
-                            <option value="">-- ເລືອກແຂວງ --</option>
-                            <?php
-                                include("../cennect_dbstock.php");
-                                $select_pro = mysqli_query($connect, "SELECT * FROM provinces");
-                                while($data = mysqli_fetch_array($select_pro)){
-                                    echo "<option value='".$data['pro_id']."'>".$data['pro_name']."</option>";
-                                }
-                            ?>
-                        </select>
-                    </div>
-                    <div class="col-lg-3 col-md-6">
-                        <label class="form-label">ຊື່ເມືອງ</label>
-                        <select class="form-select" id="dis_id">
-                            <option value="">-- ເລືອກເມືອງ --</option>
-                        </select>
-                    </div>
-                    <div class="col-lg-3 col-md-6">
-                        <label class="form-label">ຊື່ບ້ານ</label>
-                        <input type="text" id="vill_name" class="form-control" placeholder="ປ້ອນຊື່ບ້ານ...">
-                    </div>
-                    <div class="col-lg-3 col-md-6">
-                        <label class="form-label">ໝາຍເຫດ</label>
-                        <input type="text" id="remark" class="form-control" placeholder="ໝາຍເຫດ...">
-                    </div>
-                    <div class="col-12 text-center mt-4">
-                        <button type="button" class="btn btn-custom btn-save" id="save">
-                            <i class="fas fa-save"></i> ບັນທຶກຂໍ້ມູນ
-                        </button>
-                        <button type="reset" class="btn btn-custom btn-light text-muted ms-2">
-                            <i class="fas fa-redo"></i> ລ້າງຟອມ
-                        </button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div class="card overflow-hidden">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0 align-middle">
-                    <thead class="text-center">
-                        <tr>
-                            <th width="80">ລຳດັບ</th>
-                            <th>ແຂວງ</th>
-                            <th>ເມືອງ</th>
-                            <th>ຊື່ບ້ານ</th>
-                            <th>ໝາຍເຫດ</th>
-                            <th width="180">ຈັດການ</th>
-                        </tr>
-                    </thead>
-                   <tbody>
-    <?php
-        include("../cennect_dbstock.php");
-
-        // ໃຊ້ INNER JOIN ເພື່ອຄວາມຊັດເຈນ ແລະ ປ້ອງກັນ Error
-        $query = "SELECT a.pro_name, b.dis_name, c.vill_id, c.dis_id, c.vill_name, c.remark 
-                  FROM provinces AS a 
-                  INNER JOIN districts AS b ON a.pro_id = b.pro_id 
-                  INNER JOIN villages AS c ON b.dis_id = c.dis_id 
-                  ORDER BY c.vill_id DESC";
-
-        $sql = mysqli_query($connect, $query);
-
-        // ກວດສອບວ່າ Query ເຮັດວຽກໄດ້ຫຼືບໍ່
-        if (!$sql) {
-            // ຖ້າ Query ຜິດ ມັນຈະບອກ Error ອອກມາເລີຍ
-            echo "<tr><td colspan='6' class='text-danger text-center'>Query Error: " . mysqli_error($connect) . "</td></tr>";
-        } else {
-            $i = 1;
-            while($form = mysqli_fetch_array($sql)){
-    ?>
-    <tr class="text-center">
-        <td><span class="text-muted fw-bold"><?= $i ?></span></td>
-        <td><span class="badge-pro"><?= $form['pro_name']; ?></span></td>
-        <td><span class="badge-dis"><?= $form['dis_name']; ?></span></td>
-        <td class="fw-bold"><?= $form['vill_name']; ?></td>
-        <td class="text-muted small"><?= $form['remark'] ?: '-'; ?></td>
-        <td>
-            <div class="d-flex justify-content-center gap-2">
-                <a href="update_villages.php?vill_id=<?= $form['vill_id'];?>" class="btn btn-outline-success btn-action" title="ແກ້ໄຂ">
-                    <i class="bi bi-pencil-square"></i>
-                </a>
-                <a href="delete_villages.php?vill_id=<?= $form['vill_id'];?>" class="btn btn-outline-danger btn-action delete" title="ລົບ">
-                    <i class="bi bi-trash"></i>
-                </a>
-            </div>
-        </td>
-    </tr>
-    <?php 
-            $i++; 
-            } // ປິດ while
-        } // ປິດ else 
-    ?>
-</tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-    
-    <div id="show"></div>
-</div>
-
+    });
+</script>
 </body>
 </html>

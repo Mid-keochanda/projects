@@ -281,7 +281,7 @@
                             <button type="button" id="send" class="btn btn-update">
                                 <i class="bi bi-check-circle me-2"></i> ອັບເດດຂໍ້ມູນ
                             </button>
-                            <a href="select_form_users.php" class="btn btn-outline-secondary ms-2" style="border-radius: 10px; padding: 12px 30px;">
+                            <a href="from_users.php" class="btn btn-outline-secondary ms-2" style="border-radius: 10px; padding: 12px 30px;">
                                 ຍົກເລີກ
                             </a>
                         </div>
