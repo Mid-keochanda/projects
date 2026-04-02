@@ -103,6 +103,20 @@ if (@$_SESSION['checked'] <> 1) {
           <li class="nav-item">
             <a href="#" class="nav-link">
               <i class="nav-icon fas fa-user-friends"></i>
+              <p>ຈັດການເຄື່ອງອາໄຫຼ່ <i class="right fas fa-angle-left"></i></p>
+            </a>
+            <ul class="nav nav-treeview">
+              <li class="nav-item">
+                <a href="parts/form_parts.php" target="frame" class="nav-link">
+                  <i class="far fa-circle nav-icon text-info"></i> <p>ເພີ່ມຂໍ້ມູນອາໄຫຼ່</p>
+                </a>
+              </li>
+            </ul>
+          </li>
+          
+          <li class="nav-item">
+            <a href="#" class="nav-link">
+              <i class="nav-icon fas fa-user-friends"></i>
               <p>ຈັດການລົດ <i class="right fas fa-angle-left"></i></p>
             </a>
             <ul class="nav nav-treeview">

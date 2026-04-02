@@ -1,23 +1,31 @@
 <?php
-include("../cennect_dbstock.php"); // ກວດເບິ່ງວ່າຟາຍ connect ຢູ່ Folder ທາງນອກແທ້ບໍ່
+include("../cennect_dbstock.php");
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $part_name  = mysqli_real_escape_string($connect, $_POST['part_name']);
-    $category   = mysqli_real_escape_string($connect, $_POST['category']);
-    $unit       = mysqli_real_escape_string($connect, $_POST['unit']);
-    $qty_stock  = $_POST['qty_stock'];
-    $min_stock  = $_POST['min_stock'];
-    $cost_price = $_POST['cost_price'];
-    $sale_price = $_POST['sale_price'];
-    $remark     = mysqli_real_escape_string($connect, $_POST['remark']);
+$part_id    = $_POST['part_id'];
+$part_name  = $_POST['part_name'];
+$category   = $_POST['category'];
+$qty_stock  = $_POST['qty_stock'];
+$unit       = $_POST['unit'];
+$min_stock  = $_POST['min_stock'];
+$cost_price = $_POST['cost_price'];
+$sale_price = $_POST['sale_price'];
+$remark     = $_POST['remark'];
 
-    $sql = "INSERT INTO parts (part_name, category, unit, qty_stock, min_stock, cost_price, sale_price, remark, created_at) 
-            VALUES ('$part_name', '$category', '$unit', '$qty_stock', '$min_stock', '$cost_price', '$sale_price', '$remark', NOW())";
+$sql = "UPDATE parts SET 
+        part_name = '$part_name', 
+        category = '$category', 
+        qty_stock = '$qty_stock', 
+        unit = '$unit', 
+        min_stock = '$min_stock', 
+        cost_price = '$cost_price', 
+        sale_price = '$sale_price',
+        remark = '$remark',    
+        updated_at = NOW()    
+        WHERE part_id = '$part_id'";
 
-    if (mysqli_query($connect, $sql)) {
-        echo "<script>alert('ບັນທຶກສຳເລັດ'); window.location.href='select_parts.php';</script>";
-    } else {
-        echo "Error: " . mysqli_error($connect);
-    }
+if(mysqli_query($connect, $sql)) {
+    header("location: form_parts.php?status=success");
+} else {
+    header("location: form_parts.php?status=error");
 }
 ?>
