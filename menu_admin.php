@@ -144,6 +144,22 @@ if (@$_SESSION['checked'] <> 1) {
             </ul>
           </li>
 
+         
+          
+          <li class="nav-item">
+            <a href="#" class="nav-link">
+              <i class="nav-icon fas fa-user-friends"></i>
+              <p>ຈັດການປະເພດອາໄຫຼ່ <i class="right fas fa-angle-left"></i></p>
+            </a>
+            <ul class="nav nav-treeview">
+              <li class="nav-item">
+                <a href="categories/form_categories.php" target="frame" class="nav-link">
+                  <i class="far fa-circle nav-icon text-info"></i> <p>ເພີ່ມຂໍ້ມູນປະເພດອາໄຫຼ່</p>
+                </a>
+              </li>
+            </ul>
+          </li>
+
           <li class="nav-item">
             <a href="#" class="nav-link">
               <i class="nav-icon fas fa-user-friends"></i>
@@ -151,7 +167,21 @@ if (@$_SESSION['checked'] <> 1) {
             </a>
             <ul class="nav nav-treeview">
               <li class="nav-item">
-                <a href="parts/form_parts.php" target="frame" class="nav-link">
+                <a href="parts_profile/form_parts_profile.php" target="frame" class="nav-link">
+                  <i class="far fa-circle nav-icon text-info"></i> <p>ເພີ່ມຂໍ້ມູນອາໄຫຼ່</p>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <li class="nav-item">
+            <a href="#" class="nav-link">
+              <i class="nav-icon fas fa-user-friends"></i>
+              <p>ຈັດການເຄື່ອງອາໄຫຼ່ <i class="right fas fa-angle-left"></i></p>
+            </a>
+            <ul class="nav nav-treeview">
+              <li class="nav-item">
+                <a href="part_purchases/form_part_purchases.php" target="frame" class="nav-link">
                   <i class="far fa-circle nav-icon text-info"></i> <p>ເພີ່ມຂໍ້ມູນອາໄຫຼ່</p>
                 </a>
               </li>

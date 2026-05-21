@@ -134,11 +134,11 @@
                 <div class="row g-3">
                     <div class="col-6">
                         <label class="form-label small fw-bold">ຊື່</label>
-                        <input type="text" id="cust_name" class="form-control bg-light border-0">
+                        <input type="text" id="cust_name" class="form-control bg-light border-0"placeholder="ຊື່ລູກຄ້າ">
                     </div>
                     <div class="col-6">
                         <label class="form-label small fw-bold">ນາມສະກຸນ</label>
-                        <input type="text" id="cust_surname" class="form-control bg-light border-0">
+                        <input type="text" id="cust_surname" class="form-control bg-light border-0" placeholder="ນາມສະກຸນ">
                     </div>
                     <div class="col-4">
                         <label class="form-label small fw-bold">ເພດ</label>
@@ -149,15 +149,15 @@
                     </div>
                     <div class="col-8">
                         <label class="form-label small fw-bold">ເບີໂທ</label>
-                        <input type="text" id="tel" class="form-control bg-light border-0">
+                        <input type="text" id="tel" class="form-control bg-light border-0" placeholder="ເບີໂທ">
                     </div>
                     <div class="col-12">
                         <label class="form-label small fw-bold">ທີ່ຢູ່</label>
-                        <textarea id="address" class="form-control bg-light border-0" rows="2"></textarea>
+                        <textarea id="address" class="form-control bg-light border-0" placeholder="ທີ່ຢູ່" rows="2"></textarea>
                     </div>
                     <div class="col-12">
                         <label class="form-label small fw-bold">ໝາຍເຫດ</label>
-                        <textarea id="remark" class="form-control bg-light border-0" rows="2"></textarea>
+                        <textarea id="remark" class="form-control bg-light border-0" placeholder="ໝາຍເຫດ" rows="2"></textarea>
                     </div>
                 </div>
             </div>

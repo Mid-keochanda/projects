@@ -149,10 +149,10 @@
                                 ?>
                             </select>
                         </div>
-                        <div class="col-md-4"><label class="form-label small fw-bold">ຍີ່ຫໍ້</label><input type="text" name="car_brand" id="car_brand" class="form-control form-control-custom"></div>
-                        <div class="col-md-4"><label class="form-label small fw-bold">ລຸ້ນ</label><input type="text" name="car_model" id="car_model" class="form-control form-control-custom"></div>
-                        <div class="col-md-4"><label class="form-label small fw-bold">ສີ</label><input type="text" name="car_color" id="car_color" class="form-control form-control-custom"></div>
-                        <div class="col-12"><label class="form-label small fw-bold">ໝາຍເຫດ</label><textarea name="remark" id="remark" class="form-control form-control-custom" rows="2"></textarea></div>
+                        <div class="col-md-4"><label class="form-label small fw-bold">ຍີ່ຫໍ້</label><input type="text" name="car_brand" id="car_brand" class="form-control form-control-custom" placeholder="ຍີ່ຫໍ້"></div>
+                        <div class="col-md-4"><label class="form-label small fw-bold">ລຸ້ນ</label><input type="text" name="car_model" id="car_model" class="form-control form-control-custom" placeholder="ລຸ້ນ"></div>
+                        <div class="col-md-4"><label class="form-label small fw-bold">ສີ</label><input type="text" name="car_color" id="car_color" class="form-control form-control-custom" placeholder="ສີ"></div>
+                        <div class="col-12"><label class="form-label small fw-bold">ໝາຍເຫດ</label><textarea name="remark" id="remark" class="form-control form-control-custom" placeholder="ໝາຍເຫດ" rows="2"></textarea></div>
                     </div>
                 </div>
                 <div class="modal-footer border-0 pb-4 px-4">
