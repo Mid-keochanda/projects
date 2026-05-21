@@ -12,7 +12,18 @@ if(isset($_POST['car_id'])) {
     if(mysqli_query($connect, $sql)) {
         $last_id = mysqli_insert_id($connect);
         echo "
+        <link rel='stylesheet' href='https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;700&display=swap'>
         <script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+        
+        <style>
+            .swal2-popup {
+                font-family: 'Noto Sans Lao', sans-serif !important;
+            }
+            .swal2-title {
+                font-weight: 700 !important;
+            }
+        </style>
+
         <script>
             setTimeout(function() {
                 Swal.fire({
@@ -23,7 +34,7 @@ if(isset($_POST['car_id'])) {
                     showConfirmButton: false
                 }).then(function() {
                     // ສົ່ງ ID ໄປໜ້າເພີ່ມອາໄຫຼ່ທັນທີ
-                    window.location.href = 'add_service_item.php?id=$last_id';
+                    window.location.href = 'select_service_logs.php?id=$last_id';
                 });
             }, 100);
         </script>";

@@ -109,7 +109,7 @@ $head = mysqli_fetch_array($head_res);
                 <div class="col-md-4">
                     <label class="small">ເລືອກອາໄຫຼ່ໃນສະຕອກ</label><br>
                     <select name="part_id" id="part_select" class="form-select" onchange="updatePrice()" required>
-                        <option value="0" data-stock="999999">-- ອາໄຫຼ່ນອກ (ພິມເຍງ) --</option>
+                        <option value="0" data-stock="999999">-- ອາໄຫຼ່ --</option>
                         <?php 
                         $res_parts = mysqli_query($connect, "SELECT * FROM parts WHERE qty_stock > 0");
                         while($p = mysqli_fetch_array($res_parts)) {

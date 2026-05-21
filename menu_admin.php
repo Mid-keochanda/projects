@@ -99,16 +99,32 @@ if (@$_SESSION['checked'] <> 1) {
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
           
           <li class="nav-header text-uppercase opacity-50 small" style="letter-spacing: 1px;">ຂໍ້ມູນພື້ນຖານ</li>
+          
+           <li class="nav-item">
+            <a href="#" class="nav-link">
+              <i class="nav-icon fas fa-user-friends"></i>
+              <p>ຈັດການລູກຄ້າ <i class="right fas fa-angle-left"></i></p>
+            </a>
+            <ul class="nav nav-treeview">
+              <li class="nav-item">
+                <a href="customers/form_customers.php" target="frame" class="nav-link">
+                  <i class="far fa-circle nav-icon text-info"></i> <p>ເພີ່ມຂໍ້ມູນລູກຄ້າ</p>
+                </a>
+              </li>
+            </ul>
+          </li>
 
           <li class="nav-item">
             <a href="#" class="nav-link">
               <i class="nav-icon fas fa-user-friends"></i>
-              <p>ຈັດການເຄື່ອງອາໄຫຼ່ <i class="right fas fa-angle-left"></i></p>
+              <p>ຈັດການອອກບິນ/ສ້ອມແປງ <i class="right fas fa-angle-left"></i></p>
             </a>
             <ul class="nav nav-treeview">
               <li class="nav-item">
-                <a href="parts/form_parts.php" target="frame" class="nav-link">
-                  <i class="far fa-circle nav-icon text-info"></i> <p>ເພີ່ມຂໍ້ມູນອາໄຫຼ່</p>
+                <a href="service_logs/form_service_logs.php" target="frame" class="nav-link">
+                  <i class="far fa-circle nav-icon text-info"></i> <p>ອອກບິນສ້ອມແປງລົດ</p>
+                <a href="service_logs/select_service_logs.php" target="frame" class="nav-link">
+                  <i class="far fa-circle nav-icon text-info"></i> <p>ລົດກຳລັງສ້ອມແປງ</p>
                 </a>
               </li>
             </ul>
@@ -131,12 +147,12 @@ if (@$_SESSION['checked'] <> 1) {
           <li class="nav-item">
             <a href="#" class="nav-link">
               <i class="nav-icon fas fa-user-friends"></i>
-              <p>ຈັດການລູກຄ້າ <i class="right fas fa-angle-left"></i></p>
+              <p>ຈັດການເຄື່ອງອາໄຫຼ່ <i class="right fas fa-angle-left"></i></p>
             </a>
             <ul class="nav nav-treeview">
               <li class="nav-item">
-                <a href="customers/form_customers.php" target="frame" class="nav-link">
-                  <i class="far fa-circle nav-icon text-info"></i> <p>ເພີ່ມຂໍ້ມູນລູກຄ້າ</p>
+                <a href="parts/form_parts.php" target="frame" class="nav-link">
+                  <i class="far fa-circle nav-icon text-info"></i> <p>ເພີ່ມຂໍ້ມູນອາໄຫຼ່</p>
                 </a>
               </li>
             </ul>
