@@ -17,21 +17,22 @@
         .btn-action { width: 35px; height: 35px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; }
         .search-box { background: #f1f2f6; border-radius: 0 12px 12px 0 !important; border: none; }
         .input-group-text { background: #f1f2f6; border-radius: 12px 0 0 12px !important; border: none; }
-        td div.small {
-        font-size: 0.8rem;
-        white-space: nowrap; /* ບໍ່ໃຫ້ວັນທີຂຶ້ນແຖວໃໝ່ */
-    }
-    .bi-calendar-check { color: #2ecc71; } /* ສີຂຽວອ່ອນ */
-    .bi-clock-history { color: #95a5a6; } /* ສີເທົາ */
+        .table th { background-color: #4361ee !important; color: white !important; font-weight: 600; }
+        td div.small { 
+            font-size: 0.8rem;
+            white-space: nowrap; 
+        }
+        .bi-calendar-check { color: #2ecc71; } 
+        .bi-clock-history { color: #95a5a6; } 
     </style>
 </head>
 <body>
 
-<div class="container-fluid py-5 px-md-5">
+<div class="container-fluid py-3 px-md-3">
     <div class="card">
-        <div class="card-header bg-white border-0 py-4 px-4 d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+        <div class="card-header bg-white border-0 py-2 px-2 d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
             <div>
-                <h4 class="fw-bold mb-1">ຈັດການຂໍ້ມູນລູກຄ້າ</h4>
+                <h4 class="fw-bold mb-1"><i class="bi bi-people-fill text-primary me-2"></i>ຈັດການຂໍ້ມູນລູກຄ້າ</h4>
                 <p class="text-muted small mb-0">ລະບົບຈັດການ ແລະ ຕິດຕາມຂໍ້ມູນລູກຄ້າທັງໝົດ</p>
             </div>
 
@@ -41,81 +42,89 @@
                     <input type="text" id="search" class="form-control search-box" placeholder="ຄົ້ນຫາ...">
                 </div>
                 <button class="btn btn-primary px-4 shadow-sm" style="border-radius: 12px; white-space: nowrap;" onclick="openCustomerModal()">
-                    <i class="bi bi-person-plus-fill me-2"></i> ເພີ່ມລູກຄ້າ
+                    <i class="bi bi-person-plus-fill me-2"></i> ເພີ່ມລູກຄ້າໃໝ່
                 </button>
             </div>
         </div>
 
-        <div class="card-body px-4">
+        <div class="card-body px-2">
             <div class="table-responsive">
                 <table class="table table-hover align-middle" id="customerTable">
-                    <thead class="table-light">
-                        <thead class="table-light">
-    <tr>
-        <th class="text-center">ລຳດັບ</th>
-        <th>ຊື່ ແລະ ນາມສະກຸນ</th>
-        <th class="text-center">ເພດ</th>
-        <th>ເບີໂທລະສັບ</th>
-        <th>ທີ່ຢູ່</th>
-        <th>ວັນທີບັນທຶກ</th> 
-        <th>ອັບເດດຫຼ້າສຸດ</th> 
-        <th>ໝາຍເຫດ</th>
-        <th class="text-center">ຈັດການ</th>
-    </tr>
-</thead>
+                    <thead>
+                        <tr class="text-center">
+                            <th width="70">ລຳດັບ</th>
+                            <th class="text-start">ຊື່ ແລະ ນາມສະກຸນ</th>
+                            <th width="100">ເພດ</th>
+                            <th>ເບີໂທລະສັບ</th>
+                            <th class="text-start">ທີ່ຢູ່</th>
+                            <th>ວັນທີບັນທຶກ</th> 
+                            <th>ອັບເດດຫຼ້າສຸດ</th> 
+                            <th class="text-start">ໝາຍເຫດ</th>
+                            <th width="110">ຈັດການ</th>
+                        </tr>
                     </thead>
                     <tbody>
-    <?php
-    $i = 1;
-    $sql = mysqli_query($connect, "SELECT *, 
-            DATE_FORMAT(created_at, '%d/%m/%Y %H:%i') as date_create,
-            DATE_FORMAT(updated_at, '%d/%m/%Y %H:%i') as date_update 
-            FROM customers ORDER BY cust_id DESC");
-    
-    while($row = mysqli_fetch_array($sql)) {
-        $color = ($row['gender'] == 'ຊາຍ') ? 'primary' : 'danger';
-    ?>
-    <tr>
-        <td class="text-center fw-bold text-muted"><?= $i++; ?></td>
-        <td class="fw-bold"><?= $row['cust_name']." ".$row['cust_surname']; ?></td>
-        <td class="text-center">
-            <span class="badge-gender bg-<?= $color ?>-subtle text-<?= $color ?>">
-                <?= $row['gender']; ?>
-            </span>
-        </td>
-        <td class="text-primary fw-medium"><?= $row['tel']; ?></td>
-        <td>
-            <div class="text-muted small text-truncate" style="max-width: 150px;" title="<?= $row['address']; ?>">
-                <?= $row['address']; ?>
-            </div>
-        </td>
-        
-        <td>
-            <div class="text-success small">
-                <i class="bi bi-calendar-check me-1"></i><?= $row['date_create']; ?>
-            </div>
-        </td>
+                        <?php
+                        $i = 1;
+                        $sql = mysqli_query($connect, "SELECT *, 
+                                DATE_FORMAT(created_at, '%d/%m/%Y %H:%i') as date_create,
+                                DATE_FORMAT(updated_at, '%d/%m/%Y %H:%i') as date_update 
+                                FROM customers ORDER BY cust_id DESC");
+                        
+                        while($row = mysqli_fetch_array($sql)) {
+                            $color = ($row['gender'] == 'ຊາຍ') ? 'primary' : 'danger';
+                        ?>
+                        <tr>
+                            <td class="text-center fw-bold text-muted"><?= $i++; ?></td>
+                            <td class="fw-bold">
+                                <i class="bi bi-person-badge text-secondary me-2"></i><?= $row['cust_name']." ".$row['cust_surname']; ?>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge-gender bg-<?= $color ?>-subtle text-<?= $color ?>">
+                                    <?= $row['gender']; ?>
+                                </span>
+                            </td>
+                            <td class="text-primary fw-medium">
+                                <i class="bi bi-telephone text-muted me-1"></i><?= $row['tel']; ?>
+                            </td>
+                            <td>
+                                <div class="text-muted small text-truncate" style="max-width: 250px;" title="<?= $row['address']; ?>">
+                                    <i class="bi bi-geo-alt text-danger me-1"></i><?= $row['address']; ?>
+                                </div>
+                            </td>
+                            
+                            <td class="text-center">
+                                <div class="text-success small">
+                                    <i class="bi bi-calendar-check me-1"></i><?= $row['date_create']; ?>
+                                </div>
+                            </td>
 
-        <td>
-            <div class="text-muted small">
-                <i class="bi bi-clock-history me-1"></i><?= $row['date_update']; ?>
-            </div>
-        </td>
-        <td class="fw-bold"><?= $row['remark']; ?></td>
+                            <td class="text-center">
+                                <div class="text-muted small">
+                                    <i class="bi bi-clock-history me-1"></i><?= $row['date_update']; ?>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="small text-dark">
+                                    <?php if(!empty($row['remark'])) { ?>
+                                        <i class="bi bi-sticky text-warning me-1"></i><?= $row['remark']; ?>
+                                    <?php } else { echo "-"; } ?>
+                                </span>
+                            </td>
 
-        <td class="text-center">
-            <div class="d-flex justify-content-center gap-1">
-                <button class="btn btn-action btn-outline-warning border-0" onclick="openCustomerModal('<?= $row['cust_id']; ?>','<?= $row['cust_name']; ?>','<?= $row['cust_surname']; ?>','<?= $row['gender']; ?>','<?= $row['tel']; ?>','<?= $row['address']; ?>','<?= $row['remark']; ?>')">
-                    <i class="bi bi-pencil"></i>
-                </button>
-                <button class="btn btn-action btn-outline-danger border-0 btn-delete" data-cust_id="<?= $row['cust_id']; ?>">
-                    <i class="bi bi-trash"></i>
-                </button>
-            </div>
-        </td>
-    </tr>
-    <?php } ?>
-</tbody>
+                            <td class="text-center">
+                                <div class="d-flex justify-content-center gap-1">
+                                    <button class="btn btn-action btn-outline-warning border-0" onclick="openCustomerModal('<?= $row['cust_id']; ?>','<?= $row['cust_name']; ?>','<?= $row['cust_surname']; ?>','<?= $row['gender']; ?>','<?= $row['tel']; ?>','<?= $row['address']; ?>','<?= $row['remark']; ?>')">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn btn-action btn-outline-danger border-0 btn-delete" data-cust_id="<?= $row['cust_id']; ?>">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <?php } ?>
+                    </tbody>
                 </table>
             </div>
         </div>
@@ -126,44 +135,44 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="border-radius: 20px; border: none;">
             <div class="modal-header border-0 pt-4 px-4">
-                <h5 class="fw-bold" id="modalTitle">ເພີ່ມລູກຄ້າໃໝ່</h5>
+                <h5 class="fw-bold" id="modalTitle"><i class="bi bi-person-lines-fill text-primary me-2"></i>ເພີ່ມລູກຄ້າໃໝ່</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body p-4">
+            <div class="modal-body p-4 pt-0">
                 <input type="hidden" id="cust_id">
                 <div class="row g-3">
                     <div class="col-6">
-                        <label class="form-label small fw-bold">ຊື່</label>
-                        <input type="text" id="cust_name" class="form-control bg-light border-0"placeholder="ຊື່ລູກຄ້າ">
+                        <label class="form-label small fw-bold"><i class="bi bi-person me-1 text-muted"></i>ຊື່</label>
+                        <input type="text" id="cust_name" class="form-control bg-light border-0" style="border-radius: 10px;" placeholder="ຊື່ລູກຄ້າ">
                     </div>
                     <div class="col-6">
-                        <label class="form-label small fw-bold">ນາມສະກຸນ</label>
-                        <input type="text" id="cust_surname" class="form-control bg-light border-0" placeholder="ນາມສະກຸນ">
+                        <label class="form-label small fw-bold"><i class="bi bi-person me-1 text-muted"></i>ນາມສະກຸນ</label>
+                        <input type="text" id="cust_surname" class="form-control bg-light border-0" style="border-radius: 10px;" placeholder="ນາມສະກຸນ">
                     </div>
                     <div class="col-4">
-                        <label class="form-label small fw-bold">ເພດ</label>
-                        <select id="gender" class="form-select bg-light border-0">
+                        <label class="form-label small fw-bold"><i class="bi bi-gender-ambiguous me-1 text-muted"></i>ເພດ</label>
+                        <select id="gender" class="form-select bg-light border-0" style="border-radius: 10px;">
                             <option value="ຊາຍ">ຊາຍ</option>
                             <option value="ຍິງ">ຍິງ</option>
                         </select>
                     </div>
                     <div class="col-8">
-                        <label class="form-label small fw-bold">ເບີໂທ</label>
-                        <input type="text" id="tel" class="form-control bg-light border-0" placeholder="ເບີໂທ">
+                        <label class="form-label small fw-bold"><i class="bi bi-telephone me-1 text-muted"></i>ເບີໂທ</label>
+                        <input type="text" id="tel" class="form-control bg-light border-0" style="border-radius: 10px;" placeholder="ເບີໂທລະສັບ">
                     </div>
                     <div class="col-12">
-                        <label class="form-label small fw-bold">ທີ່ຢູ່</label>
-                        <textarea id="address" class="form-control bg-light border-0" placeholder="ທີ່ຢູ່" rows="2"></textarea>
+                        <label class="form-label small fw-bold"><i class="bi bi-geo-alt me-1 text-muted"></i>ທີ່ຢູ່</label>
+                        <textarea id="address" class="form-control bg-light border-0" style="border-radius: 10px;" placeholder="ທີ່ຢູ່ປະຈຸບັນ..." rows="2"></textarea>
                     </div>
                     <div class="col-12">
-                        <label class="form-label small fw-bold">ໝາຍເຫດ</label>
-                        <textarea id="remark" class="form-control bg-light border-0" placeholder="ໝາຍເຫດ" rows="2"></textarea>
+                        <label class="form-label small fw-bold"><i class="bi bi-sticky me-1 text-muted"></i>ໝາຍເຫດ</label>
+                        <textarea id="remark" class="form-control bg-light border-0" style="border-radius: 10px;" placeholder="ຂໍ້ມູນເພີ່ມເຕີມ..." rows="2"></textarea>
                     </div>
                 </div>
             </div>
             <div class="modal-footer border-0 pb-4 px-4">
                 <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal" style="border-radius: 12px;">ຍົກເລີກ</button>
-                <button type="button" id="btnSubmit" class="btn btn-primary px-4 shadow" style="border-radius: 12px;">ບັນທຶກ</button>
+                <button type="button" id="btnSubmit" class="btn btn-primary px-4 shadow" style="border-radius: 12px;"><i class="bi bi-check-circle me-1"></i> ບັນທຶກ</button>
             </div>
         </div>
     </div>
@@ -175,14 +184,14 @@
 
 <script>
 function openCustomerModal(id='', n='', s='', g='ຊາຍ', t='', a='', r='') {
-    $("#modalTitle").text(id ? "ແກ້ໄຂຂໍ້ມູນລູກຄ້າ" : "ເພີ່ມລູກຄ້າໃໝ່");
+    $("#modalTitle").html(id ? "<i class='bi bi-pencil-square text-warning me-2'></i>ແກ້ໄຂຂໍ້ມູນລູກຄ້າ" : "<i class='bi bi-person-plus-fill text-primary me-2'></i>ເພີ່ມລູກຄ້າໃໝ່");
     $("#cust_id").val(id); $("#cust_name").val(n); $("#cust_surname").val(s);
     $("#gender").val(g); $("#tel").val(t); $("#address").val(a); $("#remark").val(r);
     $("#customerModal").modal('show');
 }
 
 $(document).ready(function() {
-    // ຄົ້ນຫາ
+    // ຄົ້ນຫາ Real-time
     $("#search").on("keyup", function() {
         var value = $(this).val().toLowerCase();
         $("#customerTable tbody tr").filter(function() {
@@ -190,7 +199,7 @@ $(document).ready(function() {
         });
     });
 
-    // ບັນທຶກ
+    // ບັນທຶກຂໍ້ມູນ
     $("#btnSubmit").click(function() {
         const data = {
             cust_id: $("#cust_id").val(),
@@ -213,12 +222,17 @@ $(document).ready(function() {
         });
     });
 
-    // ລຶບ
+    // ລຶບຂໍ້ມູນ
     $(document).on("click", ".btn-delete", function() {
         const id = $(this).data("cust_id");
         Swal.fire({
-            title: 'ຢືນຢັນການລຶບ?', icon: 'warning', showCancelButton: true,
-            confirmButtonText: 'ລຶບ', cancelButtonText: 'ຍົກເລີກ', confirmButtonColor: '#d33'
+            title: 'ຢືນຢັນການລຶບ?', 
+            text: "ຂໍ້ມູນລູກຄ້າລາຍການນີ້ຈະຖືກລຶບອອກຖາວອນ!",
+            icon: 'warning', 
+            showCancelButton: true,
+            confirmButtonText: 'ລຶບເລີຍ', 
+            cancelButtonText: 'ຍົກເລີກ', 
+            confirmButtonColor: '#d33'
         }).then((result) => {
             if (result.isConfirmed) window.location.href = "delete_customers.php?cust_id=" + id;
         });

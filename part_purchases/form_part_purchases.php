@@ -17,17 +17,24 @@ mysqli_set_charset($connect, "utf8");
         .custom-card { border: none; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
         .table th { background-color: #4361ee !important; color: white !important; font-weight: 600; }
         .swal2-popup { font-family: 'Noto Sans Lao', sans-serif !important; border-radius: 15px !important; }
+        .form-control-custom { border-radius: 10px; padding: 0.6rem 1rem; }
     </style>
 </head>
 <body>
 
 <div class="container py-5">
-    <div class="row mb-4 align-items-center">
-        <div class="col-6">
-            <h3 class="fw-bold text-dark"><i class="fas fa-file-download text-primary me-2"></i>ປະຫວັດການນຳເຂົ້າອາໄຫຼ່</h3>
+    
+    <div class="row mb-4 align-items-center g-3">
+        <div class="col-md-5">
+            <h3 class="fw-bold text-dark m-0"><i class="fas fa-file-download text-primary me-2"></i>ປະຫວັດການນຳເຂົ້າອາໄຫຼ່</h3>
             <p class="text-muted small mb-0"> ບັນທຶກ ແລະ ຕິດຕາມລາຍການຈັດຊື້ອາໄຫຼ່ເຂົ້າຄັງສະຕັອກ</p>
         </div>
-        <div class="col-6 text-end">
+        <div class="col-md-7 text-end d-flex gap-2 justify-content-md-end justify-content-between">
+            <div class="input-group" style="max-width: 300px;">
+                <span class="input-group-text bg-white border-0 shadow-sm" style="border-radius: 10px 0 0 10px;"><i class="fas fa-search text-muted"></i></span>
+                <input type="text" id="searchPurchase" class="form-control border-0 shadow-sm" placeholder="ຄົ້ນຫາ: ລະຫັດ, ຊື່ອາໄຫຼ່, ບໍລິສັດ..." style="border-radius: 0 10px 10px 0;">
+            </div>
+
             <button class="btn btn-primary fw-bold shadow-sm" style="border-radius: 10px;" data-bs-toggle="modal" data-bs-target="#addPurchaseModal">
                 <i class="fas fa-plus-circle me-1"></i> ນຳເຂົ້າອາໄຫຼ່
             </button>
@@ -36,7 +43,7 @@ mysqli_set_charset($connect, "utf8");
 
     <div class="card custom-card p-4">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
+            <table class="table table-hover align-middle mb-0" id="purchaseTable">
                 <thead class="text-center">
                     <tr>
                         <th width="60">#</th>
@@ -45,14 +52,13 @@ mysqli_set_charset($connect, "utf8");
                         <th class="text-start">ຊື່ອາໄຫຼ່</th>
                         <th>ຈຳນວນນຳເຂົ້າ</th>
                         <th>ລາຄາຊື້ (ຕໍ່ຊິ້ນ)</th>
-                        <th>ລວມມູນຄ່າ</th>
+                        <th>ມູນລະຄ່າລວມ</th>
                         <th class="text-start">ນຳເຂົ້າຈາກບໍລິສັດ</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php 
                     $i = 1;
-                    // 🌟 ປ່ຽນ SQL Join ໃຫ້ດຶງຂໍ້ມູນຖືກກັບຊື່ Field ໃໝ່
                     $sql = "SELECT pur.purchase_date, pur.qty_bought, pur.buyer_price, pur.supplier_name, p.part_code, p.part_name 
                             FROM part_purchases pur
                             LEFT JOIN parts_profile p ON pur.part_id = p.part_id
@@ -64,18 +70,17 @@ mysqli_set_charset($connect, "utf8");
                     }
 
                     while($row = mysqli_fetch_array($result)) {
-                        // 🌟 ຄຳນວນມູນຄ່າໂດຍໃຊ້ qty_bought * buyer_price
                         $total_cost = $row['qty_bought'] * $row['buyer_price'];
                     ?>
-                    <tr class="text-center">
+                    <tr class="text-center search-row">
                         <td><?= $i++ ?></td>
                         <td><?= isset($row['purchase_date']) ? date('d/m/Y H:i', strtotime($row['purchase_date'])) : '-' ?></td>
-                        <td><span class="badge bg-secondary"><?= $row['part_code'] ?></span></td>
-                        <td class="text-start fw-bold text-dark"><?= $row['part_name'] ?></td>
+                        <td><span class="badge bg-secondary part-code"><?= $row['part_code'] ?></span></td>
+                        <td class="text-start fw-bold text-dark part-name"><?= $row['part_name'] ?></td>
                         <td class="fw-bold text-success">+ <?= number_format($row['qty_bought']) ?></td>
                         <td class="text-end"><?= number_format($row['buyer_price']) ?> ກີບ</td>
                         <td class="text-end fw-bold text-primary"><?= number_format($total_cost) ?> ກີບ</td>
-                        <td class="text-start text-muted"><?= $row['supplier_name'] ? $row['supplier_name'] : '-' ?></td>
+                        <td class="text-start text-muted supplier-name"><?= $row['supplier_name'] ? $row['supplier_name'] : '-' ?></td>
                     </tr>
                     <?php } ?>
                 </tbody>
@@ -96,49 +101,65 @@ mysqli_set_charset($connect, "utf8");
                     
                     <div class="mb-3">
                         <label class="form-label small fw-bold">ລະຫັດອາໄຫຼ່ / ບາໂຄດ</label>
-                        <input type="text" id="barcode_input" class="form-control" placeholder="ພິມ ຫຼື ຍິງບາໂຄດອາໄຫຼ່..." autocomplete="off" required>
+                        <input type="text" id="barcode_input" class="form-control form-control-custom" placeholder="ພິມ ຫຼື ຍິງບາໂຄດອາໄຫຼ່..." autocomplete="off" required>
                         <input type="hidden" name="part_id" id="part_id_hidden">
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-muted">ຊື່ອາໄຫຼ່</label>
-                        <input type="text" id="part_name_display" class="form-control bg-light" placeholder="ຊື່ອາໄຫຼ່ຈະຂຶ້ນອັດຕະໂນມັດ" readonly>
+                        <input type="text" id="part_name_display" class="form-control form-control-custom bg-light" placeholder="ຊື່ອາໄຫຼ່ຈະຂຶ້ນອັດຕະໂນມັດ" readonly>
                     </div>
 
                     <div class="row">
                         <div class="col-6 mb-3">
                             <label class="form-label small fw-bold">ຈຳນວນທີ່ນຳເຂົ້າ</label>
-                            <input type="number" name="qty_bought" id="qty_purchase" class="form-control" min="1" value="1" required>
+                            <input type="number" name="qty_bought" id="qty_purchase" class="form-control form-control-custom" min="1" value="1" required>
                         </div>
                         <div class="col-6 mb-3">
                             <label class="form-label small fw-bold text-muted">ລາຄາຊື້ຕໍ່ຊິ້ນ (ກີບ)</label>
-                            <input type="number" name="buyer_price" id="purchase_price" class="form-control bg-light" min="0" readonly required>
+                            <input type="number" name="buyer_price" id="purchase_price" class="form-control form-control-custom bg-light" min="0" readonly required>
                         </div>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-primary">ລວມມູນຄ່າທັງໝົດ</label>
-                        <input type="text" id="total_price_display" class="form-control bg-light fw-bold text-primary fs-5" value="0 ກີບ" readonly>
+                        <input type="text" id="total_price_display" class="form-control form-control-custom bg-light fw-bold text-primary fs-5" value="0 ກີບ" readonly>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label small fw-bold">ນຳເຂົ້າຈາກບໍລິສັດ</label>
-                        <input type="text" name="supplier_name" class="form-control" placeholder="ເຊັ່ນ: ບໍລິສັດ ອາໄຫຼ່ລາວ ຈຳກັດ">
+                        <input type="text" name="supplier_name" class="form-control form-control-custom" placeholder="ເຊັ່ນ: ບໍລິສັດ ອາໄຫຼ່ລາວ ຈຳກັດ">
                     </div>
 
                 </div>
                 <div class="modal-footer border-0 pb-4 px-4">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">ຍົກເລີກ</button>
-                    <button type="submit" class="btn btn-primary px-4">ຢືນຢັນການນຳເຂົ້າ</button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius: 10px;">ຍົກເລີກ</button>
+                    <button type="submit" class="btn btn-primary px-4" style="border-radius: 10px;">ບັນທຶກ</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
+$(document).ready(function() {
+    // 🌟 ລະບົບຄົ້ນຫາປະຫວັດການນຳເຂົ້າ Real-time ຝັ່ງ Client
+    $("#searchPurchase").on("keyup", function() {
+        var value = $(this).val().toLowerCase();
+        $("#purchaseTable tbody tr.search-row").filter(function() {
+            var code = $(this).find('.part-code').text().toLowerCase();
+            var name = $(this).find('.part-name').text().toLowerCase();
+            var supplier = $(this).find('.supplier-name').text().toLowerCase();
+            
+            // ສະແດງແຖວທີ່ກົງກັບຄຳຄົ້ນຫາ (ລະຫັດ, ຊື່ອາໄຫຼ່, ຫຼື ບໍລິສັດ)
+            $(this).toggle(code.indexOf(value) > -1 || name.indexOf(value) > -1 || supplier.indexOf(value) > -1);
+        });
+    });
+});
+
 const partsData = [
     <?php 
     $parts_query = mysqli_query($connect, "SELECT part_id, part_code, part_name, cost_price FROM parts_profile");

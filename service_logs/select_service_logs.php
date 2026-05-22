@@ -19,6 +19,7 @@ $search = isset($_GET['search']) ? mysqli_real_escape_string($connect, $_GET['se
         .badge-plate { font-weight: 700; padding: 0.6em 1em; border-radius: 6px; letter-spacing: 0.5px; }
         .btn-action { border-radius: 8px; width: 35px; height: 35px; display: inline-flex; align-items: center; justify-content: center; margin: 0 2px; }
         .table thead { background-color: #4e73df; color: white; }
+        .table th { background-color: #4361ee !important; color: white !important; font-weight: 600; }
     </style>
 </head>
 <body>

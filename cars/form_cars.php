@@ -13,8 +13,8 @@
     <style>
         :root { --bg-body: #f1f5f9; --primary: #4361ee; }
         body { background-color: var(--bg-body); font-family: 'Noto Sans Lao', sans-serif; color: #334155; }
-        .custom-card { border: none; border-radius: 1.25rem; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); background: #fff; }
-        .table thead th { background-color: #f8fafc; color: #64748b; font-weight: 700; padding: 1rem; border-bottom: 2px solid #f1f5f9; white-space: nowrap; }
+        .custom-card { border: none; border-radius: 1.25rem; box-shadow: 0 10px 15px -3px rgba(104, 44, 169, 0.05); background: #fff; }
+        .table thead th { background-color: #4361ee; color: #f1f3f5; font-weight: 700; padding: 0,5rem; border-bottom: 2px solid #f1f5f9; white-space: nowrap; }
         .plate-badge { background: #fff; border: 2px solid #cbd5e1; color: #1e293b; font-weight: 800; padding: 4px 12px; border-radius: 8px; display: inline-block; min-width: 95px; font-size: 0.85rem; }
         .btn-action { width: 34px; height: 34px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s; border: none; }
         .btn-edit { background-color: #ecfdf5; color: #059669; }

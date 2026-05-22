@@ -15,101 +15,112 @@ mysqli_set_charset($connect, "utf8");
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;500;700&display=swap');
         body { font-family: 'Noto Sans Lao', sans-serif; background-color: #f1f5f9; }
         .custom-card { border: none; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
-        .table th { background-color: #4361ee !important; color: white !important; font-weight: 600; }
+        .table th { background-color: #4361ee !important; color: white !important; font-weight: 600; padding: 0.75rem; }
         .btn-action { padding: 0.35rem 0.5rem; border-radius: 8px; font-size: 0.85rem; }
         .swal2-popup { font-family: 'Noto Sans Lao', sans-serif !important; border-radius: 15px !important; }
+        .form-control-custom { border-radius: 10px; padding: 0.6rem 1rem; }
     </style>
 </head>
 <body>
 
 <div class="container py-5">
-    <div class="row mb-4 align-items-center">
-        <div class="col-6">
-            <h3 class="fw-bold text-dark"><i class="fas fa-boxes text-primary me-2"></i>ຄັງສະຕັອກອາໄຫຼ່</h3>
+    
+    <div class="row mb-4 align-items-center g-3">
+        <div class="col-md-5">
+            <h3 class="fw-bold text-dark m-0"><i class="fas fa-boxes text-primary me-2"></i>ຄັງສະຕັອກອາໄຫຼ່</h3>
             <p class="text-muted small mb-0">ບໍລິຫານຈັດການຂໍ້ມູນອາໄຫຼ່ ແລະ ຈຳນວນສິນຄ້າຄົງເຫຼືອ</p>
         </div>
-        <div class="col-6 text-end">
+        <div class="col-md-7 text-end d-flex gap-2 justify-content-md-end justify-content-between">
+            <div class="input-group" style="max-width: 300px;">
+                <span class="input-group-text bg-white border-0 shadow-sm" style="border-radius: 10px 0 0 10px;"><i class="fas fa-search text-muted"></i></span>
+                <input type="text" id="searchPart" class="form-control border-0 shadow-sm" placeholder="ຄົ້ນຫາ: ລະຫັດ, ຊື່, ປະເພດອາໄຫຼ່..." style="border-radius: 0 10px 10px 0;">
+            </div>
+            
             <button class="btn btn-primary fw-bold shadow-sm" style="border-radius: 10px;" data-bs-toggle="modal" data-bs-target="#addPartModal">
                 <i class="fas fa-plus-circle me-1"></i> ເພີ່ມອາໄຫຼ່ໃໝ່
             </button>
         </div>
     </div>
 
-    <div class="card custom-card p-25">
-    <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-            <thead class="text-center">
-                <tr>
-                    <th width="50">#</th>
-                    <th width="110">ລະຫັດອາໄຫຼ່</th>
-                    <th class="text-start">ຊື່ອາໄຫຼ່</th>
-                    <th>ປະເພດ</th>
-                    <th>ລາຄາທຶນ</th>
-                    <th>ລາຄາຂາຍ</th>
-                    <th width="90">ຈຳນວນ</th>
-                    <th width="100">ສະຖານະ</th>
-                    <th width="140">ວັນທີບັນທຶກ</th> <th width="140">ອັບເດດລ່າສຸດ</th> <th width="110">ຈັດການ</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php 
-                $i = 1;
-                $sql = "SELECT p.*, c.category_name 
-                        FROM parts_profile p
-                        LEFT JOIN part_categories c ON p.category_id = c.category_id
-                        ORDER BY p.part_id DESC";
-                $result = mysqli_query($connect, $sql);
-                
-                while($row = mysqli_fetch_array($result)) {
-                    $stock_badge = "<span class='badge bg-success'>ມີສິນຄ້າ</span>";
-                    if($row['qty_stock'] <= 0) {
-                        $stock_badge = "<span class='badge bg-danger'>ໝົດ</span>";
-                    } elseif($row['qty_stock'] <= 5) {
-                        $stock_badge = "<span class='badge bg-warning text-dark'>ໃກ້ໝົດ</span>";
-                    }
+    <div class="card custom-card p-4">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="partsTable">
+                <thead class="text-center">
+                    <tr>
+                        <th width="50">#</th>
+                        <th width="110">ລະຫັດອາໄຫຼ່</th>
+                        <th class="text-start">ຊື່ອາໄຫຼ່</th>
+                        <th>ປະເພດ</th>
+                        <th>ລາຄາທຶນ</th>
+                        <th>ລາຄາຂາຍ</th>
+                        <th width="90">ຈຳນວນ</th>
+                        <th width="100">ສະຖານະ</th>
+                        <th width="140">ວັນທີບັນທຶກ</th> 
+                        <th width="140">ອັບເດດລ່າສຸດ</th> 
+                        <th width="110">ຈັດການ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php 
+                    $i = 1;
+                    $sql = "SELECT p.*, c.category_name 
+                            FROM parts_profile p
+                            LEFT JOIN part_categories c ON p.category_id = c.category_id
+                            ORDER BY p.part_id DESC";
+                    $result = mysqli_query($connect, $sql);
+                    
+                    while($row = mysqli_fetch_array($result)) {
+                        $stock_badge = "<span class='badge bg-success'>ມີສິນຄ້າ</span>";
+                        if($row['qty_stock'] <= 0) {
+                            $stock_badge = "<span class='badge bg-danger'>ໝົດ</span>";
+                        } elseif($row['qty_stock'] <= 5) {
+                            $stock_badge = "<span class='badge bg-warning text-dark'>ໃກ້ໝົດ</span>";
+                        }
 
-                    // 🌟 ກວດສອບເວລາອັບເດດລ່າສຸດ (ຖ້າຍັງບໍ່ເຄີຍແກ້ໄຂໃຫ້ສະແດງ -)
-                    $updated_display = "-";
-                    if (!empty($row['updated_at']) && $row['updated_at'] != $row['created_at']) {
-                        $updated_display = date('d/m/Y H:i', strtotime($row['updated_at']));
-                    }
+                        // ກວດສອບເວລາອັບເດດລ່າສຸດ
+                        $updated_display = "-";
+                        if (!empty($row['updated_at']) && $row['updated_at'] != $row['created_at'] && $row['updated_at'] != '0000-00-00 00:00:00') {
+                            $updated_display = date('d/m/Y H:i', strtotime($row['updated_at']));
+                        }
 
-                    // 🌟 ຟໍແມັດວັນທີບັນທຶກ
-                    $created_display = !empty($row['created_at']) ? date('d/m/Y H:i', strtotime($row['created_at'])) : '-';
-                ?>
-                <tr class="text-center">
-                    <td><?= $i++ ?></td>
-                    <td><span class="badge bg-secondary"><?= $row['part_code'] ?></span></td>
-                    <td class="text-start fw-bold text-dark"><?= $row['part_name'] ?></td>
-                    <td><?= $row['category_name'] ? $row['category_name'] : '<span class="text-muted small">ບໍ່ມີປະເພດ</span>' ?></td>
-                    <td class="text-end text-muted"><?= number_format($row['cost_price']) ?> ກີບ</td>
-                    <td class="text-end fw-bold text-primary"><?= number_format($row['sale_price']) ?> ກີບ</td>
-                    <td class="fw-bold fs-5"><?= number_format($row['qty_stock']) ?></td>
-                    <td><?= $stock_badge ?></td>
-                    <td class="small text-muted"><?= $created_display ?></td> <td class="small text-primary fw-medium"><?= $updated_display ?></td> <td>
-                        <button class="btn btn-warning text-dark btn-action fw-bold me-1" 
-                                data-bs-toggle="modal" 
-                                data-bs-target="#editPartModal"
-                                data-id="<?= $row['part_id'] ?>"
-                                data-code="<?= $row['part_code'] ?>"
-                                data-name="<?= $row['part_name'] ?>"
-                                data-cat="<?= $row['category_id'] ?>"
-                                data-cost="<?= $row['cost_price'] ?>"
-                                data-sale="<?= $row['sale_price'] ?>"
-                                data-stock="<?= $row['qty_stock'] ?>">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-danger btn-action fw-bold" 
-                                onclick="confirmDelete(<?= $row['part_id'] ?>)">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
-                    </td>
-                </tr>
-                <?php } ?>
-            </tbody>
-        </table>
+                        // ຟໍແມັດວັນທີບັນທຶກ
+                        $created_display = !empty($row['created_at']) ? date('d/m/Y H:i', strtotime($row['created_at'])) : '-';
+                    ?>
+                    <tr class="text-center search-row">
+                        <td><?= $i++ ?></td>
+                        <td><span class="badge bg-secondary part-code"><?= $row['part_code'] ?></span></td>
+                        <td class="text-start fw-bold text-dark part-name"><?= $row['part_name'] ?></td>
+                        <td class="part-category"><?= $row['category_name'] ? $row['category_name'] : '<span class="text-muted small">ບໍ່ມີປະເພດ</span>' ?></td>
+                        <td class="text-end text-muted"><?= number_format($row['cost_price']) ?> ກີບ</td>
+                        <td class="text-end fw-bold text-primary"><?= number_format($row['sale_price']) ?> ກີບ</td>
+                        <td class="fw-bold fs-5"><?= number_format($row['qty_stock']) ?></td>
+                        <td><?= $stock_badge ?></td>
+                        <td class="small text-muted"><?= $created_display ?></td> 
+                        <td class="small text-primary fw-medium"><?= $updated_display ?></td> 
+                        <td>
+                            <button class="btn btn-warning text-dark btn-action fw-bold me-1" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#editPartModal"
+                                    data-id="<?= $row['part_id'] ?>"
+                                    data-code="<?= $row['part_code'] ?>"
+                                    data-name="<?= $row['part_name'] ?>"
+                                    data-cat="<?= $row['category_id'] ?>"
+                                    data-cost="<?= $row['cost_price'] ?>"
+                                    data-sale="<?= $row['sale_price'] ?>"
+                                    data-stock="<?= $row['qty_stock'] ?>">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-danger btn-action fw-bold" 
+                                    onclick="confirmDelete(<?= $row['part_id'] ?>)">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <?php } ?>
+                </tbody>
+            </table>
+        </div>
     </div>
-</div>
 </div>
 
 <div class="modal fade" id="addPartModal" tabindex="-1" aria-hidden="true">
@@ -123,15 +134,15 @@ mysqli_set_charset($connect, "utf8");
                 <div class="modal-body p-4 pt-0">
                     <div class="mb-3">
                         <label class="form-label small fw-bold">ລະຫັດອາໄຫຼ່ / ບາໂຄດ</label>
-                        <input type="text" name="part_code" class="form-control" placeholder="ເຊັ່ນ: P-001 ຫຼື ຍິງບາໂຄດ" required>
+                        <input type="text" name="part_code" class="form-control form-control-custom" placeholder="ເຊັ່ນ: P-001 ຫຼື ຍິງບາໂຄດ" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label small fw-bold">ຊື່ອາໄຫຼ່</label>
-                        <input type="text" name="part_name" class="form-control" placeholder="ພິມຊື່ອາໄຫຼ່..." required>
+                        <input type="text" name="part_name" class="form-control form-control-custom" placeholder="ພິມຊື່ອາໄຫຼ່..." required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label small fw-bold">ປະເພດອາໄຫຼ່</label>
-                        <select name="category_id" class="form-select" required>
+                        <select name="category_id" class="form-select form-control-custom" required>
                             <option value="">-- ເລືອກປະເພດ --</option>
                             <?php 
                             $cats = mysqli_query($connect, "SELECT * FROM part_categories ORDER BY category_name ASC");
@@ -142,18 +153,17 @@ mysqli_set_charset($connect, "utf8");
                     <div class="row">
                         <div class="col-6 mb-3">
                             <label class="form-label small fw-bold">ລາຄາທຶນ (ກີບ)</label>
-                            <input type="number" name="cost_price" class="form-control" value="0" min="0" required>
+                            <input type="number" name="cost_price" class="form-control form-control-custom" value="0" min="0" required>
                         </div>
                         <div class="col-6 mb-3">
-                            <label class="form-label small fw-bold">ລາຄາຂາຍ (ກີບ)</label>
-                            <input type="number" name="sale_price" class="form-control" value="0" min="0" required>
+                            <label class="form-label small fw-bold">ລາຄາາຍ (ກີບ)</label>
+                            <input type="number" name="sale_price" class="form-control form-control-custom" value="0" min="0" required>
                         </div>
                     </div>
-                   
                 </div>
                 <div class="modal-footer border-0 pb-4 px-4">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">ຍົກເລີກ</button>
-                    <button type="submit" class="btn btn-primary px-4">ບັນທຶກ</button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius: 10px;">ຍົກເລີກ</button>
+                    <button type="submit" class="btn btn-primary px-4" style="border-radius: 10px;">ບັນທືກ</button>
                 </div>
             </form>
         </div>
@@ -173,15 +183,15 @@ mysqli_set_charset($connect, "utf8");
                     
                     <div class="mb-3">
                         <label class="form-label small fw-bold">ລະຫັດອາໄຫຼ່ / ບາໂຄດ</label>
-                        <input type="text" name="part_code" id="edit_part_code" class="form-control" required>
+                        <input type="text" name="part_code" id="edit_part_code" class="form-control form-control-custom" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label small fw-bold">ຊື່ອາໄຫຼ່</label>
-                        <input type="text" name="part_name" id="edit_part_name" class="form-control" required>
+                        <input type="text" name="part_name" id="edit_part_name" class="form-control form-control-custom" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label small fw-bold">ປະເພດອາໄຫຼ່</label>
-                        <select name="category_id" id="edit_category_id" class="form-select" required>
+                        <select name="category_id" id="edit_category_id" class="form-select form-control-custom" required>
                             <?php 
                             $cats2 = mysqli_query($connect, "SELECT * FROM part_categories ORDER BY category_name ASC");
                             while($c2 = mysqli_fetch_array($cats2)) echo "<option value='{$c2['category_id']}'>{$c2['category_name']}</option>";
@@ -191,27 +201,42 @@ mysqli_set_charset($connect, "utf8");
                     <div class="row">
                         <div class="col-6 mb-3">
                             <label class="form-label small fw-bold">ລາຄາທຶນ (ກີບ)</label>
-                            <input type="number" name="cost_price" id="edit_cost_price" class="form-control" required>
+                            <input type="number" name="cost_price" id="edit_cost_price" class="form-control form-control-custom" required>
                         </div>
                         <div class="col-6 mb-3">
-                            <label class="form-label small fw-bold">ລາຄາຂາຍ (ກີບ)</label>
-                            <input type="number" name="sale_price" id="edit_sale_price" class="form-control" required>
+                            <label class="form-label small fw-bold">ລາຄາາຍ (ກີບ)</label>
+                            <input type="number" name="sale_price" id="edit_sale_price" class="form-control form-control-custom" required>
                         </div>
                     </div>
-                   
                 </div>
                 <div class="modal-footer border-0 pb-4 px-4">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">ຍົກເລີກ</button>
-                    <button type="submit" class="btn btn-success px-4">ບັນທຶກການແກ້ໄຂ</button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius: 10px;">ຍົກເລີກ</button>
+                    <button type="submit" class="btn btn-success px-4" style="border-radius: 10px;">ບັນທືກ</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-// 1. ສ່ວນດຶງຂໍ້ມູນຈາກຕາຕະລາງໄປຍັດໃສ່ຟອມແກ້ໄຂ Modal
+$(document).ready(function() {
+    // 🌟 ລະບົບຄົ້ນຫາອາໄຫຼ່ Real-time ຝັ່ງ Client (ຄົ້ນຫາໄດ້ທັງ ລະຫັດ, ຊື່, ແລະ ໝວດໝູ່)
+    $("#searchPart").on("keyup", function() {
+        var value = $(this).val().toLowerCase();
+        $("#partsTable tbody tr.search-row").filter(function() {
+            var code = $(this).find('.part-code').text().toLowerCase();
+            var name = $(this).find('.part-name').text().toLowerCase();
+            var cat = $(this).find('.part-category').text().toLowerCase();
+            
+            // ເຊັກວ່າຄຳຄົ້ນຫາໄປຕົງກັບຖັນໃດຖັນໜຶ່ງຫຼືບໍ່
+            $(this).toggle(code.indexOf(value) > -1 || name.indexOf(value) > -1 || cat.indexOf(value) > -1);
+        });
+    });
+});
+
+// ສ່ວນດຶງຂໍ້ມູນຈາກຕາຕະລາງໄປຍັດໃສ່ຟອມແກ້ໄຂ Modal
 const editPartModal = document.getElementById('editPartModal');
 if (editPartModal) {
     editPartModal.addEventListener('show.bs.modal', function (event) {
@@ -222,11 +247,10 @@ if (editPartModal) {
         document.getElementById('edit_category_id').value = button.getAttribute('data-cat');
         document.getElementById('edit_cost_price').value = button.getAttribute('data-cost');
         document.getElementById('edit_sale_price').value = button.getAttribute('data-sale');
-       
     });
 }
 
-// 2. ຟັງຊັນການລຶບແບບ SweetAlert2 ຖາມເພື່ອຄວາມແນ່ໃຈກ່ອນດີດໄປໄຟລ໌ລຶບ
+// ຟັງຊັນການລຶບແບບ SweetAlert2 ຖາມເພື່ອຄວາມແນ່ໃຈກ່ອນດີດໄປໄຟລ໌ລຶບ
 function confirmDelete(id) {
     Swal.fire({
         title: 'ເຈົ້າແນ່ໃຈບໍ່?',
