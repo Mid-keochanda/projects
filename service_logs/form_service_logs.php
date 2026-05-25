@@ -56,7 +56,7 @@ $res_logs = mysqli_query($connect, $sql_logs);
                         <tr>
                             <th width="80">ເລກບິນ</th>
                             <th>ທະບຽນລົດ (ເຈົ້າຂອງ)</th>
-                            <th>ช່າງຜູ້ຮັບຜິດຊອບ</th>
+                            <th>ຊ່າງຜູ້ຮັບຜິດຊອບ</th>
                             <th>ອາການເບື້ອງຕົ້ນ</th>
                             <th class="text-end">ຍອດລວມສຸດທິ</th>
                             <th class="text-center">ສະຖານະ</th>
@@ -136,17 +136,25 @@ $res_logs = mysqli_query($connect, $sql_logs);
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label fw-bold text-dark small"><i class="fas fa-user-gear text-muted me-1"></i> ຊ່າງຜູ້ຮັບຜິດຊອບ</label>
-                    <select name="user_id" class="form-select" style="border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 0.75rem 1rem;" required>
-                        <option value="">-- ເລືອກຊ່າງໃນລະບົບ --</option>
-                        <?php 
-                        $users = mysqli_query($connect, "SELECT user_id, fname, lname FROM users ORDER BY fname ASC");
-                        while($u = mysqli_fetch_array($users)) {
-                            echo "<option value='".$u['user_id']."'>".$u['fname']." ".$u['lname']."</option>";
-                        }
-                        ?>
-                    </select>
-                </div>
+    <label class="form-label fw-bold text-dark small">
+        <i class="fas fa-user-gear text-muted me-1"></i> ຊ່າງຜູ້ຮັບຜິດຊອບ
+    </label>
+    <select name="user_id" class="form-select" style="border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 0.75rem 1rem;" required>
+        <option value="">-- ເລືອກຊ່າງແປງລົດ --</option>
+        <?php 
+        // ດຶງສະເພາະພະນັກງານທີ່ມີສະຖານະເປັນ 'ຊ່າງແປງລົດ'
+        $users = mysqli_query($connect, "SELECT user_id, fname, lname FROM users WHERE status = 'ຊ່າງແປງລົດ' ORDER BY fname ASC");
+        
+        if (mysqli_num_rows($users) > 0) {
+            while($u = mysqli_fetch_array($users)) {
+                echo "<option value='".$u['user_id']."'>".$u['fname']." ".$u['lname']."</option>";
+            }
+        } else {
+            echo "<option value='' disabled>ບໍ່ພົບຂໍ້ມູນຊ່າງໃນລະບົບ</option>";
+        }
+        ?>
+    </select>
+</div>
 
                 <div class="mb-4">
                     <label class="form-label fw-bold text-dark small"><i class="fas fa-notes-medical text-muted me-1"></i> ອາການເບື້ອງຕົ້ນ / ວຽກທີ່ຕ້ອງເຮັດ</label>

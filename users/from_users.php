@@ -85,19 +85,18 @@ $sql = mysqli_query($connect, "SELECT u.*, v.vill_name, d.dis_name, p.pro_name
                                LEFT JOIN districts AS d ON v.dis_id = d.dis_id 
                                LEFT JOIN provinces AS p ON d.pro_id = p.pro_id 
                                ORDER BY u.user_id DESC"); 
-// ປ່ຽນເງື່ອນໄຂການກຳນົດສີ Badge
+
 while($show = mysqli_fetch_array($sql)){
     $status = $show['status'];
+    // ກຳນົດສີຕາມສະຖານະ
     if($status == 'ຜູ້ບໍລິຫານ') {
         $statusClass = 'status-admin';
     } elseif($status == 'ຊ່າງແປງລົດ') {
-        $statusClass = 'status-mechanic'; // ໃຊ້ Style ທີ່ເພີ່ມໃໝ່
+        $statusClass = 'status-mechanic';
     } else {
         $statusClass = 'status-user';
     }
 ?>
-    <td><span class="badge-status <?= $statusClass; ?>"><?= $show['status'];?></span></td>
-
 <tr class="user-row">
     <td><?= $i++; ?></td>
     <td class="text-start">
@@ -118,12 +117,8 @@ while($show = mysqli_fetch_array($sql)){
     <td><code><?= $show['username'];?></code></td>
     <td>
         <div class="d-flex justify-content-center gap-2">
-          <a href="update_users.php?user_id=<?= $show['user_id'];?>" class="btn btn-action btn-edit">
-    <i class="fas fa-edit"></i>
-</a>
-            <a href="delete_users.php?user_id=<?= $show['user_id'];?>" class="btn btn-action btn-del delete-btn">
-                <i class="fas fa-trash-alt"></i>
-            </a>
+            <a href="update_users.php?user_id=<?= $show['user_id'];?>" class="btn btn-action btn-edit"><i class="fas fa-edit"></i></a>
+            <a href="delete_users.php?user_id=<?= $show['user_id'];?>" class="btn btn-action btn-del delete-btn"><i class="fas fa-trash-alt"></i></a>
         </div>
     </td>
 </tr>
@@ -222,7 +217,7 @@ while($show = mysqli_fetch_array($sql)){
                                 <select class="form-select" id="status">
                                     <option value="ພະນັກງານ">ພະນັກງານ</option>
                                     <option value="ຜູ້ບໍລິຫານ">ຜູ້ບໍລິຫານ</option>
-                                    <option value="ຜູ້ບໍລ">ຜູ້ບໍລ</option>
+                                    <option value="ຊ່າງແປງລົດ">ຊ່າງແປງລົດ</option>
                                 </select>
                             </div>
                         </div>
