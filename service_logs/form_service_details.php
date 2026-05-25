@@ -1,250 +1,163 @@
 <?php
-include("../cennect_dbstock.php");
+// ເຊື່ອມຕໍ່ຖານຂໍ້ມູນ
+require_once("../cennect_dbstock.php");
+
+// ກວດສອບວ່າເຊື່ອມຕໍ່ສຳເລັດ
+if (!isset($connect)) {
+    die("Error: ບໍ່ສາມາດເຊື່ອມຕໍ່ຖານຂໍ້ມູນໄດ້.");
+}
+
 mysqli_set_charset($connect, "utf8");
 
+// ຮັບຄ່າ ID ແລະ ກວດສອບຄວາມຖືກຕ້ອງ
 $service_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 if ($service_id <= 0) {
-    header("Location: ../service_logs/select_service_logs.php");
+    echo "<script>alert('ລະບົບບໍ່ພົບ ID ບິນ'); window.location='select_service_logs.php';</script>";
     exit();
 }
 
-$msg_status = "";
-$current_stock = 0;
-
-// --- 1. ບັນທຶກອາໄຫຼ່ ແລະ ຕັດສະຕອກ ---
+// Logic ການບັນທຶກ (Insert)
 if (isset($_POST['btn_save'])) {
-    $part_id = intval($_POST['part_id']);
+    $part_val = intval($_POST['part_id']);
+    $part_id_sql = ($part_val > 0) ? $part_val : "NULL";
     $qty = intval($_POST['qty']);
-    $price = $_POST['price'];
+    $price = floatval($_POST['price']);
     $description = mysqli_real_escape_string($connect, $_POST['description']);
     $total = $qty * $price;
 
-    if ($part_id > 0) {
-        $check_stock = mysqli_query($connect, "SELECT qty_stock FROM parts WHERE part_id = '$part_id'");
-        $stock = mysqli_fetch_array($check_stock);
-        if ($stock['qty_stock'] < $qty) {
-            $msg_status = "stock_low";
-            $current_stock = $stock['qty_stock'];
+    $can_save = true;
+    if ($part_val > 0) {
+        $check = mysqli_query($connect, "SELECT qty_stock FROM parts_profile WHERE part_id = $part_val");
+        $row = mysqli_fetch_array($check);
+        if (!$row || $row['qty_stock'] < $qty) {
+            echo "<script>alert('ສະຕັອກບໍ່ພໍ!');</script>";
+            $can_save = false;
         }
     }
 
-    if ($msg_status == "") {
-        $sql_add = "INSERT INTO service_details (service_id, part_id, description, qty, price, total) 
-                    VALUES ('$service_id', '$part_id', '$description', '$qty', '$price', '$total')";
-        if (mysqli_query($connect, $sql_add)) {
-            if ($part_id > 0) {
-                mysqli_query($connect, "UPDATE parts SET qty_stock = qty_stock - $qty WHERE part_id = '$part_id'");
+    if ($can_save) {
+        $sql = "INSERT INTO service_details (service_id, part_id, description, qty, price, total) VALUES ($service_id, $part_id_sql, '$description', $qty, $price, $total)";
+        if (mysqli_query($connect, $sql)) {
+            if ($part_val > 0) {
+                mysqli_query($connect, "UPDATE parts_profile SET qty_stock = qty_stock - $qty WHERE part_id = $part_val");
             }
-            $msg_status = "success";
+            echo "<script>window.location='?id=$service_id';</script>";
         }
     }
 }
-
-// --- 2. ອັບເດດຄ່າແຮງງານ ---
-if (isset($_POST['btn_update_labor'])) {
-    $labor_cost = floatval($_POST['labor_cost']);
-    $sql_up_labor = "UPDATE service_logs SET labor_cost = '$labor_cost' WHERE log_id = '$service_id'";
-    if (mysqli_query($connect, $sql_up_labor)) {
-        $msg_status = "labor_updated";
-    }
-}
-
-// --- 3. ລຶບລາຍການ ແລະ ຄືນສະຕອກ ---
-if (isset($_GET['delete_id'])) {
-    $del_id = intval($_GET['delete_id']);
-    $res_old = mysqli_query($connect, "SELECT * FROM service_details WHERE detail_id = '$del_id'");
-    $row_del = mysqli_fetch_array($res_old);
-    if ($row_del) {
-        if ($row_del['part_id'] > 0) {
-            mysqli_query($connect, "UPDATE parts SET qty_stock = qty_stock + ".$row_del['qty']." WHERE part_id = '".$row_del['part_id']."'");
-        }
-        mysqli_query($connect, "DELETE FROM service_details WHERE detail_id = '$del_id'");
-        $msg_status = "deleted";
-    }
-}
-
-// --- 4. ດຶງຂໍ້ມູນຫົວບິນ (ລວມຄ່າແຮງງານຫຼ້າສຸດ) ---
-$sql_head = "SELECT l.*, c.car_plate, cust.cust_name 
-             FROM service_logs l
-             LEFT JOIN cars c ON l.car_id = c.car_id
-             LEFT JOIN customers cust ON c.cust_id = cust.cust_id
-             WHERE l.log_id = '$service_id'";
-$head_res = mysqli_query($connect, $sql_head);
-$head = mysqli_fetch_array($head_res);
 ?>
 
 <!DOCTYPE html>
 <html lang="lo">
 <head>
     <meta charset="UTF-8">
-    <title>ຈັດການການສ້ອມແປງ #<?php echo $service_id; ?></title>
-    <link rel="stylesheet" href="../bootstrap/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <title>ຈັດການບິນ #<?php echo $service_id; ?></title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;700&display=swap');
-        body { font-family: 'Noto Sans Lao', sans-serif; background-color: #f4f7f6; }
-        .readonly-bg { background-color: #e9ecef !important; }
+        body { font-family: 'Noto Sans Lao', sans-serif; background-color: #f4f6f9; }
         .card { border: none; border-radius: 15px; }
-        .table thead { background-color: #4e73df; color: white; }
+        .table thead { background-color: #2c3e50; color: white; }
     </style>
 </head>
 <body>
 
-<div class="container py-4">
-    <div class="card shadow-sm mb-4">
-        <div class="card-body d-flex justify-content-between align-items-center">
-            <div>
-                <h4 class="text-primary fw-bold mb-0">ບິນສ້ອມແປງ #<?php echo str_pad($service_id, 5, "0", STR_PAD_LEFT); ?></h4>
-                <p class="text-muted mb-0">ລູກຄ້າ: <?php echo $head['cust_name'] ?? '---'; ?> | ທະບຽນ: <?php echo $head['car_plate'] ?? '---'; ?></p>
-            </div>
-            <a href="select_service_logs.php" class="btn btn-outline-secondary btn-sm"><i class="fas fa-arrow-left"></i> ກັບຄືນ</a>
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold text-primary">ລາຍການສ້ອມແປງ</h3>
+            <p class="text-muted">ເລກທີບິນ: #<?php echo $service_id; ?></p>
         </div>
+        <button type="button" class="btn btn-success shadow" data-bs-toggle="modal" data-bs-target="#addModal">
+            <i class="fas fa-plus-circle me-2"></i>ເພີ່ມລາຍການ
+        </button>
     </div>
 
-    <div class="card shadow-sm mb-4">
-        <div class="card-body">
-            <h5 class="card-title mb-3 text-success"><i class="fas fa-plus-circle"></i> ເພີ່ມລາຍການອາໄຫຼ່</h5>
-            <form method="POST" id="mainForm" class="row g-2">
-                <div class="col-md-4">
-                    <label class="small">ເລືອກອາໄຫຼ່ໃນສະຕອກ</label><br>
-                    <select name="part_id" id="part_select" class="form-select" onchange="updatePrice()" required>
-                        <option value="0" data-stock="999999">-- ອາໄຫຼ່ --</option>
-                        <?php 
-                        $res_parts = mysqli_query($connect, "SELECT * FROM parts WHERE qty_stock > 0");
-                        while($p = mysqli_fetch_array($res_parts)) {
-                            echo "<option value='".$p['part_id']."' data-price='".$p['sale_price']."' data-name='".$p['part_name']."' data-stock='".$p['qty_stock']."'>
-                                    ".$p['part_name']." (ຍັງເຫຼືອ: ".$p['qty_stock'].")
-                                  </option>";
-                        }
-                        ?>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="small">ລາຍການ</label>
-                    <input type="text" name="description" id="description" class="form-control" placeholder="ພິມລາຍການ..." required>
-                </div>
-                <div class="col-md-2">
-                    <label class="small">ລາຄາ/ໜ່ວຍ</label>
-                    <input type="number" name="price" id="price" class="form-control text-end" required>
-                </div>
-                <div class="col-md-1">
-                    <label class="small">ຈຳນວນ</label>
-                    <input type="number" name="qty" id="qty_input" value="1" min="1" class="form-control text-center" required>
-                </div>
-                <div class="col-md-2">
-                    <label class="small">&nbsp;</label>
-                    <button type="submit" name="btn_save" class="btn btn-success w-100">ເພີ່ມ</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <h5 class="card-title mb-3"><i class="fas fa-list text-primary"></i> ລາຍການທີ່ເພີ່ມແລ້ວ</h5>
-            <table class="table table-hover align-middle">
-                <thead>
-                    <tr>
-                        <th width="50">#</th>
-                        <th>ລາຍການ</th>
-                        <th class="text-center">ຈຳນວນ</th>
-                        <th class="text-end">ລາຄາ</th>
-                        <th class="text-end">ລວມ</th>
-                        <th class="text-center">ຈັດການ</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php 
-                    $res_det = mysqli_query($connect, "SELECT * FROM service_details WHERE service_id = '$service_id'");
-                    $parts_total = 0;
-                    $i = 1;
+    <div class="card shadow-sm p-3">
+        <table class="table table-hover align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>ລາຍການ</th>
+                    <th class="text-center">ຈຳນວນ</th>
+                    <th class="text-end">ລາຄາ</th>
+                    <th class="text-end">ລວມ</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php 
+                $res_det = mysqli_query($connect, "SELECT d.*, p.part_name FROM service_details d LEFT JOIN parts_profile p ON d.part_id = p.part_id WHERE d.service_id = $service_id");
+                $grand_total = 0;
+                if ($res_det && mysqli_num_rows($res_det) > 0) {
                     while($d = mysqli_fetch_array($res_det)) {
-                        $parts_total += $d['total'];
-                    ?>
-                    <tr>
-                        <td><?php echo $i++; ?></td>
-                        <td><?php echo $d['description']; ?></td>
-                        <td class="text-center"><?php echo $d['qty']; ?></td>
-                        <td class="text-end"><?php echo number_format($d['price']); ?></td>
-                        <td class="text-end fw-bold"><?php echo number_format($d['total']); ?></td>
-                        <td class="text-center">
-                            <a href="?id=<?php echo $service_id; ?>&delete_id=<?php echo $d['detail_id']; ?>" class="btn btn-outline-danger btn-sm" onclick="return confirm('ຢືນຢັນການລຶບ?')"><i class="fas fa-trash"></i></a>
-                        </td>
-                    </tr>
-                    <?php } ?>
-                </tbody>
-            </table>
-
-            <div class="row mt-4 border-top pt-3">
-                <div class="col-md-6 border-end">
-                    <form method="POST" class="row g-2 align-items-end p-2 bg-light rounded">
-                        <div class="col-md-7">
-                            <label class="small fw-bold text-primary"><i class="fas fa-wrench me-1"></i> ຄ່າແຮງງານ (ກີບ)</label>
-                            <input type="number" name="labor_cost" class="form-control" value="<?php echo $head['labor_cost'] ?? 0; ?>" required>
-                        </div>
-                        <div class="col-md-5">
-                            <button type="submit" name="btn_update_labor" class="btn btn-primary w-100">
-                                <i class="fas fa-save"></i> ບັນທຶກຄ່າແຮງ
-                            </button>
-                        </div>
-                    </form>
-                </div>
-                <div class="col-md-6">
-                    <table class="table table-borderless mb-0">
-                        <tr>
-                            <td class="text-end fw-bold">ລວມຄ່າອາໄຫຼ່:</td>
-                            <td class="text-end" width="180"><?php echo number_format($parts_total); ?> ກີບ</td>
-                        </tr>
-                        <tr>
-                            <td class="text-end fw-bold border-bottom">ຄ່າແຮງງານ:</td>
-                            <td class="text-end border-bottom"><?php echo number_format($head['labor_cost'] ?? 0); ?> ກີບ</td>
-                        </tr>
-                        <tr>
-                            <td class="text-end fw-bold fs-5 text-dark">ຍອດລວມສຸດທິ:</td>
-                            <td class="text-end fw-bold text-danger fs-4">
-                                <?php echo number_format($parts_total + ($head['labor_cost'] ?? 0)); ?> ກີບ
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-
-            <div class="text-end mt-4">
-                <a href="print_service_logs.php?id=<?php echo $service_id; ?>" target="_blank" class="btn btn-dark px-4"><i class="fas fa-print"></i> ພິມໃບບິນ</a>
-            </div>
+                        $grand_total += $d['total'];
+                        echo "<tr>
+                                <td>".($d['part_name'] ?? $d['description'])."</td>
+                                <td class='text-center'>".$d['qty']."</td>
+                                <td class='text-end'>".number_format($d['price'])."</td>
+                                <td class='text-end'>".number_format($d['total'])."</td>
+                              </tr>";
+                    }
+                } else {
+                    echo "<tr><td colspan='4' class='text-center py-4 text-muted'>ຍັງບໍ່ມີລາຍການສ້ອມແປງ</td></tr>";
+                }
+                ?>
+            </tbody>
+        </table>
+        
+        <div class="d-flex justify-content-end p-3 bg-light rounded">
+            <h4 class="mb-0">ຍອດລວມ: <span class="text-success fw-bold"><?php echo number_format($grand_total); ?> ກີບ</span></h4>
         </div>
     </div>
 </div>
 
-<script>
-// 1. Alert ຫຼັງຈາກການເຮັດວຽກ
-<?php if($msg_status == "success"): ?>
-    Swal.fire({ icon: 'success', title: 'ເພີ່ມອາໄຫຼ່ແລ້ວ!', timer: 1200, showConfirmButton: false });
-<?php elseif($msg_status == "labor_updated"): ?>
-    Swal.fire({ icon: 'success', title: 'ບັນທຶກຄ່າແຮງງານແລ້ວ!', timer: 1200, showConfirmButton: false });
-<?php elseif($msg_status == "stock_low"): ?>
-    Swal.fire({ icon: 'error', title: 'ສະຕອກບໍ່ພໍ!', text: 'ຍັງເຫຼືອແຕ່ <?php echo $current_stock; ?>' });
-<?php elseif($msg_status == "deleted"): ?>
-    Swal.fire({ icon: 'info', title: 'ລຶບລາຍການແລ້ວ', timer: 1200, showConfirmButton: false });
-<?php endif; ?>
+<div class="modal fade" id="addModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">ເພີ່ມລາຍການ</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="POST">
+        <div class="modal-body">
+            <div class="mb-3">
+                <select name="part_id" id="part_select" class="form-select" onchange="updatePrice()">
+                    <option value="0">-- ເລືອກອາໄຫຼ່ (ຫຼື ພິມເອງ) --</option>
+                    <?php 
+                    $res = mysqli_query($connect, "SELECT * FROM parts_profile WHERE qty_stock > 0");
+                    while($p = mysqli_fetch_array($res)) {
+                        echo "<option value='".$p['part_id']."' data-price='".$p['sale_price']."' data-name='".$p['part_name']."'>".$p['part_name']." (ມີ: ".$p['qty_stock'].")</option>";
+                    }
+                    ?>
+                </select>
+            </div>
+            <div class="mb-3"><input type="text" name="description" id="description" class="form-control" placeholder="ຊື່ລາຍການ" required></div>
+            <div class="row">
+                <div class="col-6"><input type="number" name="price" id="price" class="form-control" placeholder="ລາຄາ" required></div>
+                <div class="col-6"><input type="number" name="qty" class="form-control" value="1" required></div>
+            </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" name="btn_save" class="btn btn-primary w-100">ບັນທຶກລາຍການ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 
-// 2. Lock Readonly ເມື່ອເລືອກອາໄຫຼ່
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
 function updatePrice() {
     var select = document.getElementById("part_select");
-    var priceInput = document.getElementById("price");
-    var descInput = document.getElementById("description");
-    var selectedOption = select.options[select.selectedIndex];
-    
-    if (select.value != "0") {
-        priceInput.value = selectedOption.getAttribute("data-price");
-        descInput.value = selectedOption.getAttribute("data-name");
-        priceInput.readOnly = true; descInput.readOnly = true;
-        priceInput.classList.add("readonly-bg"); descInput.classList.add("readonly-bg");
+    var pInput = document.getElementById("price");
+    var dInput = document.getElementById("description");
+    var opt = select.options[select.selectedIndex];
+    if(select.value != "0") {
+        pInput.value = opt.getAttribute("data-price");
+        dInput.value = opt.getAttribute("data-name");
     } else {
-        priceInput.value = ""; descInput.value = "";
-        priceInput.readOnly = false; descInput.readOnly = false;
-        priceInput.classList.remove("readonly-bg"); descInput.classList.remove("readonly-bg");
+        pInput.value = "";
+        dInput.value = "";
     }
 }
 </script>

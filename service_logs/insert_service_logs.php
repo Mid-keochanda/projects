@@ -1,43 +1,66 @@
 <?php
 include("../cennect_dbstock.php");
+mysqli_set_charset($connect, "utf8");
 
-if(isset($_POST['car_id'])) {
-    $car_id   = mysqli_real_escape_string($connect, $_POST['car_id']);
-    $user_id  = mysqli_real_escape_string($connect, $_POST['user_id']); 
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $car_id = intval($_POST['car_id']);
+    $user_id = intval($_POST['user_id']);
     $symptoms = mysqli_real_escape_string($connect, $_POST['symptoms']);
-
-    $sql = "INSERT INTO service_logs (car_id, user_id, symptoms, service_date) 
-            VALUES ('$car_id', '$user_id', '$symptoms', NOW())";
     
-    if(mysqli_query($connect, $sql)) {
-        $last_id = mysqli_insert_id($connect);
-        echo "
-        <link rel='stylesheet' href='https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;700&display=swap'>
-        <script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-        
-        <style>
-            .swal2-popup {
-                font-family: 'Noto Sans Lao', sans-serif !important;
-            }
-            .swal2-title {
-                font-weight: 700 !important;
-            }
-        </style>
+    $labor_cost = 0; 
+    $status = 'pending'; 
 
-        <script>
-            setTimeout(function() {
-                Swal.fire({
-                    title: 'ເປີດບິນສຳເລັດ!',
-                    text: 'ກຳລັງພາເຈົ້າໄປໜ້າເພີ່ມອາໄຫຼ່...',
-                    icon: 'success',
-                    timer: 1500,
-                    showConfirmButton: false
-                }).then(function() {
-                    // ສົ່ງ ID ໄປໜ້າເພີ່ມອາໄຫຼ່ທັນທີ
-                    window.location.href = 'select_service_logs.php?id=$last_id';
-                });
-            }, 100);
+    if ($car_id <= 0 || $user_id <= 0 || empty($symptoms)) {
+        echo "<script>
+            alert('ກະລຸນາປ້ອນຂໍ້ມູນໃຫ້ຄົບຖ້ວນ'); 
+            window.history.back();
+        </script>";
+        exit();
+    }
+
+    $sql = "INSERT INTO service_logs (car_id, user_id, symptoms, labor_cost, status) 
+            VALUES ('$car_id', '$user_id', '$symptoms', '$labor_cost', '$status')";
+
+    ?>
+    <!DOCTYPE html>
+    <html lang="lo">
+    <head>
+        <meta charset="UTF-8">
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <style>@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Lao&display=swap'); body{font-family:'Noto Sans Lao',sans-serif;}</style>
+    </head>
+    <body>
+    <?php
+    if (mysqli_query($connect, $sql)) {
+        $new_log_id = mysqli_insert_id($connect);
+        // ✅ ປ່ຽນມາໃຊ້ SweetAlert2 ເພື່ອຄວາມສວຍງາມ ແລະ ສະໝໍ່າສະເໝີ
+        echo "<script>
+            Swal.fire({
+                icon: 'success',
+                title: 'ເປີດບິນສຳເລັດ!',
+                text: 'ກຳລັງພາໄປໜ້າຈັດການອາໄຫຼ່...',
+                timer: 2000,
+                showConfirmButton: false
+            }).then(() => {
+                window.location.href = 'form_service_details.php?id=" . $new_log_id . "';
+            });
+        </script>";
+    } else {
+        $error_msg = mysqli_real_escape_string($connect, mysqli_error($connect));
+        echo "<script>
+            Swal.fire({
+                icon: 'error',
+                title: 'ເກີດຂໍ້ຜິດພາດ!',
+                text: '" . $error_msg . "',
+                confirmButtonText: 'ຕົກລົງ'
+            }).then(() => {
+                window.history.back();
+            });
         </script>";
     }
+    ?>
+    </body>
+    </html>
+    <?php
 }
 ?>

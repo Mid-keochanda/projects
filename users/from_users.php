@@ -85,9 +85,19 @@ $sql = mysqli_query($connect, "SELECT u.*, v.vill_name, d.dis_name, p.pro_name
                                LEFT JOIN districts AS d ON v.dis_id = d.dis_id 
                                LEFT JOIN provinces AS p ON d.pro_id = p.pro_id 
                                ORDER BY u.user_id DESC"); 
+// ປ່ຽນເງື່ອນໄຂການກຳນົດສີ Badge
 while($show = mysqli_fetch_array($sql)){
-    $statusClass = ($show['status'] == 'admin' || $show['status'] == 'ຜູ້ບໍລິຫານ') ? 'status-admin' : 'status-user';
+    $status = $show['status'];
+    if($status == 'ຜູ້ບໍລິຫານ') {
+        $statusClass = 'status-admin';
+    } elseif($status == 'ຊ່າງແປງລົດ') {
+        $statusClass = 'status-mechanic'; // ໃຊ້ Style ທີ່ເພີ່ມໃໝ່
+    } else {
+        $statusClass = 'status-user';
+    }
 ?>
+    <td><span class="badge-status <?= $statusClass; ?>"><?= $show['status'];?></span></td>
+
 <tr class="user-row">
     <td><?= $i++; ?></td>
     <td class="text-start">
@@ -212,6 +222,7 @@ while($show = mysqli_fetch_array($sql)){
                                 <select class="form-select" id="status">
                                     <option value="ພະນັກງານ">ພະນັກງານ</option>
                                     <option value="ຜູ້ບໍລິຫານ">ຜູ້ບໍລິຫານ</option>
+                                    <option value="ຜູ້ບໍລ">ຜູ້ບໍລ</option>
                                 </select>
                             </div>
                         </div>

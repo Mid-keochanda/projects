@@ -123,8 +123,6 @@ if (@$_SESSION['checked'] <> 1) {
               <li class="nav-item">
                 <a href="service_logs/form_service_logs.php" target="frame" class="nav-link">
                   <i class="far fa-circle nav-icon text-info"></i> <p>ອອກບິນສ້ອມແປງລົດ</p>
-                <a href="service_logs/select_service_logs.php" target="frame" class="nav-link">
-                  <i class="far fa-circle nav-icon text-info"></i> <p>ລົດກຳລັງສ້ອມແປງ</p>
                 </a>
               </li>
             </ul>
@@ -177,12 +175,12 @@ if (@$_SESSION['checked'] <> 1) {
           <li class="nav-item">
             <a href="#" class="nav-link">
               <i class="nav-icon fas fa-user-friends"></i>
-              <p>ຈັດການເຄື່ອງອາໄຫຼ່ <i class="right fas fa-angle-left"></i></p>
+              <p>ຈັດການນຳເຄື່ອງອາໄຫຼ່ເຂົ້າ <i class="right fas fa-angle-left"></i></p>
             </a>
             <ul class="nav nav-treeview">
               <li class="nav-item">
                 <a href="part_purchases/form_part_purchases.php" target="frame" class="nav-link">
-                  <i class="far fa-circle nav-icon text-info"></i> <p>ເພີ່ມຂໍ້ມູນອາໄຫຼ່</p>
+                  <i class="far fa-circle nav-icon text-info"></i> <p>ເພີ່ມຂໍ້ມູນນຳອາໄຫຼ່ເຂົ້າ</p>
                 </a>
               </li>
             </ul>
