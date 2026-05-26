@@ -2,14 +2,17 @@
 include("../cennect_dbstock.php");
 mysqli_set_charset($connect, "utf8");
 
-// --- ດຶງຂໍ້ມູນລາຍການບິນສ້ອມແປງທັງໝົດ ໂດຍເອົາ pending ຂຶ້ນກ່ອນ ແລະ ລຽງຕາມ ID ໃໝ່ສຸດ ---
+// --- 🛠️ ຈັດລຽງ SQL: pending ຢູ່ເທິງສຸດ (ໃໝ່ສຸດຢູ່ເທິງ), success ຢູ່ລຸ່ມ (ແປງແລ້ວໃໝ່ສຸດຢູ່ເທິງຂອງກຸ່ມ success) ---
 $sql_logs = "SELECT l.*, c.car_plate, cust.cust_name, u.fname, u.lname,
             (SELECT SUM(total) FROM service_details WHERE service_id = l.log_id) as total_parts
             FROM service_logs l
             LEFT JOIN cars c ON l.car_id = c.car_id
             LEFT JOIN customers cust ON c.cust_id = cust.cust_id
             LEFT JOIN users u ON l.user_id = u.user_id
-            ORDER BY CASE WHEN l.status = 'pending' THEN 0 ELSE 1 END ASC, l.log_id DESC";
+            ORDER BY 
+                CASE WHEN l.status = 'pending' THEN 0 ELSE 1 END ASC,
+                l.completed_at DESC,
+                l.log_id DESC";
 $res_logs = mysqli_query($connect, $sql_logs);
 ?>
 
@@ -65,8 +68,8 @@ $res_logs = mysqli_query($connect, $sql_logs);
                             <th class="ps-4" width="90">ເລກບິນ</th>
                             <th>ທະບຽນລົດ</th>
                             <th>ເຈົ້າຂອງລົດ</th>
-                            <th>ຊ່າງຜູ້ຮັບຜິດຊອບ</th>
-                            <th>... ອາການເບື້ອງຕົ້ນ</th>
+                            <th>ຊ่างຜູ້ຮັບຜິດຊອບ</th>
+                            <th>ອາການເບື້ອງຕົ້ນ</th>
                             <th class="text-end">ຍອດລວມສຸດທິ</th>
                             <th class="text-center" width="130">ສະຖານະ</th>
                             <th>ເວລາເປີດບິນ</th>
@@ -104,7 +107,7 @@ $res_logs = mysqli_query($connect, $sql_logs);
                                 <?php echo $created_time; ?>
                             </td>
 
-                            <td class="time-text-only text-success">
+                            <td class="time-text-only text-success fw-bold">
                                 <?php if($row['status'] == 'pending'): ?>
                                     <span class="text-muted">---</span>
                                 <?php else: ?>
@@ -168,7 +171,6 @@ $res_logs = mysqli_query($connect, $sql_logs);
                     <select name="user_id" class="form-select" style="border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 0.75rem 1rem;" required>
                         <option value="">-- ເລືອກຊ່າງແປງລົດ --</option>
                         <?php 
-                        // 🛠️ ແກ້ໄຂຈຸດນີ້: ໃຫ້ຄົ້ນຫາທັງຄຳວ່າ 'ຊ່າງແປງລົດ' (ລາວ) ແລະ 'ช่างแปลงรถ' (ໄທ)
                         $users = mysqli_query($connect, "SELECT user_id, fname, lname FROM users WHERE status = 'ช่างแปลงรถ' OR status = 'ຊ່າງແປງລົດ' ORDER BY fname ASC");
                         
                         if (mysqli_num_rows($users) > 0) {
@@ -176,7 +178,6 @@ $res_logs = mysqli_query($connect, $sql_logs);
                                 echo "<option value='".$u['user_id']."'>".$u['fname']." ".$u['lname']."</option>";
                             }
                         } else {
-                            // 🛠️ ຖ້າຍັງບໍ່ຂຶ້ນອີກ ໃຫ້ດຶງລາຍຊື່ User ທັງໝົດອອກມາໃຫ້ເລືອກກ່ອນ ເພື່ອບໍ່ໃຫ້ຟອມມີບັນຫາ
                             $all_users = mysqli_query($connect, "SELECT user_id, fname, lname, status FROM users ORDER BY fname ASC");
                             while($u = mysqli_fetch_array($all_users)) {
                                 echo "<option value='".$u['user_id']."'>".$u['fname']." ".$u['lname']." (".$u['status'].")</option>";

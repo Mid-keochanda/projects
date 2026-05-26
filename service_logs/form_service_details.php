@@ -9,35 +9,33 @@ if ($service_id <= 0) {
     exit();
 }
 
-// 🛠️ ເພີ່ມ API ຂະໜາດນ້ອຍຢູ່ດ້ານເທິງ: ຮັບຄ່າຈາກ AJAX ເພື່ອອັບເດດສະຖານະຕອນກົດປິ່ນບິນ
+// 🛠️ API ຂະໜາດນ້ອຍສຳລັບ AJAX ປິດບິນ
 if (isset($_GET['action']) && $_GET['action'] == 'update_status_print') {
-    // ອັບເດດສະຖານະເປັນ success ແລະ ບັນທຶກເວລາປັດຈຸບັນ NOW() ເຂົ້າ completed_at
     $sql_update = "UPDATE service_logs SET status = 'success', completed_at = NOW() WHERE log_id = $service_id";
     if (mysqli_query($connect, $sql_update)) {
         echo json_encode(['status' => 'success']);
     } else {
         echo json_encode(['status' => 'error', 'message' => mysqli_error($connect)]);
     }
-    exit(); // ຢຸດການເຮັດວຽກຂອງ PHP ບໍ່ໃຫ້ໂຫຼດ HTML ດ້ານລຸ່ມອອກມາ
+    exit();
 }
 
 // 1. Logic ບັນທຶກຄ່າແຮງງານ
 if (isset($_POST['btn_save_labor'])) {
     $labor = floatval($_POST['labor_cost']);
     $sql_labor = "UPDATE service_logs SET labor_cost = $labor WHERE log_id = $service_id";
-    
     if (mysqli_query($connect, $sql_labor)) {
         header("Location: ?id=$service_id");
         exit();
     } else {
-        echo "<script>alert('ຜິດພາດ: ບໍ່ສາມາດອັບເດດຄ່າແຮງງານໄດ້ຊ່ວຍກວດສອບ Database! " . mysqli_error($connect) . "');</script>";
+        echo "<script>alert('ຜິດພາດ: " . mysqli_real_escape_string($connect, mysqli_error($connect)) . "');</script>";
     }
 }
 
-// 2. Logic ບັນທຶກລາຍການອะໄຫຼ່
+// 2. Logic ບັນທຶກລາຍການອະໄຫຼ່ (ແກ້ໄຂໃຫ້ຮອງຮັບຄ່າ NULL ເມື່ອພິມເອງ)
 if (isset($_POST['btn_save'])) {
     $part_val = intval($_POST['part_id']);
-    $part_id_sql = ($part_val > 0) ? $part_val : "NULL";
+    $part_id_sql = ($part_val > 0) ? $part_val : "NULL"; 
     $qty = intval($_POST['qty']);
     $price = floatval($_POST['price']);
     $description = mysqli_real_escape_string($connect, $_POST['description']);
@@ -54,23 +52,26 @@ if (isset($_POST['btn_save'])) {
     }
 
     if ($can_save) {
-        $sql = "INSERT INTO service_details (service_id, part_id, description, qty, price, total) VALUES ($service_id, $part_id_sql, '$description', $qty, $price, $total)";
+        // ໝາຍເຫດ: ຖ້າຖານຂໍ້ມູນຟ້ອງ Error ໃຫ້ປ່ຽນ service_id ເປັນ log_id
+        $sql = "INSERT INTO service_details (service_id, part_id, description, qty, price, total) 
+                VALUES ($service_id, $part_id_sql, '$description', $qty, $price, $total)";
         if (mysqli_query($connect, $sql)) {
             if ($part_val > 0) {
                 mysqli_query($connect, "UPDATE parts_profile SET qty_stock = qty_stock - $qty WHERE part_id = $part_val");
             }
             header("Location: ?id=$service_id");
             exit();
+        } else {
+            echo "<script>alert('Error: " . mysqli_real_escape_string($connect, mysqli_error($connect)) . "');</script>";
         }
     }
 }
 
-// 3. ດຶງຂໍ້ມູນລວມ
+// 3. ດຶງຂໍ້ມູນສະແດງຜົນ
 $res_total = mysqli_query($connect, "SELECT SUM(total) as sum_parts FROM service_details WHERE service_id = $service_id");
 $total_data = mysqli_fetch_array($res_total);
 $sum_parts = $total_data['sum_parts'] ?? 0;
 
-// ດຶງຂໍ້ມູນ status ແລະ labor_cost ມາສະແດງຜົນ
 $res_log = mysqli_query($connect, "SELECT labor_cost, status FROM service_logs WHERE log_id = $service_id");
 $log_data = mysqli_fetch_array($res_log);
 $labor_cost = $log_data['labor_cost'] ?? 0;
@@ -86,51 +87,17 @@ $grand_total = $sum_parts + $labor_cost;
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;500;700&display=swap');
-        
-        body { 
-            font-family: 'Noto Sans Lao', sans-serif; 
-            background-color: #f8f9fa; 
-            color: #333;
-        }
-        
-        .card-custom { 
-            background: #fff;
-            border: none;
-            border-radius: 12px; 
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04); 
-        }
-        
-        .table thead th { 
-            font-weight: 600; 
-            background-color: #f1f4f8; 
-            color: #495057;
-            border-bottom: 2px solid #e9ecef;
-            font-size: 13px;
-        }
-        
-        .table tbody td {
-            vertical-align: middle;
-            color: #555;
-        }
-        
-        .btn {
-            font-weight: 500;
-            border-radius: 8px;
-        }
-        .summary-box {
-            background: linear-gradient(135deg, #20c997 0%, #198754 100%);
-            border-radius: 12px;
-            padding: 12px;
-            color: white;
-        }
+        body { font-family: 'Noto Sans Lao', sans-serif; background-color: #f8f9fa; color: #333; }
+        .card-custom { background: #fff; border: none; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04); }
+        .table thead th { font-weight: 600; background-color: #f1f4f8; color: #495057; border-bottom: 2px solid #e9ecef; font-size: 13px; }
+        .table tbody td { vertical-align: middle; color: #555; }
+        .btn { font-weight: 500; border-radius: 8px; }
+        .summary-box { background: linear-gradient(135deg, #20c997 0%, #198754 100%); border-radius: 12px; padding: 12px; color: white; }
         .form-control, .form-select { border-radius: 8px; }
-
-        @media print {
-            body * { display: none !important; visibility: hidden !important; }
-            #printFrame, #printFrame * { display: block !important; visibility: visible !important; width: 100% !important; height: 100% !important; }
-        }
+        @media print { body * { display: none !important; visibility: hidden !important; } #printFrame, #printFrame * { display: block !important; visibility: visible !important; width: 100% !important; height: 100% !important; } }
     </style>
 </head>
 <body>
@@ -142,7 +109,7 @@ $grand_total = $sum_parts + $labor_cost;
                 <a href="form_service_logs.php" class="btn btn-light btn-sm me-3 rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;" title="ກັບຄືນ">
                     <i class="fas fa-arrow-left text-secondary"></i>
                 </a>
-                <h3 class="fw-bold text-dark mb-0">ຈັດການລາຍການສ້ອມແປງ</h3>
+                <h3 class="fw-bold text-dark mb-0">ຈັດการລາຍການສ້ອມແປງ</h3>
             </div>
             <div class="d-flex align-items-center gap-3 ms-5">
                 <p class="text-muted mb-0" style="font-size: 14px;">ເລກທີບິນ: <span class="fw-bold text-primary">#<?php echo str_pad($service_id, 5, "0", STR_PAD_LEFT); ?></span></p>
@@ -187,7 +154,6 @@ $grand_total = $sum_parts + $labor_cost;
                 </form>
             </div>
         </div>
-
         <div class="col-lg-4">
             <div class="summary-box h-100 d-flex flex-column justify-content-center align-items-center text-center">
                 <span class="text-white-50 small text-uppercase mb-1">ຍອດລວມສຸດທິທັງໝົດ</span>
@@ -237,9 +203,6 @@ $grand_total = $sum_parts + $labor_cost;
                         <td colspan="4" class="text-end py-2 text-muted border-0">ຄ່າແຮງງານຊ່າງ:</td>
                         <td class="text-end py-2 pe-4 fw-bold text-warning border-0">+ <?php echo number_format($labor_cost); ?></td>
                     </tr>
-                    <tr>
-                        <td colspan="5" class="p-0 border-0"><div style="height: 4px; background-color: #20c997;"></div></td>
-                    </tr>
                 </tfoot>
             </table>
         </div>
@@ -248,37 +211,31 @@ $grand_total = $sum_parts + $labor_cost;
 
 <iframe id="printFrame" style="display:none;"></iframe>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
 function printInvoice(serviceId) {
-    // 1. ໃຊ້ AJAX ສົ່ງຄ່າໄປຫາ PHP ດ້ານເທິງ (Background) ເພື່ອອັບເດດສະຖານະເປັນ success ແລະ ບັນທຶກເວລາ
     $.ajax({
         url: window.location.pathname + '?id=' + serviceId + '&action=update_status_print',
         type: 'GET',
         dataType: 'json',
         success: function(response) {
             if(response.status === 'success') {
-                
-                // 2. ຖ້າອັບເດດຖານຂໍ້ມູນສຳເລັດ, ໃຫ້ iframe ໂຫຼດໜ້າພິມບິນຂຶ້ນມາ
                 var iframe = document.getElementById('printFrame');
                 iframe.src = 'print_service_logs.php?id=' + serviceId;
-                
                 iframe.onload = function() {
                     setTimeout(function() {
                         iframe.contentWindow.focus();
                         iframe.contentWindow.print();
-                        
-                        // 3. ຫຼັງຈາກກົດປິ່ນແລ້ວ ໃຫ້ໂຫຼດໜ້ານີ້ຄືນໃໝ່ ເພື່ອສະແດງສະຖານະເປັນ "ສຳເລັດແລ້ວ"
                         window.location.reload();
                     }, 300); 
                 };
-                
             } else {
-                alert('ເກີດຂໍ້ຜິດພາດ: ບໍ່ສາມາດປ່ຽນສະຖານະບິນໄດ້!');
+                alert('ເກີດຂໍ້ຜິດພາດໃນການປ່ຽນສະຖານະບິນ!');
             }
         },
         error: function() {
-            alert('ບໍ່ສາມາດເຊື່ອມຕໍ່ລະບົບອັບເດດສະຖານະໄດ້, ແຕ່ກຳລັງດຶງໃບບິນໃຫ້...');
-            // ຖ້າເອີ້ນອັບເດດຜິດພາດ ກໍໃຫ້ປິ່ນໄດ້ຄືເກົ່າ
+            alert('ກຳລັງດຶງໃບບິນໃຫ້...');
             var iframe = document.getElementById('printFrame');
             iframe.src = 'print_service_logs.php?id=' + serviceId;
             iframe.onload = function() {
@@ -300,16 +257,16 @@ function printInvoice(serviceId) {
             <form method="POST" action="?id=<?php echo $service_id; ?>">
                 <div class="modal-body pt-4">
                     <div class="mb-4">
-                        <label class="form-label small fw-bold text-secondary mb-1">Leurak ahai chak stock (ຖ້າມີ)</label>
+                        <label class="form-label small fw-bold text-secondary mb-1">ເລືອກອາໄຫຼ່ຈາກສະຕັອກ (ຖ້າມີ)</label>
                         <select name="part_id" id="part_select" class="form-select bg-light" onchange="updatePrice()">
                             <option value="0">-- ປ້ອນລາຍການໃໝ່ດ້ວຍຕົນເອງ --</option>
                             <?php 
                             $res = mysqli_query($connect, "SELECT * FROM parts_profile WHERE qty_stock > 0"); 
                             while($p = mysqli_fetch_array($res)) { 
-                                echo "<option value='".$p['part_id']."' data-price='".$p['sale_price']."' data-name='".$p['part_name']."'>".$p['part_name']." (ພ້ອມขາຍ: ".$p['qty_stock'].")</option>"; 
+                                echo "<option value='".$p['part_id']."' data-price='".$p['sale_price']."' data-name='".$p['part_name']."'>".$p['part_name']." (ພ້ອມຂາຍ: ".$p['qty_stock'].")</option>"; 
                             } 
                             ?>
-                        </select>
+                        </</select>
                     </div>
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-secondary mb-1">ຊື່ລາຍການ / ລາຍລະອຽດ</label>

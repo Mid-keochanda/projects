@@ -10,51 +10,156 @@ if (@$_SESSION['checked'] <> 1) {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>WMS | Admin Management</title>
+  <title>Garage & WMS | Admin Management</title>
 
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@300;400;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@300;400;500;600;700&display=swap">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
   <link rel="stylesheet" href="dist/css/adminlte.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/overlayscrollbars/1.13.0/css/OverlayScrollbars.min.css">
   
   <style>
-    :root { --main-bg: #f4f6f9; --sidebar-color: #1e293b; }
-    body { font-family: 'Noto Sans Lao', sans-serif; background-color: var(--main-bg); }
+    :root { 
+        --main-bg: #f1f5f9; 
+        --sidebar-bg: #0f172a; 
+        --sidebar-hover: rgba(255, 255, 255, 0.05);
+        --primary-gradient: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    }
+    
+    body { 
+        font-family: 'Noto Sans Lao', sans-serif; 
+        background-color: var(--main-bg); 
+    }
 
-    /* Navbar Glassmorphism */
+    /* ---------------- Navbar Glassmorphism ---------------- */
     .main-header {
-        border-bottom: none !important;
-        background: rgba(255, 255, 255, 0.85) !important;
+        border-bottom: 1px solid rgba(0,0,0,0.05) !important;
+        background: rgba(255, 255, 255, 0.9) !important;
         backdrop-filter: blur(10px);
-        box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+    }
+    .navbar-nav .nav-link {
+        color: #475569 !important;
+        font-weight: 500;
+    }
+    .navbar-nav .nav-link:hover {
+        color: #2563eb !important;
     }
 
-    /* Sidebar Gradient Style */
-    .main-sidebar { background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%) !important; }
+    /* ---------------- Sidebar Premium Style ---------------- */
+    .main-sidebar { 
+        background: var(--sidebar-bg) !important; 
+        box-shadow: 4px 0 20px rgba(0,0,0,0.1);
+    }
+    .brand-link {
+        border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+        padding: 1.25rem 1rem !important;
+    }
+    .brand-text {
+        font-weight: 700 !important;
+        letter-spacing: 1.5px;
+        color: #f8fafc;
+        font-size: 1.1rem;
+    }
+    
+    /* Sidebar Menu Items */
+    .nav-sidebar .nav-item {
+        margin-bottom: 2px;
+    }
+    .nav-sidebar .nav-item > .nav-link {
+        border-radius: 10px;
+        margin: 0 12px;
+        color: #cbd5e1;
+        transition: all 0.3s ease;
+        padding: 10px 15px;
+    }
+    
+    .nav-sidebar .nav-item > .nav-link:hover {
+        background: var(--sidebar-hover);
+        color: #ffffff;
+        transform: translateX(4px);
+    }
+    
     .nav-sidebar .nav-link.active {
-        background: linear-gradient(90deg, #3b82f6, #06b6d4) !important;
-        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
-        border-radius: 8px;
+        background: var(--primary-gradient) !important;
+        color: #ffffff !important;
+        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        border-radius: 10px;
+    }
+    
+    .nav-sidebar .nav-icon {
+        font-size: 1.1rem;
+        margin-right: 8px;
+        color: #94a3b8;
+    }
+    .nav-sidebar .nav-link:hover .nav-icon,
+    .nav-sidebar .nav-link.active .nav-icon {
+        color: #ffffff;
     }
 
-    /* Iframe Styling (The "Card" Look) */
-    .content-wrapper { padding: 15px; background: var(--main-bg); }
+    /* Sub-menu styling */
+    .nav-treeview > .nav-item > .nav-link {
+        margin: 0 12px 0 20px;
+        border-radius: 8px;
+        padding: 8px 15px;
+        font-size: 0.95rem;
+    }
+    .nav-treeview > .nav-item > .nav-link:hover {
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    /* ---------------- Iframe & Content Area ---------------- */
+    .content-wrapper { 
+        padding: 20px; 
+        background: var(--main-bg); 
+    }
     iframe[name="frame"] {
         width: 100%;
-        height: calc(100vh - 145px);
+        height: calc(100vh - 110px);
         border: none;
-        border-radius: 16px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        border-radius: 20px;
+        box-shadow: 0 10px 35px rgba(0,0,0,0.06);
         background: white;
         display: block;
+        transition: opacity 0.3s ease;
     }
 
-    /* Logout Button */
-    .btn-logout {
-        border-radius: 20px;
-        padding: 4px 15px;
+    /* ---------------- Logout & User Badge ---------------- */
+    .user-badge {
+        background: #f1f5f9;
+        color: #334155;
+        border: 1px solid #e2e8f0;
         font-weight: 600;
-        transition: 0.3s;
+        border-radius: 30px;
+        padding: 8px 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.9rem;
+    }
+    
+    .btn-logout {
+        border-radius: 30px;
+        padding: 6px 18px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.3s;
+        border: 1px solid #fee2e2;
+        color: #ef4444;
+        background: #fef2f2;
+    }
+    .btn-logout:hover {
+        background: #ef4444;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+    }
+    
+    /* Footer */
+    .main-footer {
+        background: var(--main-bg);
+        border-top: none;
+        color: #8b6464;
+        padding: 10px 20px;
     }
   </style>
 </head>
@@ -68,21 +173,21 @@ if (@$_SESSION['checked'] <> 1) {
         <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
       </li>
       <li class="nav-item d-none d-sm-inline-block">
-        <a href="Homepage.php" target="frame" class="nav-link font-weight-bold text-primary">ໜ້າຫຼັກ</a>
+        <a href="Homepage.php" target="frame" class="nav-link text-primary"><i class="fas fa-home me-1"></i> ໜ້າຫຼັກ</a>
       </li>
     </ul>
 
     <ul class="navbar-nav ml-auto align-items-center">
       <li class="nav-item mr-3">
-        <span class="badge badge-light px-3 py-2 shadow-sm" style="border-radius: 15px; color: #475569;">
-          <i class="fas fa-user-circle mr-1 text-primary"></i> 
+        <div class="user-badge shadow-sm">
+          <i class="fas fa-user-circle text-primary" style="font-size: 1.2rem;"></i> 
           <?php echo $_SESSION['fname'] . " " . $_SESSION['lname']; ?>
-        </span>
+        </div>
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="logout.php">
-          <button class="btn btn-outline-danger btn-logout btn-sm">
-            <i class="fas fa-power-off"></i> ອອກຈາກລະບົບ
+        <a class="nav-link p-0" href="logout.php" style="margin-right: 15px;">
+          <button class="btn btn-logout">
+            <i class="fas fa-sign-out-alt"></i> ອອກຈາກລະບົບ
           </button>
         </a>
       </li>
@@ -90,19 +195,36 @@ if (@$_SESSION['checked'] <> 1) {
   </nav>
 
   <aside class="main-sidebar sidebar-dark-primary elevation-4">
-    <a href="#" class="brand-link text-center">
-      <span class="brand-text font-weight-bold" style="letter-spacing: 1px;">WMS MANAGER</span>
+    <a href="Homepage.php" target="frame" class="brand-link text-center">
+      <i class="fas fa-tools text-primary mr-2" style="font-size: 1.3rem;"></i>
+      <span class="brand-text">GARAGE MANAGER</span>
     </a>
 
     <div class="sidebar">
-      <nav class="mt-3">
+      <nav class="mt-0">
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
           
-          <li class="nav-header text-uppercase opacity-50 small" style="letter-spacing: 1px;">ຂໍ້ມູນພື້ນຖານ</li>
+          <li class="nav-header text-uppercase opacity-50 small" style="letter-spacing: 1px; color: #94a3b8;">ເມນູຫຼັກ</li>
           
-           <li class="nav-item">
+          <li class="nav-item menu-open">
+            <a href="#" class="nav-link active">
+              <i class="nav-icon fas fa-chart-pie"></i>
+              <p> ແຜງຄວບຄຸມ <i class="right fas fa-angle-left"></i></p>
+            </a>
+            <ul class="nav nav-treeview">
+              <li class="nav-item">
+                <a href="Homepage.php" target="frame" class="nav-link">
+                  <i class="far fa-circle nav-icon text-info"></i> <p>ຍອດການເງິນ & ຄັງສິນຄ້າ</p>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <li class="nav-header text-uppercase opacity-10 small mt-0" style="letter-spacing: 1px; color: #94a3b8;">ລະບົບບໍລິການ</li>
+
+          <li class="nav-item">
             <a href="#" class="nav-link">
-              <i class="nav-icon fas fa-user-friends"></i>
+              <i class="nav-icon fas fa-users"></i>
               <p>ຈັດການລູກຄ້າ <i class="right fas fa-angle-left"></i></p>
             </a>
             <ul class="nav nav-treeview">
@@ -116,22 +238,8 @@ if (@$_SESSION['checked'] <> 1) {
 
           <li class="nav-item">
             <a href="#" class="nav-link">
-              <i class="nav-icon fas fa-user-friends"></i>
-              <p>ຈັດການອອກບິນ/ສ້ອມແປງ <i class="right fas fa-angle-left"></i></p>
-            </a>
-            <ul class="nav nav-treeview">
-              <li class="nav-item">
-                <a href="service_logs/form_service_logs.php" target="frame" class="nav-link">
-                  <i class="far fa-circle nav-icon text-info"></i> <p>ອອກບິນສ້ອມແປງລົດ</p>
-                </a>
-              </li>
-            </ul>
-          </li>
-          
-          <li class="nav-item">
-            <a href="#" class="nav-link">
-              <i class="nav-icon fas fa-user-friends"></i>
-              <p>ຈັດການລົດ <i class="right fas fa-angle-left"></i></p>
+              <i class="nav-icon fas fa-car"></i>
+              <p>ຈັດການລົດລູກຄ້າ <i class="right fas fa-angle-left"></i></p>
             </a>
             <ul class="nav nav-treeview">
               <li class="nav-item">
@@ -142,12 +250,26 @@ if (@$_SESSION['checked'] <> 1) {
             </ul>
           </li>
 
-         
-          
           <li class="nav-item">
             <a href="#" class="nav-link">
-              <i class="nav-icon fas fa-user-friends"></i>
-              <p>ຈັດການປະເພດອາໄຫຼ່ <i class="right fas fa-angle-left"></i></p>
+              <i class="nav-icon fas fa-file-invoice-dollar"></i>
+              <p>ອອກບິນ & ສ້ອມແປງ <i class="right fas fa-angle-left"></i></p>
+            </a>
+            <ul class="nav nav-treeview">
+              <li class="nav-item">
+                <a href="service_logs/form_service_logs.php" target="frame" class="nav-link">
+                  <i class="far fa-circle nav-icon text-warning"></i> <p>ອອກບິນສ້ອມແປງລົດ</p>
+                </a>
+              </li>
+            </ul>
+          </li>
+          
+          <li class="nav-header text-uppercase opacity-10 small mt-0" style="letter-spacing: 1px; color: #94a3b8;">ລະບົບສາງສິນຄ້າ</li>
+
+          <li class="nav-item">
+            <a href="#" class="nav-link">
+              <i class="nav-icon fas fa-tags"></i>
+              <p>ປະເພດອາໄຫຼ່ <i class="right fas fa-angle-left"></i></p>
             </a>
             <ul class="nav nav-treeview">
               <li class="nav-item">
@@ -160,8 +282,8 @@ if (@$_SESSION['checked'] <> 1) {
 
           <li class="nav-item">
             <a href="#" class="nav-link">
-              <i class="nav-icon fas fa-user-friends"></i>
-              <p>ຈັດການເຄື່ອງອາໄຫຼ່ <i class="right fas fa-angle-left"></i></p>
+              <i class="nav-icon fas fa-box-open"></i>
+              <p>ລາຍການອາໄຫຼ່ <i class="right fas fa-angle-left"></i></p>
             </a>
             <ul class="nav nav-treeview">
               <li class="nav-item">
@@ -174,17 +296,19 @@ if (@$_SESSION['checked'] <> 1) {
 
           <li class="nav-item">
             <a href="#" class="nav-link">
-              <i class="nav-icon fas fa-user-friends"></i>
-              <p>ຈັດການນຳເຄື່ອງອາໄຫຼ່ເຂົ້າ <i class="right fas fa-angle-left"></i></p>
+              <i class="nav-icon fas fa-shopping-cart"></i>
+              <p>ນຳເຄື່ອງອາໄຫຼ່ເຂົ້າສາງ <i class="right fas fa-angle-left"></i></p>
             </a>
             <ul class="nav nav-treeview">
               <li class="nav-item">
                 <a href="part_purchases/form_part_purchases.php" target="frame" class="nav-link">
-                  <i class="far fa-circle nav-icon text-info"></i> <p>ເພີ່ມຂໍ້ມູນນຳອາໄຫຼ່ເຂົ້າ</p>
+                  <i class="far fa-circle nav-icon text-success"></i> <p>ເພີ່ມຂໍ້ມູນນຳອາໄຫຼ່ເຂົ້າ</p>
                 </a>
               </li>
             </ul>
           </li>
+
+          <li class="nav-header text-uppercase opacity-10 small mt-0" style="letter-spacing: 1px; color: #94a3b8;">ຕັ້ງຄ່າລະບົບ</li>
 
           <li class="nav-item">
             <a href="#" class="nav-link">
@@ -212,13 +336,13 @@ if (@$_SESSION['checked'] <> 1) {
 
           <li class="nav-item">
             <a href="#" class="nav-link">
-              <i class="nav-icon fas fa-user-tie"></i>
+              <i class="nav-icon fas fa-user-shield"></i>
               <p>ຈັດການພະນັກງານ <i class="right fas fa-angle-left"></i></p>
             </a>
             <ul class="nav nav-treeview">
               <li class="nav-item">
                 <a href="users/from_users.php" target="frame" class="nav-link">
-                  <i class="far fa-circle nav-icon"></i> <p>ບັນທຶກພະນັກງານ</p>
+                  <i class="far fa-circle nav-icon text-info"></i> <p>ບັນທຶກພະນັກງານ</p>
                 </a>
               </li>
             </ul>
@@ -234,7 +358,7 @@ if (@$_SESSION['checked'] <> 1) {
   </div>
 
   <footer class="main-footer text-center py-2 small">
-    <strong>Copyright &copy; 2026 <span class="text-primary">Warehouse Management</span>.</strong>
+    <strong>Copyright &copy; 2026 <span class="text-primary font-weight-bold">Garage Management System</span>.</strong> All rights reserved.
   </footer>
 </div>
 
@@ -244,13 +368,23 @@ if (@$_SESSION['checked'] <> 1) {
 <script src="dist/js/adminlte.js"></script>
 
 <script>
-  // ເພີ່ມຄວາມ Smooth ເວລາກົດເມນູ
   $(document).ready(function() {
+    // ຈັດການການເປີດ/ປິດ Active state ຂອງເມນູໃຫ້ເບິ່ງງາມຂຶ້ນ
+    $('.nav-sidebar .nav-link').on('click', function() {
+      // ຖ້າກົດເມນູຍ່ອຍ ໃຫ້ປ່ຽນສີພື້ນຫຼັງ
+      if(!$(this).hasClass('active') && $(this).attr('target') === 'frame'){
+          $('.nav-sidebar .nav-link').removeClass('active');
+          $(this).addClass('active');
+          $(this).closest('.has-treeview').children('.nav-link').addClass('active');
+      }
+    });
+
+    // Effect ຕອນໂຫຼດໜ້າ Iframe (Smooth Loading)
     $('.nav-link[target="frame"]').on('click', function() {
-      $('iframe[name="frame"]').css('opacity', '0.5');
+      $('iframe[name="frame"]').css({'opacity': '0.3', 'transform': 'scale(0.99)'});
       setTimeout(function() {
-        $('iframe[name="frame"]').css('opacity', '1');
-      }, 200);
+        $('iframe[name="frame"]').css({'opacity': '1', 'transform': 'scale(1)'});
+      }, 350);
     });
   });
 </script>
