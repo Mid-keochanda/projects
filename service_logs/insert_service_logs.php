@@ -42,7 +42,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 timer: 2000,
                 showConfirmButton: false
             }).then(() => {
-                window.location.href = 'form_service_details.php?id=" . $new_log_id . "';
+                window.location.href = 'form_service_logs.php?id=" . $new_log_id . "';
             });
         </script>";
     } else {

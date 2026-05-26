@@ -2,14 +2,14 @@
 include("../cennect_dbstock.php");
 mysqli_set_charset($connect, "utf8");
 
-// --- ດຶງຂໍ້ມູນລາຍການບິນສ້ອມແປງທັງໝົດ ---
+// --- ດຶງຂໍ້ມູນລາຍການບິນສ້ອມແປງທັງໝົດ ໂດຍເອົາ pending ຂຶ້ນກ່ອນ ແລະ ລຽງຕາມ ID ໃໝ່ສຸດ ---
 $sql_logs = "SELECT l.*, c.car_plate, cust.cust_name, u.fname, u.lname,
             (SELECT SUM(total) FROM service_details WHERE service_id = l.log_id) as total_parts
             FROM service_logs l
             LEFT JOIN cars c ON l.car_id = c.car_id
             LEFT JOIN customers cust ON c.cust_id = cust.cust_id
             LEFT JOIN users u ON l.user_id = u.user_id
-            ORDER BY l.log_id DESC";
+            ORDER BY CASE WHEN l.status = 'pending' THEN 0 ELSE 1 END ASC, l.log_id DESC";
 $res_logs = mysqli_query($connect, $sql_logs);
 ?>
 
@@ -23,43 +23,54 @@ $res_logs = mysqli_query($connect, $sql_logs);
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;700&display=swap');
-        body { font-family: 'Noto Sans Lao', sans-serif; background-color: #f4f7f6; }
-        .card { border: none; border-radius: 15px; }
-        .table thead { background-color: #4e73df; color: white; }
-        .badge-pending { background-color: #f6c23e; color: #fff; }
-        .badge-success { background-color: #1cc88a; color: #fff; }
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;500;700&display=swap');
+        body { font-family: 'Noto Sans Lao', sans-serif; background-color: #f8f9fa; color: #333; }
+        .card { border: none; border-radius: 15px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04); }
+        .table thead th { 
+            font-weight: 600; 
+            background-color: #f1f4f8; 
+            color: #495057;
+            border-bottom: 2px solid #e9ecef;
+            font-size: 14px;
+        }
+        .table tbody td { vertical-align: middle; }
+        .badge-pending { background-color: #ffc107; color: #000; font-weight: 500; }
+        .badge-success { background-color: #20c997; color: #fff; font-weight: 500; }
+        .time-text-only { font-size: 13px; font-weight: 500; font-family: 'Courier New', Courier, monospace; }
     </style>
 </head>
 <body>
 
 <div class="container py-4">
-    <div class="card shadow-sm mb-4">
-        <div class="card-body d-flex justify-content-between align-items-center">
+    <div class="card mb-4">
+        <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div>
                 <h4 class="text-primary fw-bold mb-0"><i class="fas fa-tools me-2"></i> ລະບົບຈັດການການສ້ອມແປງ</h4>
-                <p class="text-muted mb-0">ຕາຕະລາງຕິດຕາມ ແລະ ເປີດບິນແປງລົດຂອງລູກຄ້າ</p>
+                <p class="text-muted mb-0 small">ຕາຕະລາງຕິດຕາມ ແລະ ເປີດບິນແປງລົດຂອງລູກຄ້າ</p>
             </div>
-            <button type="button" class="btn btn-primary fw-bold px-4 py-2 shadow-sm" 
+            <button type="button" class="btn btn-primary fw-bold px-4 py-2 shadow-sm d-flex align-items-center gap-2" 
                     data-bs-toggle="modal" data-bs-target="#openServiceModal" 
                     style="border-radius: 10px;">
-                <i class="fas fa-plus-circle me-2"></i> ເປີດບິນສ້ອມແປງໃໝ່
+                <i class="fas fa-plus-circle"></i> ເປີດບິນສ້ອມແປງໃໝ່
             </button>
         </div>
     </div>
 
-    <div class="card shadow-sm">
-        <div class="card-body">
+    <div class="card">
+        <div class="card-body p-0 overflow-hidden">
             <div class="table-responsive">
-                <table class="table table-hover align-middle">
+                <table class="table table-hover align-middle mb-0">
                     <thead>
                         <tr>
-                            <th width="80">ເລກບິນ</th>
-                            <th>ທະບຽນລົດ (ເຈົ້າຂອງ)</th>
+                            <th class="ps-4" width="90">ເລກບິນ</th>
+                            <th>ທະບຽນລົດ</th>
+                            <th>ເຈົ້າຂອງລົດ</th>
                             <th>ຊ່າງຜູ້ຮັບຜິດຊອບ</th>
-                            <th>ອາການເບື້ອງຕົ້ນ</th>
+                            <th>... ອາການເບື້ອງຕົ້ນ</th>
                             <th class="text-end">ຍອດລວມສຸດທິ</th>
-                            <th class="text-center">ສະຖານະ</th>
+                            <th class="text-center" width="130">ສະຖານະ</th>
+                            <th>ເວລາເປີດບິນ</th>
+                            <th>ເວລາແປງແລ້ວ</th>
                             <th class="text-center" width="120">ຈັດການ</th>
                         </tr>
                     </thead>
@@ -69,23 +80,38 @@ $res_logs = mysqli_query($connect, $sql_logs);
                             $parts_cost = $row['total_parts'] ?? 0;
                             $labor_cost = $row['labor_cost'] ?? 0;
                             $grand_total = $parts_cost + $labor_cost;
+
+                            $created_time = !empty($row['service_date']) ? date('d/m/Y H:i', strtotime($row['service_date'])) : '---';
+                            $completed_time = !empty($row['completed_at']) ? date('d/m/Y H:i', strtotime($row['completed_at'])) : '---';
                         ?>
-                        <tr>
-                            <td class="fw-bold text-primary">#<?php echo str_pad($row['log_id'], 5, "0", STR_PAD_LEFT); ?></td>
-                            <td>
-                                <span class="fw-bold"><?php echo $row['car_plate']; ?></span><br>
-                                <small class="text-muted"><?php echo $row['cust_name'] ?? '---'; ?></small>
-                            </td>
-                            <td><?php echo $row['fname'] . " " . $row['lname']; ?></td>
-                            <td><div class="text-truncate" style="max-width: 200px;"><?php echo $row['symptoms']; ?></div></td>
+                        <tr style="<?php echo $row['status'] == 'pending' ? 'background-color: #fffdf5;' : ''; ?>">
+                            <td class="fw-bold text-primary ps-4">#<?php echo str_pad($row['log_id'], 5, "0", STR_PAD_LEFT); ?></td>
+                            <td class="fw-bold text-dark"><i class="fas fa-car text-muted me-1"></i> <?php echo $row['car_plate']; ?></td>
+                            <td><?php echo $row['cust_name'] ?? '<span class="text-muted">---</span>'; ?></td>
+                            <td><i class="far fa-user text-muted me-1"></i> <?php echo $row['fname'] . " " . $row['lname']; ?></td>
+                            <td><div class="text-truncate" style="max-width: 150px;"><?php echo $row['symptoms']; ?></div></td>
                             <td class="text-end fw-bold text-danger"><?php echo number_format($grand_total); ?> ກີບ</td>
+                            
                             <td class="text-center">
                                 <?php if($row['status'] == 'pending'): ?>
-                                    <span class="badge badge-pending px-3 py-2 rounded-pill">ກຳລັງສ້ອມແປງ</span>
+                                    <span class="badge badge-pending px-3 py-2 rounded-pill"><i class="fas fa-spinner fa-spin me-1"></i> ກຳລັງສ້ອມແປງ</span>
                                 <?php else: ?>
-                                    <span class="badge badge-success px-3 py-2 rounded-pill">ສຳເລັດແລ້ວ</span>
+                                    <span class="badge badge-success px-3 py-2 rounded-pill"><i class="fas fa-check-circle me-1"></i> ສຳເລັດແລ້ວ</span>
                                 <?php endif; ?>
                             </td>
+
+                            <td class="time-text-only text-secondary">
+                                <?php echo $created_time; ?>
+                            </td>
+
+                            <td class="time-text-only text-success">
+                                <?php if($row['status'] == 'pending'): ?>
+                                    <span class="text-muted">---</span>
+                                <?php else: ?>
+                                    <?php echo $completed_time; ?>
+                                <?php endif; ?>
+                            </td>
+
                             <td class="text-center">
                                 <a href="form_service_details.php?id=<?php echo $row['log_id']; ?>" class="btn btn-outline-primary btn-sm rounded-pill px-3">
                                     <i class="fas fa-cog"></i> ຈັດການ
@@ -94,7 +120,7 @@ $res_logs = mysqli_query($connect, $sql_logs);
                         </tr>
                         <?php } if(mysqli_num_rows($res_logs) == 0) { ?>
                         <tr>
-                            <td colspan="7" class="text-center text-muted py-4">--- ບໍ່ມີຂໍ້ມູນບິນສ້ອມແປງໃນລະບົບ ---</td>
+                            <td colspan="10" class="text-center text-muted py-5"><i class="fas fa-folder-open fs-3 d-block mb-2 text-black-50"></i>ບໍ່ມີຂໍ້ມູນບິນສ້ອມແປງໃນລະບົບ</td>
                         </tr>
                         <?php } ?>
                     </tbody>
@@ -117,7 +143,7 @@ $res_logs = mysqli_query($connect, $sql_logs);
             
             <div class="modal-body p-4" style="background-color: #fff;">
                 <div class="mb-4">
-                    <label class="form-label fw-bold text-dark small"><i class="fas fa-car text-muted me-1"></i> ເለືອກລົດ</label>
+                    <label class="form-label fw-bold text-dark small"><i class="fas fa-car text-muted me-1"></i> ເລືອກລົດ</label>
                     <select name="car_id" class="form-select" style="border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 0.75rem 1rem;" required>
                         <option value="">-- ເລືອກທະບຽນລົດ --</option>
                         <?php 
@@ -136,29 +162,33 @@ $res_logs = mysqli_query($connect, $sql_logs);
                 </div>
 
                 <div class="mb-4">
-    <label class="form-label fw-bold text-dark small">
-        <i class="fas fa-user-gear text-muted me-1"></i> ຊ່າງຜູ້ຮັບຜິດຊອບ
-    </label>
-    <select name="user_id" class="form-select" style="border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 0.75rem 1rem;" required>
-        <option value="">-- ເລືອກຊ່າງແປງລົດ --</option>
-        <?php 
-        // ດຶງສະເພາະພະນັກງານທີ່ມີສະຖານະເປັນ 'ຊ່າງແປງລົດ'
-        $users = mysqli_query($connect, "SELECT user_id, fname, lname FROM users WHERE status = 'ຊ່າງແປງລົດ' ORDER BY fname ASC");
-        
-        if (mysqli_num_rows($users) > 0) {
-            while($u = mysqli_fetch_array($users)) {
-                echo "<option value='".$u['user_id']."'>".$u['fname']." ".$u['lname']."</option>";
-            }
-        } else {
-            echo "<option value='' disabled>ບໍ່ພົບຂໍ້ມູນຊ່າງໃນລະບົບ</option>";
-        }
-        ?>
-    </select>
-</div>
+                    <label class="form-label fw-bold text-dark small">
+                        <i class="fas fa-user-gear text-muted me-1"></i> ຊ່າງຜູ້ຮັບຜິດຊອບ
+                    </label>
+                    <select name="user_id" class="form-select" style="border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 0.75rem 1rem;" required>
+                        <option value="">-- ເລືອກຊ່າງແປງລົດ --</option>
+                        <?php 
+                        // 🛠️ ແກ້ໄຂຈຸດນີ້: ໃຫ້ຄົ້ນຫາທັງຄຳວ່າ 'ຊ່າງແປງລົດ' (ລາວ) ແລະ 'ช่างแปลงรถ' (ໄທ)
+                        $users = mysqli_query($connect, "SELECT user_id, fname, lname FROM users WHERE status = 'ช่างแปลงรถ' OR status = 'ຊ່າງແປງລົດ' ORDER BY fname ASC");
+                        
+                        if (mysqli_num_rows($users) > 0) {
+                            while($u = mysqli_fetch_array($users)) {
+                                echo "<option value='".$u['user_id']."'>".$u['fname']." ".$u['lname']."</option>";
+                            }
+                        } else {
+                            // 🛠️ ຖ້າຍັງບໍ່ຂຶ້ນອີກ ໃຫ້ດຶງລາຍຊື່ User ທັງໝົດອອກມາໃຫ້ເລືອກກ່ອນ ເພື່ອບໍ່ໃຫ້ຟອມມີບັນຫາ
+                            $all_users = mysqli_query($connect, "SELECT user_id, fname, lname, status FROM users ORDER BY fname ASC");
+                            while($u = mysqli_fetch_array($all_users)) {
+                                echo "<option value='".$u['user_id']."'>".$u['fname']." ".$u['lname']." (".$u['status'].")</option>";
+                            }
+                        }
+                        ?>
+                    </select>
+                </div>
 
                 <div class="mb-4">
                     <label class="form-label fw-bold text-dark small"><i class="fas fa-notes-medical text-muted me-1"></i> ອາການເບື້ອງຕົ້ນ / ວຽກທີ່ຕ້ອງເຮັດ</label>
-                    <textarea name="symptoms" class="form-control" rows="4" style="border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 0.75rem 1rem;" required placeholder="ລະບຸອາການເພີ່ມເຕີມ ເຊັ່ນ: ປ່ຽນນ້ຳມັນເຄື່ອງ, ແອບໍ່ເຢັນ..."></textarea>
+                    <textarea name="symptoms" class="form-control" rows="4" style="border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 0.75rem 1rem;" required placeholder="ລະບຸອາການເພີ່ມເຕີມ ເຊັ່ນ: ປ່ຽນນ້ຳມັນເຄື່ອງ..."></textarea>
                 </div>
 
                 <hr class="text-muted my-4">
