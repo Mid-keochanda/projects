@@ -50,7 +50,7 @@ if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
     $profit_today = $today_sales * 0.30; 
 
 
-    // --- 🛠️ ເພີ່ມສ່ວນການດຶງຂໍ້ມູນຈຳນວນລົດສ້ອມແປງ (New Queries) ---
+    // ເພີ່ມສ່ວນການດຶງຂໍ້ມູນຈຳນວນລົດສ້ອມແປງ
 
     // 8. ລົດທີ່ກຳລັງແປງທັງໝົດ
     $sql_pending_total = mysqli_query($connect, "SELECT COUNT(log_id) FROM service_logs WHERE status = 'pending'");
@@ -77,7 +77,7 @@ if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>ระบົບບໍລິຫານ ອູ່ສ້ອມແປງລົດ</title>
+    <title>ລະບົບບໍລິຫານ ຮ້ານສ້ອມແປງລົດ</title>
 
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@300;400;500;600;700&display=swap">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
@@ -220,7 +220,6 @@ if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
         .card-profit-today .card-icon-box { background: #fae8ff; color: #a21caf; }
         .card-profit-today .card-link { color: #a21caf; }
 
-        /* 🎨 ລະບົບສີເພີ່ມເຕີມສຳລັບກາດສະຖານະລົດ */
         .card-pending-tot .card-icon-box { background: #fff7ed; color: #ea580c; }
         .card-pending-tot .card-link { color: #ea580c; }
 
@@ -256,8 +255,8 @@ if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
         
         <div class="premium-header flex-wrap gap-3">
             <div>
-                <h4><i class="fas fa-cubes text-muted me-2"></i> ແຜງຄວບຄຸມ (Dashboard)</h4>
-                <p>ສະຫຼຸບພາບລວມດ້ານການເງິນ ແລະ ສະຖານະຄັງສິນຄ້າແບບ Real-time</p>
+                <h4><i class="fas fa-cubes text-muted me-2"></i> ແຜງຄວບຄຸມ</h4>
+                <p>ສະຫຼຸບພາບລວມດ້ານການເງິນ ແລະ ສະຖານະຄັງສິນຄ້າ</p>
             </div>
             <div>
                 <span class="badge bg-white text-dark py-2 px-3 border rounded-pill d-flex align-items-center gap-2" style="font-size: 13px;">
@@ -277,7 +276,7 @@ if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
                         </div>
                         <div class="card-icon-box"><i class="fas fa-spinner fa-spin"></i></div>
                     </div>
-                    <a href="form_service_logs.php" class="card-link">
+                    <a href="service_logs/form_service_logs.php" class="card-link">
                         <span>ເບິ່ງລາຍການກຳລັງແປງ</span> <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>
@@ -292,7 +291,7 @@ if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
                         </div>
                         <div class="card-icon-box"><i class="fas fa-wrench"></i></div>
                     </div>
-                    <a href="form_service_logs.php" class="card-link">
+                    <a href="service_logs/form_service_logs.php" class="card-link">
                         <span>ກວດບິນເປີດໃໝ່ມື້ນີ້</span> <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>
@@ -307,7 +306,7 @@ if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
                         </div>
                         <div class="card-icon-box"><i class="fas fa-check-circle"></i></div>
                     </div>
-                    <a href="form_service_logs.php" class="card-link">
+                    <a href="service_logs/form_service_logs.php" class="card-link">
                         <span>ປະຫວັດການແປງທັງໝົດ</span> <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>
@@ -322,7 +321,7 @@ if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
                         </div>
                         <div class="card-icon-box"><i class="fas fa-history"></i></div>
                     </div>
-                    <a href="form_service_logs.php?filter=today" class="card-link">
+                    <a href="service_logs/form_service_logs.php?filter=today" class="card-link">
                         <span>ເບິ່ງລາຍການສຳເລັດມື້ນີ້</span> <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>
@@ -341,7 +340,7 @@ if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
                         </div>
                         <div class="card-icon-box"><i class="fas fa-wallet"></i></div>
                     </div>
-                    <a href="purchase_report.php" class="card-link">
+                    <a href="part_purchases/form_part_purchases.php" class="card-link">
                         <span>ລາຍງານການຈັດຊື້</span> <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>
@@ -356,7 +355,7 @@ if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
                         </div>
                         <div class="card-icon-box"><i class="fas fa-money-bill-wave"></i></div>
                     </div>
-                    <a href="form_service_logs.php" class="card-link">
+                    <a href="service_logs/form_service_logs.php" class="card-link">
                         <span>ປະຫວັດການປິດບິນ</span> <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>
@@ -371,7 +370,7 @@ if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
                         </div>
                         <div class="card-icon-box"><i class="fas fa-calendar-day"></i></div>
                     </div>
-                    <a href="form_service_logs.php?filter=today" class="card-link">
+                    <a href="service_logs/form_service_logs.php?filter=today" class="card-link">
                         <span>ກວດເຊັກບິນມື້ນີ້</span> <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>
@@ -381,12 +380,12 @@ if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
                 <div class="dash-card card-alert">
                     <div class="card-body">
                         <div class="card-info-side">
-                            <div class="card-title">ອາໄຫຼ່ໃກ້ຈະໝົດ (< 5)</div>
+                            <div class="card-title">ອາໄຫຼ່ໃກ້ຈະໝົດ (ຕ່ຳກ່ວາ5)</div>
                             <div class="card-value" style="color: #b91c1c;"><?= number_format($qty_alert); ?><span class="currency">ລາຍການ</span></div>
                         </div>
                         <div class="card-icon-box"><i class="fas fa-exclamation-triangle"></i></div>
                     </div>
-                    <a href="select_products_min.php" class="card-link">
+                    <a href="parts_profile/form_parts_profile.php" class="card-link">
                         <span>ລາຍການຄວນເຕີມ</span> <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>
@@ -396,12 +395,12 @@ if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
                 <div class="dash-card card-zero">
                     <div class="card-body">
                         <div class="card-info-side">
-                            <div class="card-title">...ອາໄຫຼ່ທີ່ໝົດແລ້ວ...</div>
+                            <div class="card-title">ອາໄຫຼ່ທີ່ໝົດແລ້ວ</div>
                             <div class="card-value" style="color: #475569;"><?= number_format($qty_zero); ?><span class="currency">ລາຍການ</span></div>
                         </div>
                         <div class="card-icon-box"><i class="fas fa-box-open"></i></div>
                     </div>
-                    <a href="select_products_user.php" class="card-link">
+                    <a href="parts_profile/form_parts_profile.php" class="card-link">
                         <span>ຈັດການສິນຄ້າໝົດ</span> <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>
@@ -411,12 +410,12 @@ if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
                 <div class="dash-card card-profit">
                     <div class="card-body">
                         <div class="card-info-side">
-                            <div class="card-title">ປະມານການກຳໄລລວມ (30%)</div>
+                            <div class="card-title">ປະມານກຳໄລລວມ</div>
                             <div class="card-value"><?= number_format($income_kamlai); ?><span class="currency">ກີບ</span></div>
                         </div>
                         <div class="card-icon-box"><i class="fas fa-chart-line"></i></div>
                     </div>
-                    <a href="profit_report.php" class="card-link">
+                    <a href="service_logs/form_service_logs.php" class="card-link">
                         <span>ວິເຄາະກຳໄລລວມ</span> <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>
@@ -426,12 +425,12 @@ if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
                 <div class="dash-card card-profit-today">
                     <div class="card-body">
                         <div class="card-info-side">
-                            <div class="card-title">ກຳໄລສະເພາະມື້ນີ້ (30%)</div>
+                            <div class="card-title">ກຳໄລສະເພາະມື້ນີ້</div>
                             <div class="card-value"><?= number_format($profit_today); ?><span class="currency">ກີບ</span></div>
                         </div>
                         <div class="card-icon-box"><i class="fas fa-chart-pie"></i></div>
                     </div>
-                    <a href="profit_report.php?filter=today" class="card-link">
+                    <a href="service_logs/form_service_logs.php?filter=today" class="card-link">
                         <span>ວິເຄາະກຳໄລມື້ນີ້</span> <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>

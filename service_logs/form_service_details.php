@@ -1,4 +1,9 @@
 <?php
+session_start();
+if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
+    echo "<script>alert('ກະລຸນາລ໋ອກອິນກ່ອນ');location='index.php';</script>";
+    exit();
+} else {
 require_once("../cennect_dbstock.php");
 if (!isset($connect)) { die("Error: ບໍ່ສາມາດເຊື່ອມຕໍ່ຖານຂໍ້ມູນ."); }
 mysqli_set_charset($connect, "utf8");
@@ -9,7 +14,7 @@ if ($service_id <= 0) {
     exit();
 }
 
-// 🛠️ API ຂະໜາດນ້ອຍສຳລັບ AJAX ປິດບິນ
+// 🛠️ API ສຳລັບ AJAX ປິດບິນ
 if (isset($_GET['action']) && $_GET['action'] == 'update_status_print') {
     $sql_update = "UPDATE service_logs SET status = 'success', completed_at = NOW() WHERE log_id = $service_id";
     if (mysqli_query($connect, $sql_update)) {
@@ -32,10 +37,9 @@ if (isset($_POST['btn_save_labor'])) {
     }
 }
 
-// 2. Logic ບັນທຶກລາຍການອະໄຫຼ່ (ແກ້ໄຂໃຫ້ຮອງຮັບຄ່າ NULL ເມື່ອພິມເອງ)
+// 2. Logic ບັນທຶກລາຍການອະໄຫຼ່
 if (isset($_POST['btn_save'])) {
     $part_val = intval($_POST['part_id']);
-    $part_id_sql = ($part_val > 0) ? $part_val : "NULL"; 
     $qty = intval($_POST['qty']);
     $price = floatval($_POST['price']);
     $description = mysqli_real_escape_string($connect, $_POST['description']);
@@ -46,19 +50,19 @@ if (isset($_POST['btn_save'])) {
         $check = mysqli_query($connect, "SELECT qty_stock FROM parts_profile WHERE part_id = $part_val");
         $row = mysqli_fetch_array($check);
         if (!$row || $row['qty_stock'] < $qty) {
-            echo "<script>alert('ສະຕັອກບໍ່ພໍ!');</script>";
+            echo "<script>alert('ສະຕັອກບໍ່ພໍ! ໃນສະຕັອກເຫຼືອ: " . ($row['qty_stock'] ?? 0) . "');</script>";
             $can_save = false;
         }
+    } else {
+        echo "<script>alert('ກະລຸນາຢືນຢັນການຍິງບາໂຄດສິນຄ້າໃຫ້ຖືກຕ້ອງ!');</script>";
+        $can_save = false;
     }
 
     if ($can_save) {
-        // ໝາຍເຫດ: ຖ້າຖານຂໍ້ມູນຟ້ອງ Error ໃຫ້ປ່ຽນ service_id ເປັນ log_id
         $sql = "INSERT INTO service_details (service_id, part_id, description, qty, price, total) 
-                VALUES ($service_id, $part_id_sql, '$description', $qty, $price, $total)";
+                VALUES ($service_id, $part_val, '$description', $qty, $price, $total)";
         if (mysqli_query($connect, $sql)) {
-            if ($part_val > 0) {
-                mysqli_query($connect, "UPDATE parts_profile SET qty_stock = qty_stock - $qty WHERE part_id = $part_val");
-            }
+            mysqli_query($connect, "UPDATE parts_profile SET qty_stock = qty_stock - $qty WHERE part_id = $part_val");
             header("Location: ?id=$service_id");
             exit();
         } else {
@@ -67,7 +71,26 @@ if (isset($_POST['btn_save'])) {
     }
 }
 
-// 3. ດຶງຂໍ້ມູນສະແດງຜົນ
+// 3. Logic ຍົກເລີກລາຍການອະໄຫຼ່ (ຄືນສະຕັອກ)
+if (isset($_GET['action']) && $_GET['action'] == 'delete_item') {
+    $del_id = intval($_GET['del_id']);
+    
+    $item_check = mysqli_query($connect, "SELECT part_id, qty FROM service_details WHERE detail_id = $del_id");
+    if (mysqli_num_rows($item_check) > 0) {
+        $item = mysqli_fetch_array($item_check);
+        $p_id = $item['part_id'];
+        $p_qty = $item['qty'];
+        
+        if ($p_id > 0) {
+            mysqli_query($connect, "UPDATE parts_profile SET qty_stock = qty_stock + $p_qty WHERE part_id = $p_id");
+        }
+        mysqli_query($connect, "DELETE FROM service_details WHERE detail_id = $del_id");
+    }
+    header("Location: ?id=$service_id");
+    exit();
+}
+
+// 4. ດຶງຂໍ້ມູນສະແດງຜົນ
 $res_total = mysqli_query($connect, "SELECT SUM(total) as sum_parts FROM service_details WHERE service_id = $service_id");
 $total_data = mysqli_fetch_array($res_total);
 $sum_parts = $total_data['sum_parts'] ?? 0;
@@ -77,6 +100,21 @@ $log_data = mysqli_fetch_array($res_log);
 $labor_cost = $log_data['labor_cost'] ?? 0;
 $current_status = $log_data['status'] ?? 'pending';
 $grand_total = $sum_parts + $labor_cost;
+
+// 📦 ດຶງຂໍ້ມູນອະໄຫຼ່ທັງໝົດ ແລະ ແມັບເຂົ້າກັບຫ້ອງ part_code ຂອງທ່ານ
+$parts_array = [];
+$res_parts = mysqli_query($connect, "SELECT * FROM parts_profile");
+while ($p = mysqli_fetch_array($res_parts)) {
+    // ຖ້າຫ້ອງ part_code ວ່າງເປົ່າ ຈະໃຊ້ part_id ແທນອັດຕະໂນມັດ
+    $barcode_key = (!empty($p['part_code'])) ? $p['part_code'] : $p['part_id'];
+    
+    $parts_array[] = [
+        'part_id'    => $p['part_id'],
+        'barcode'    => strval($barcode_key), // ສົ່ງເລກ part_code ໄປໃຫ້ JavaScript ຄົ້ນຫາ
+        'part_name'  => $p['part_name'],
+        'sale_price' => $p['sale_price']
+    ];
+}
 ?>
 
 <!DOCTYPE html>
@@ -109,7 +147,7 @@ $grand_total = $sum_parts + $labor_cost;
                 <a href="form_service_logs.php" class="btn btn-light btn-sm me-3 rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;" title="ກັບຄືນ">
                     <i class="fas fa-arrow-left text-secondary"></i>
                 </a>
-                <h3 class="fw-bold text-dark mb-0">ຈັດการລາຍການສ້ອມແປງ</h3>
+                <h3 class="fw-bold text-dark mb-0">ຈັດການລາຍການສ້ອມແປງ</h3>
             </div>
             <div class="d-flex align-items-center gap-3 ms-5">
                 <p class="text-muted mb-0" style="font-size: 14px;">ເລກທີບິນ: <span class="fw-bold text-primary">#<?php echo str_pad($service_id, 5, "0", STR_PAD_LEFT); ?></span></p>
@@ -126,7 +164,7 @@ $grand_total = $sum_parts + $labor_cost;
                 <i class="fas fa-print"></i> ພິມໃບບິນ & ປິດບິນ
             </button>
             <button type="button" class="btn btn-primary d-flex align-items-center gap-2 px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#addModal">
-                <i class="fas fa-plus"></i> ເພີ່ມລາຍການອະໄຫຼ່
+                <i class="fas fa-barcode"></i> ຍິງບາໂຄດເພີ່ມອະໄຫຼ່
             </button>
         </div>
     </div>
@@ -171,14 +209,14 @@ $grand_total = $sum_parts + $labor_cost;
                         <th class="py-3">ລາຍການ / ລາຍລະອຽດວຽກ</th>
                         <th class="text-center py-3" width="120">ຈຳນວນ</th>
                         <th class="text-end py-3" width="160">ລາຄາ/ໜ່ວຍ</th>
-                        <th class="text-end py-3 pe-4" width="180">ລວມ (ກີບ)</th>
-                    </tr>
+                        <th class="text-end py-3" width="180">ລວມ (ກີບ)</th>
+                        <th class="text-center py-3" width="120">ຈັດການ</th> </tr>
                 </thead>
                 <tbody>
                     <?php 
                     $res_det = mysqli_query($connect, "SELECT d.*, p.part_name FROM service_details d LEFT JOIN parts_profile p ON d.part_id = p.part_id WHERE d.service_id = $service_id");
                     if (mysqli_num_rows($res_det) == 0) {
-                        echo "<tr><td colspan='5' class='text-center text-muted py-5'><i class='fas fa-box-open fs-3 mb-2 d-block text-black-50'></i>ຍັງບໍ່ມີລາຍການອະໄຫຼ່ໃນບິນນີ້</td></tr>";
+                        echo "<tr><td colspan='6' class='text-center text-muted py-5'><i class='fas fa-box-open fs-3 mb-2 d-block text-black-50'></i>ຍັງບໍ່ມີລາຍການອະໄຫຼ່ໃນບິນນີ້</td></tr>";
                     } else {
                         $i = 1;
                         while($d = mysqli_fetch_array($res_det)) {
@@ -187,7 +225,14 @@ $grand_total = $sum_parts + $labor_cost;
                                     <td class='py-3 fw-medium'>".($d['part_name'] ?? $d['description'])."</td>
                                     <td class='text-center py-3'><span class='badge bg-light text-dark border px-3 py-2'>".$d['qty']."</span></td>
                                     <td class='text-end py-3 text-muted'>".number_format($d['price'])."</td>
-                                    <td class='text-end py-3 pe-4 fw-bold text-dark'>".number_format($d['total'])."</td>
+                                    <td class='text-end py-3 fw-bold text-dark'>".number_format($d['total'])."</td>
+                                    <td class='text-center py-3'>
+                                        <a href='?id=".$service_id."&action=delete_item&del_id=".$d['detail_id']."' 
+                                           class='btn btn-outline-danger btn-sm px-3' 
+                                           onclick='return confirm(\"ຕ້ອງການຍົກເລີກລາຍການນີ້ ແລະ ຄືນສະຕັອກແທ້ບໍ່?\")'>
+                                             <i class='fas fa-trash-alt me-1'></i> ຍົກເລີກ
+                                        </a>
+                                    </td>
                                   </tr>";
                             $i++;
                         }
@@ -197,12 +242,12 @@ $grand_total = $sum_parts + $labor_cost;
                 <tfoot class="bg-light">
                     <tr>
                         <td colspan="4" class="text-end py-3 text-muted">ລວມຄ່າອາໄຫຼ່:</td>
-                        <td class="text-end py-3 pe-4 fw-bold text-secondary"><?php echo number_format($sum_parts); ?></td>
-                    </tr>
+                        <td class="text-end py-3 fw-bold text-secondary"><?php echo number_format($sum_parts); ?></td>
+                        <td></td> </tr>
                     <tr>
                         <td colspan="4" class="text-end py-2 text-muted border-0">ຄ່າແຮງງານຊ່າງ:</td>
-                        <td class="text-end py-2 pe-4 fw-bold text-warning border-0">+ <?php echo number_format($labor_cost); ?></td>
-                    </tr>
+                        <td class="text-end py-2 fw-bold text-warning border-0">+ <?php echo number_format($labor_cost); ?></td>
+                        <td class="border-0"></td> </tr>
                 </tfoot>
             </table>
         </div>
@@ -210,7 +255,6 @@ $grand_total = $sum_parts + $labor_cost;
 </div>
 
 <iframe id="printFrame" style="display:none;"></iframe>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
@@ -235,7 +279,6 @@ function printInvoice(serviceId) {
             }
         },
         error: function() {
-            alert('ກຳລັງດຶງໃບບິນໃຫ້...');
             var iframe = document.getElementById('printFrame');
             iframe.src = 'print_service_logs.php?id=' + serviceId;
             iframe.onload = function() {
@@ -250,42 +293,39 @@ function printInvoice(serviceId) {
 <div class="modal fade" id="addModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-light border-bottom-0 pb-0">
-                <h5 class="modal-title fw-bold text-primary"><i class="fas fa-plus-circle me-2"></i> ເພີ່ມລາຍການອະໄຫຼ່/ວຽກ</h5>
+            <div class="modal-header bg-light border-bottom-0 pb-2">
+                <h5 class="modal-title fw-bold text-primary"><i class="fas fa-barcode me-2"></i> ຍິງບາໂຄດສິນຄ້າ</h5>
                 <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form method="POST" action="?id=<?php echo $service_id; ?>">
-                <div class="modal-body pt-4">
-                    <div class="mb-4">
-                        <label class="form-label small fw-bold text-secondary mb-1">ເລືອກອາໄຫຼ່ຈາກສະຕັອກ (ຖ້າມີ)</label>
-                        <select name="part_id" id="part_select" class="form-select bg-light" onchange="updatePrice()">
-                            <option value="0">-- ປ້ອນລາຍການໃໝ່ດ້ວຍຕົນເອງ --</option>
-                            <?php 
-                            $res = mysqli_query($connect, "SELECT * FROM parts_profile WHERE qty_stock > 0"); 
-                            while($p = mysqli_fetch_array($res)) { 
-                                echo "<option value='".$p['part_id']."' data-price='".$p['sale_price']."' data-name='".$p['part_name']."'>".$p['part_name']." (ພ້ອມຂາຍ: ".$p['qty_stock'].")</option>"; 
-                            } 
-                            ?>
-                        </</select>
+                <div class="modal-body pt-1">
+                    
+                    <div class="mb-3 p-3 bg-primary bg-opacity-10 rounded border border-primary border-opacity-20 text-center">
+                        <label class="form-label small fw-bold text-dark mb-2 d-block"><i class="fas fa-compress-alt text-primary"></i> ເອົາເຄື່ອງຍິງມາຍິງບາໂຄດໃສ່ບ່ອນນີ້</label>
+                        <input type="text" id="barcode_search" class="form-control form-control-lg fw-bold text-center text-primary border-primary" placeholder="[ ຍິງບາໂຄດຢູ່ບ່ອນນີ້ ]" autocomplete="off">
                     </div>
+                    
+                    <input type="hidden" name="part_id" id="part_id_hidden" required>
+                    
                     <div class="mb-3">
-                        <label class="form-label small fw-bold text-secondary mb-1">ຊື່ລາຍການ / ລາຍລະອຽດ</label>
-                        <input type="text" name="description" id="description" class="form-control" placeholder="ເຊັ່ນ: ປ່ຽນນ້ຳມັນເຄື່ອງ..." required>
+                        <label class="form-label small fw-bold text-secondary mb-1">ຊື່ອະໄຫຼ່ສິນຄ້າ</label>
+                        <input type="text" name="description" id="description" class="form-control fw-bold text-dark" placeholder="ຊື່ສິນຄ້າຈະສະແດງຂຶ້ນບ່ອນນີ້..." readonly required style="background-color: #e9ecef;">
                     </div>
+                    
                     <div class="row g-3">
                         <div class="col-sm-7">
-                            <label class="form-label small fw-bold text-secondary mb-1">ລາຄາຕໍ່ໜ່ວຍ (ກີບ)</label>
-                            <input type="number" name="price" id="price" class="form-control" placeholder="0" min="0" required>
+                            <label class="form-label small fw-bold text-secondary mb-1">ລາຄາ/ໜ່ວຍ (ກີບ)</label>
+                            <input type="number" name="price" id="price" class="form-control fw-bold text-secondary" placeholder="0" readonly required style="background-color: #e9ecef;">
                         </div>
                         <div class="col-sm-5">
-                            <label class="form-label small fw-bold text-secondary mb-1">ຈຳນວນ</label>
-                            <input type="number" name="qty" class="form-control" value="1" min="1" required>
+                            <label class="form-label small fw-bold text-danger mb-1">ປ່ຽນຈຳນວນ</label>
+                            <input type="number" name="qty" id="part_qty" class="form-control fw-bold text-center text-success fs-5" value="1" min="1" required>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer border-top-0 pt-0 pb-4 px-4">
                     <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">ຍົກເລີກ</button>
-                    <button type="submit" name="btn_save" class="btn btn-primary px-4 shadow-sm">ບັນທຶກລາຍການ</button>
+                    <button type="submit" name="btn_save" class="btn btn-primary px-4 shadow-sm"><i class="fas fa-save me-1"></i> ບັນທຶກເຂົ້າບິນ</button>
                 </div>
             </form>
         </div>
@@ -293,21 +333,60 @@ function printInvoice(serviceId) {
 </div>
 
 <script>
-function updatePrice() { 
-    var sel = document.getElementById("part_select"); 
-    var opt = sel.options[sel.selectedIndex]; 
-    if(sel.value != "0") { 
-        document.getElementById("price").value = opt.getAttribute("data-price"); 
-        document.getElementById("description").value = opt.getAttribute("data-name"); 
-        document.getElementById("price").style.backgroundColor = "#e9ecef";
-        document.getElementById("description").style.backgroundColor = "#e9ecef";
-    } else {
-        document.getElementById("price").value = "";
-        document.getElementById("description").value = "";
-        document.getElementById("price").style.backgroundColor = "#fff";
-        document.getElementById("description").style.backgroundColor = "#fff";
-    }
+// 📦 ຂໍ້ມູນສະຕັອກສິນຄ້າທັງໝົດທີ່ແປງມາຈາກ PHP (ມີຂໍ້ມູນ barcode ມາຈາກຫ້ອງ part_code ແລ້ວ)
+const partsStockList = <?php echo json_encode($parts_array); ?>;
+
+$(document).ready(function() {
+    // ເມື່ອເປີດ Modal ໃຫ້ເອົາເຄີເຊີມາໂຟກັດລໍຖ້າການຍິງທັນທີ
+    $('#addModal').on('shown.bs.modal', function () {
+        clearFields();
+        $('#barcode_search').focus();
+    });
+
+    // ດັກຈັບທັງການຍິງອັດຕະໂນມັດ (input) ແລະ ການກົດ Enter (keypress)
+    $('#barcode_search').on('keypress input', function(e) {
+        if (e.type === 'keypress' && e.which !== 13) {
+            return; 
+        }
+        
+        var barcodeInput = $(this).val().trim();
+        if (barcodeInput === '') return;
+
+        // ຄົ້ນຫາສິນຄ້າຈາກເລກ part_code ຫຼື part_id ທີ່ກົງກັນ
+        var matched = partsStockList.find(function(item) {
+            return item.barcode.toLowerCase() === barcodeInput.toLowerCase() || String(item.part_id) === barcodeInput;
+        });
+
+        if (matched) {
+            // ເອົາຂໍ້ມູນໄປສະແດງໃນຟອມ
+            $('#part_id_hidden').val(matched.part_id);
+            $('#description').val(matched.part_name);
+            $('#price').val(matched.sale_price);
+            
+            // ໂດດໄປຊ່ອງຈຳນວນທັນທີ ເພື່ອໃຫ້ພ້ອມແກ້ໄຂ ຫຼື ກົດ Enter ບັນທຶກ
+            $('#part_qty').focus().select();
+            $(this).val(''); // ລ້າງຊ່ອງຍິງເພື່ອຖ້າຍິງອັນຕໍ່ໄປ
+        } else {
+            // ຖ້າກົດ Enter ແລ້ວບໍ່ພົບ ໃຫ້ເຕືອນບອກເລກທີ່ອ່ານໄດ້
+            if (e.type === 'keypress' && e.which === 13) {
+                alert('❌ ບໍ່ພົບລະຫັດບາໂຄດ: "' + barcodeInput + '" ໃນລະບົບ!\nກະລຸນາກວດສອບວ່າເລກນີ້ໄດ້ປ້ອນໄວ້ໃນຫ້ອງ part_code ແລ້ວຫຼືບໍ່.');
+                clearFields();
+                $(this).focus().select();
+            }
+        }
+    });
+});
+
+function clearFields() {
+    $('#barcode_search').val('');
+    $('#part_id_hidden').val('');
+    $('#description').val('');
+    $('#price').val('');
+    $('#part_qty').val('1');
 }
 </script>
 </body>
 </html>
+<?php
+}
+?>

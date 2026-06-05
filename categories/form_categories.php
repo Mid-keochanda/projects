@@ -1,4 +1,9 @@
 <?php 
+session_start();
+if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
+    echo "<script>alert('ກະລຸນາລ໋ອກອິນກ່ອນ');location='index.php';</script>";
+    exit();
+} else {
 include("../cennect_dbstock.php"); 
 mysqli_set_charset($connect, "utf8");
 ?>
@@ -192,3 +197,6 @@ function confirmDelete(id) {
 </script>
 </body>
 </html>
+<?php
+}
+?>

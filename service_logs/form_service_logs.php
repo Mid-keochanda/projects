@@ -1,4 +1,9 @@
 <?php
+session_start();
+if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
+    echo "<script>alert('ກະລຸນາລ໋ອກອິນກ່ອນ');location='index.php';</script>";
+    exit();
+} else {
 include("../cennect_dbstock.php");
 mysqli_set_charset($connect, "utf8");
 
@@ -67,7 +72,7 @@ $res_logs = mysqli_query($connect, $sql_logs);
                         <tr>
                             <th class="ps-4" width="90">ເລກບິນ</th>
                             <th>ທະບຽນລົດ</th>
-                            <th>ເຈົ້າຂອງລົດ</th>
+                            <th class="text-nowrap">ເຈົ້າຂອງລົດ</th>
                             <th>ຊ่างຜູ້ຮັບຜິດຊອບ</th>
                             <th>ອາການເບື້ອງຕົ້ນ</th>
                             <th class="text-end">ຍອດລວມສຸດທິ</th>
@@ -214,3 +219,6 @@ $res_logs = mysqli_query($connect, $sql_logs);
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+<?php
+}    
+?>

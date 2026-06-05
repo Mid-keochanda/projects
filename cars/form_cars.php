@@ -1,4 +1,10 @@
-<?php include("../cennect_dbstock.php"); ?>
+<?php 
+session_start();
+if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
+    echo "<script>alert('ກະລຸນາລ໋ອກອິນກ່ອນ');location='index.php';</script>";
+    exit();
+} else {
+include("../cennect_dbstock.php"); ?>
 <!DOCTYPE html>
 <html lang="lo">
 <head>
@@ -30,7 +36,7 @@
     <div class="row align-items-center mb-4">
         <div class="col-md-5">
             <h3 class="fw-bold m-0 text-dark"><i class="fas fa-car-side text-primary me-2"></i>ລາຍຊື່ລົດທັງໝົດ</h3>
-            <p class="text-muted small mb-0">ຈັດການຂໍ້ມູນຍານພາຫະນະດ້ວຍລະບົບ Modal</p>
+            <p class="text-muted small mb-0">ຈັດການຂໍ້ມູນຍານພາຫະນະ</p>
         </div>
         <div class="col-md-7 text-end d-flex gap-2 justify-content-end">
             <div class="input-group" style="max-width: 300px;">
@@ -217,3 +223,6 @@ $(document).ready(function() {
 </script>
 </body>
 </html>
+<?php
+}
+?>

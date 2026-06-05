@@ -1,4 +1,10 @@
-<?php include("../cennect_dbstock.php"); ?>
+<?php 
+session_start();
+if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
+    echo "<script>alert('ກະລຸນາລ໋ອກອິນກ່ອນ');location='index.php';</script>";
+    exit();
+} else {
+include("../cennect_dbstock.php"); ?>
 <!DOCTYPE html>
 <html lang="lo">
 <head>
@@ -52,7 +58,7 @@
                 <table class="table table-hover align-middle" id="customerTable">
                     <thead>
                         <tr class="text-center">
-                            <th width="70">ລຳດັບ</th>
+                            <th width="70">#</th>
                             <th class="text-start">ຊື່ ແລະ ນາມສະກຸນ</th>
                             <th width="100">ເພດ</th>
                             <th>ເບີໂທລະສັບ</th>
@@ -241,3 +247,6 @@ $(document).ready(function() {
 </script>
 </body>
 </html>
+<?php
+}
+?>

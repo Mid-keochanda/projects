@@ -1,4 +1,9 @@
 <?php
+session_start();
+if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
+    echo "<script>alert('ກະລຸນາລ໋ອກອິນກ່ອນ');location='index.php';</script>";
+    exit();
+} else {
 include("../cennect_dbstock.php");
 mysqli_set_charset($connect, "utf8"); 
 
@@ -110,9 +115,9 @@ $total_all_bill = $total_parts_only + $labor_cost;
         <div class="logo-area">
             <div class="logo-circle">GD</div>
             <div>
-                <h2 style="margin:0; color:#0056b3; font-weight: 700;">ຮ້ານສ້ອມແປງລົດ ເກັ່ງດີ (Garage)</h2>
+                <h2 style="margin:0; color:#0056b3; font-weight: 700;">ຮ້ານສ້ອມແປງລົດ ມິດ ການຊ່າງ</h2>
                 <p style="margin:4px 0; font-size: 12px; color: #666;">ຊ່ຽວຊານດ້ານເຄື່ອງຈັກ ແລະ ອາໄຫຼ່ແທ້ 100%</p>
-                <p style="margin:0; font-size: 13px;">📞 020 77xxxxxx | 📍 ບ້ານ ສີຫອມ, ວຽງຈັນ</p>
+                <p style="margin:0; font-size: 13px;">📞 020 78894401 | 📍 ບ້ານ ນາດີ, ເມືອງ ແມດ, ແຂວງ ວຽງຈັນ</p>
             </div>
         </div>
         <div style="text-align: right;">
@@ -179,8 +184,8 @@ $total_all_bill = $total_parts_only + $labor_cost;
             <p style="margin: 0 0 6px; font-size: 11px; font-weight: bold; color: #0056b3; text-transform: uppercase;">ສະແກນຊຳລະເງິນ</p>
             <?php 
                 $bank_name = "BCEL MyBank"; 
-                $account_name = "KEONGDEE GARAGE"; 
-                $account_number = "160123456789"; 
+                $account_name = "MID KEOCHANDA"; 
+                $account_number = "141122531890"; 
                 
                 $qr_url = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" . 
                           urlencode("BANK:$bank_name|ACC:$account_number|NAME:$account_name|AMOUNT:$total_all_bill|BILL:$service_id");
@@ -215,7 +220,7 @@ $total_all_bill = $total_parts_only + $labor_cost;
         <div style="width: 220px;">
             <p style="font-weight: bold; margin-bottom: 5px;">ຜູ້ຮັບເງິນ / ຊ່າງສ້ອມແປງ</p>
             <div style="height: 40px; border-bottom: 1px solid #999; margin-bottom: 5px;"></div>
-            <p style="font-size: 12px; color: #666;">(ຮ້ານ ເກັ່ງດີ ການຊ່າງ)</p>
+            <p style="font-size: 12px; color: #666;">(ຮ້ານ ມິດ ການຊ່າງ)</p>
         </div>
     </div>
     
@@ -226,3 +231,6 @@ $total_all_bill = $total_parts_only + $labor_cost;
 
 </body>
 </html>
+<?php
+}
+?>

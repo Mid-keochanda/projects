@@ -1,4 +1,9 @@
 <?php 
+session_start();
+if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
+    echo "<script>alert('ກະລຸນາລ໋ອກອິນກ່ອນ');location='index.php';</script>";
+    exit();
+} else {
 include("../cennect_dbstock.php"); 
 $search = isset($_GET['search']) ? mysqli_real_escape_string($connect, $_GET['search']) : '';
 ?>
@@ -138,3 +143,6 @@ $search = isset($_GET['search']) ? mysqli_real_escape_string($connect, $_GET['se
 
 </body>
 </html>
+<?php
+}
+?>

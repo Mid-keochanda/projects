@@ -1,4 +1,9 @@
 <?php 
+session_start();
+if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
+    echo "<script>alert('ກະລຸນາລ໋ອກອິນກ່ອນ');location='index.php';</script>";
+    exit();
+} else {
 include("../cennect_dbstock.php"); 
 mysqli_set_charset($connect, "utf8");
 ?>
@@ -51,7 +56,7 @@ mysqli_set_charset($connect, "utf8");
                         <th>ລະຫັດອາໄຫຼ່</th>
                         <th class="text-start">ຊື່ອາໄຫຼ່</th>
                         <th>ຈຳນວນນຳເຂົ້າ</th>
-                        <th>ລາຄາຊື້ (ຕໍ່ຊິ້ນ)</th>
+                        <th>ລາຄາຊື້/ອັນ</th>
                         <th>ມູນລະຄ່າລວມ</th>
                         <th class="text-start">ນຳເຂົ້າຈາກບໍລິສັດ</th>
                     </tr>
@@ -116,7 +121,7 @@ mysqli_set_charset($connect, "utf8");
                             <input type="number" name="qty_bought" id="qty_purchase" class="form-control form-control-custom" min="1" value="1" required>
                         </div>
                         <div class="col-6 mb-3">
-                            <label class="form-label small fw-bold text-muted">ລາຄາຊື້ຕໍ່ຊິ້ນ (ກີບ)</label>
+                            <label class="form-label small fw-bold text-muted">ລາຄາຊື້/ອັນ (ກີບ)</label>
                             <input type="number" name="buyer_price" id="purchase_price" class="form-control form-control-custom bg-light" min="0" readonly required>
                         </div>
                     </div>
@@ -211,3 +216,6 @@ document.getElementById('addPurchaseModal').addEventListener('shown.bs.modal', f
 
 </body>
 </html>
+<?php
+}
+?>
