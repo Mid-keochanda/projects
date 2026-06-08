@@ -260,6 +260,9 @@ if (@$_SESSION['checked'] <> 1) {
                 <a href="service_logs/form_service_logs.php" target="frame" class="nav-link">
                   <i class="far fa-circle nav-icon text-warning"></i> <p>ອອກບິນສ້ອມແປງລົດ</p>
                 </a>
+                <a href="service_logs/manage_sale.php" target="frame" class="nav-link">
+                  <i class="far fa-circle nav-icon text-warning"></i> <p>ອອກບິນສ້ອມແປງລົດ</p>
+                </a>
               </li>
             </ul>
           </li>
