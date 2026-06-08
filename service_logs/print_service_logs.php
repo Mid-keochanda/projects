@@ -1,5 +1,6 @@
 <?php
 session_start();
+// ກວດສອບການລ໋ອກອິນ
 if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
     echo "<script>alert('ກະລຸນາລ໋ອກອິນກ່ອນ');location='index.php';</script>";
     exit();
@@ -7,27 +8,68 @@ if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
 include("../cennect_dbstock.php");
 mysqli_set_charset($connect, "utf8"); 
 
+// 🎯 1. ດຶງຊື່ພະນັກງານລ໋ອກອິນປະຈຸບັນ (mid keochanda)
+$current_logged_in_staff = '';
+if (isset($_SESSION['fname']) || isset($_SESSION['lname'])) {
+    $f = isset($_SESSION['fname']) ? $_SESSION['fname'] : '';
+    $l = isset($_SESSION['lname']) ? $_SESSION['lname'] : '';
+    $current_logged_in_staff = trim($f . " " . $l);
+} 
+if (empty($current_logged_in_staff)) {
+    $current_logged_in_staff = isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'mid keochanda';
+}
+
 $service_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
 if ($service_id <= 0) {
     die("<h3 style='text-align:center; padding-top:50px; font-family:\"Noto Sans Lao\";'>ບໍ່ພົບຂໍ້ມູນບິນເລກທີ: $service_id</h3>");
 }
 
-// 1. ດຶງຂໍ້ມູນຫົວບິນ
+// 🎯 2. ດຶງຂໍ້ມູນຫຼັກແບບ l.* ເພື່ອປ້ອງກັນ Error Unknown Column ໃນ On Clause 100%
 $sql_head = "SELECT 
-                l.log_id, l.service_date, l.labor_cost, l.symptoms,
+                l.*, 
                 c.car_plate, c.car_brand, c.car_model, 
-                cust.cust_name, cust.tel 
+                cust.cust_name, cust.tel
              FROM service_logs l
              LEFT JOIN cars c ON l.car_id = c.car_id
              LEFT JOIN customers cust ON c.cust_id = cust.cust_id
              WHERE l.log_id = '$service_id'";
 
-$res_head = mysqli_query($connect, $sql_head);
+$res_head = mysqli_query($connect, $sql_head) or die("ຂໍ້ຜິດພາດ SQL: " . mysqli_error($connect));
 $head = mysqli_fetch_array($res_head);
 
 if (!$head) {
     die("<h3 style='text-align:center; padding-top:50px; font-family:\"Noto Sans Lao\";'>ບໍ່ພົບຂໍ້ມູນບິນເລກທີ: $service_id</h3>");
+}
+
+// 🎯 3. ໃຫ້ PHP ກວດຊອກຫາ ID ຫຼື ຊື່ຂອງຊ່າງ ຈາກຕາຕະລາງ service_logs ແບບອັດຕະໂນມັດ
+$mechanic_display = '........................'; 
+$found_mechanic_id = 0;
+
+// ກວດເຊັກວ່າໃນຕາຕະລາງ service_logs ໃຊ້ຄໍລຳໃດເກັບ ID ຊ່າງ
+if (isset($head['mechanic_id']) && !empty($head['mechanic_id'])) {
+    $found_mechanic_id = intval($head['mechanic_id']);
+} elseif (isset($head['user_id']) && !empty($head['user_id'])) {
+    $found_mechanic_id = intval($head['user_id']);
+} elseif (isset($head['staff_id']) && !empty($head['staff_id'])) {
+    $found_mechanic_id = intval($head['staff_id']);
+}
+
+// ຖ້າພົບ ID ຊ່າງ ໃຫ້ໄປດຶງຊື່ fname + lname ຈາກຕາຕະລາງ users
+if ($found_mechanic_id > 0) {
+    $sql_mech = "SELECT fname, lname FROM users WHERE user_id = '$found_mechanic_id'";
+    $res_mech = mysqli_query($connect, $sql_mech);
+    if ($mech = mysqli_fetch_array($res_mech)) {
+        $mechanic_display = trim($mech['fname'] . " " . $mech['lname']);
+    }
+} 
+// ກໍລະນີສຸກເສີນ: ຖ້າບໍ່ມີ ID ແຕ່ເກັບເປັນຊື່ຂໍ້ຄວາມໄວ້ໃນຄໍລຳ mechanic ເລີຍ
+if ($mechanic_display == '........................' || empty($mechanic_display)) {
+    if (isset($head['mechanic']) && !empty($head['mechanic'])) {
+        $mechanic_display = $head['mechanic'];
+    } elseif (isset($head['mechanic_name']) && !empty($head['mechanic_name'])) {
+        $mechanic_display = $head['mechanic_name'];
+    }
 }
 
 // ຄຳນວນຍອດລວມທັງໝົດກ່ອນເພື່ອໃຊ້ໃນ QR Code
@@ -54,7 +96,7 @@ $total_all_bill = $total_parts_only + $labor_cost;
         .logo-circle { width: 65px; height: 65px; background: #0056b3; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 28px; }
         
         .info-table { width: 100%; margin-bottom: 20px; border: none; }
-        .info-table td { padding: 5px 4px; vertical-align: middle; }
+        .info-table td { padding: 6px 4px; vertical-align: middle; }
         
         table.item-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
         .item-table th { background: #333; color: #fff; padding: 10px; text-align: center; font-weight: 700; }
@@ -68,39 +110,11 @@ $total_all_bill = $total_parts_only + $labor_cost;
         .row-total { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; border-bottom: 1px dashed #eee; }
         .grand-total { border-top: 2px solid #333; border-bottom: none; margin-top: 8px; padding-top: 10px; font-weight: bold; font-size: 20px; color: #d9534f; }
         
-        /* 🌟 ຕັ້ງຄ່າຂອບເຈ້ຍເປັນ 0 ເພື່ອຕັດຂໍ້ຄວາມ URL (localhost/...) ທີ່ Browser ແນບມາອອກໃຫ້ໝົດ */
-        @page {
-            size: A4;
-            margin: 0;
-        }
-        
+        @page { size: A4; margin: 0; }
         @media print { 
-            /* 1. ສັ່ງເຊື່ອງທຸກໆຢ່າງໃນໜ້າເວັບທັງໝົດແບບເດັດຂາດ (ລວມເຖິງ menu_admin ທີ່ຫຼຸດເຂົ້າມາ) */
-            body * { 
-                visibility: hidden !important; 
-            }
-            
-            /* 2. ເປີດໃຫ້ສະແດງສະເພາະກ່ອງໃບບິນ .invoice-card ແລະ ເນື້ອຫາທາງໃນຂອງມັນເທົ່ານັ້ນ */
-            .invoice-card, .invoice-card * { 
-                visibility: visible !important; 
-            }
-            
-            /* 3. ຈັດຕຳແໜ່ງໃບບິນໃໝ່ໃຫ້ໄປຢູ່ຈຸດເທິງສຸດ ແລະ ເພີ່ມຂອບເຈ້ຍທາງໃນແທນເພື່ອໃຫ້ຢູ່ໜ້າດຽວພໍດີ */
-            .invoice-card { 
-                position: absolute !important;
-                left: 0 !important;
-                top: 0 !important;
-                width: 100% !important;
-                padding: 15mm !important; /* ຂອບເຈ້ຍດ້ານໃນ */
-                box-sizing: border-box !important;
-                page-break-inside: avoid !important;
-                box-shadow: none !important;
-                background: #fff !important;
-                -webkit-print-color-adjust: exact !important; 
-                print-color-adjust: exact !important;
-            }
-            
-            /* ບັງຄັບຄືນຄ່າການສະແດງຜົນແບບ Flexbox ໃຫ້ເຮັດວຽກໄດ້ປົກກະຕິຕອນປິ່ນ */
+            body * { visibility: hidden !important; }
+            .invoice-card, .invoice-card * { visibility: visible !important; }
+            .invoice-card { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; padding: 15mm !important; box-sizing: border-box !important; page-break-inside: avoid !important; box-shadow: none !important; background: #fff !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
             .header-flex { display: flex !important; }
             .logo-area { display: flex !important; }
             .summary-flex { display: flex !important; }
@@ -128,12 +142,22 @@ $total_all_bill = $total_parts_only + $labor_cost;
     </div>
 
     <table class="info-table">
+
+    
+        <tr>
+            <td><strong>ຜູ້ອອກບິນ:</strong></td>
+            <td><span style="color: #28a745; font-weight: bold;"><i class="fa fa-user-check"></i> <?php echo $current_logged_in_staff; ?></span></td>
+            <td><strong>ຊ່າງຮັບຜິດຊອບ:</strong></td>
+            <td><span style="color: #0056b3; font-weight: bold;"><i class="fa fa-wrench"></i> <?php echo $mechanic_display; ?></span></td>
+        </tr>
+        
         <tr>
             <td width="15%"><strong>#ຊື່ລູກຄ້າ:</strong></td>
             <td width="40%"><?php echo $head['cust_name'] ?? '---'; ?></td>
             <td width="15%"><strong>ທະບຽນລົດ:</strong></td>
             <td width="30%"><span style="background: #333; color:#fff; padding: 2px 8px; border-radius: 4px; font-weight: bold;"><?php echo $head['car_plate'] ?? '---'; ?></span></td>
         </tr>
+        
         <tr>
             <td><strong>ເບີໂທ:</strong></td>
             <td><?php echo $head['tel'] ?? '---'; ?></td>
@@ -152,7 +176,7 @@ $total_all_bill = $total_parts_only + $labor_cost;
         <thead>
             <tr>
                 <th width="50">#</th>
-                <th>ລາຍການອາໄຫຼ່ / ວຽກທີ່ເຮັດ</th>
+                <th>ລາຍການອາໄຫຼ່</th>
                 <th width="90">ຈຳນວນ</th>
                 <th width="140">ລາຄາ/ໜ່ວຍ</th>
                 <th width="150">ລວມ (ກີບ)</th>
@@ -186,9 +210,7 @@ $total_all_bill = $total_parts_only + $labor_cost;
                 $bank_name = "BCEL MyBank"; 
                 $account_name = "MID KEOCHANDA"; 
                 $account_number = "141122531890"; 
-                
-                $qr_url = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" . 
-                          urlencode("BANK:$bank_name|ACC:$account_number|NAME:$account_name|AMOUNT:$total_all_bill|BILL:$service_id");
+                $qr_url = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" . urlencode("BANK:$bank_name|ACC:$account_number|NAME:$account_name|AMOUNT:$total_all_bill|BILL:$service_id");
             ?>
             <img src="<?php echo $qr_url; ?>" alt="QR Code Payment">
             <p style="margin: 3px 0 0; font-size: 11px; font-weight: bold; color: #333;"><?php echo $account_name; ?></p>
@@ -211,20 +233,29 @@ $total_all_bill = $total_parts_only + $labor_cost;
         </div>
     </div>
 
-    <div class="signature-area" style="margin-top: 45px; display: flex; justify-content: space-around; text-align: center;">
-        <div style="width: 220px;">
-            <p style="font-weight: bold; margin-bottom: 5px;">ລາຍເຊັນລູກຄ້າ</p>
+    <div class="signature-area" style="margin-top: 45px; display: flex; justify-content: space-around; text-align: center; gap: 10px;">
+        <div style="width: 190px;">
+            <p style="font-weight: bold; margin-bottom: 5px; font-size: 13px;">ລາຍເຊັນລູກຄ້າ</p>
             <div style="height: 40px; border-bottom: 1px solid #999; margin-bottom: 5px;"></div>
-            <p style="font-size: 12px; color: #666;">ວັນທີ: ..../..../....</p>
+            <p style="font-size: 11px; color: #666; margin: 0;">ວັນທີ: ..../..../....</p>
         </div>
-        <div style="width: 220px;">
-            <p style="font-weight: bold; margin-bottom: 5px;">ຜູ້ຮັບເງິນ / ຊ່າງສ້ອມແປງ</p>
+
+        <div style="width: 190px;">
+            <p style="font-weight: bold; margin-bottom: 5px; font-size: 13px;">ຊ່າງຮັບຜິດຊອບ</p>
             <div style="height: 40px; border-bottom: 1px solid #999; margin-bottom: 5px;"></div>
-            <p style="font-size: 12px; color: #666;">(ຮ້ານ ມິດ ການຊ່າງ)</p>
+            <p style="font-size: 12px; color: #0056b3; margin: 0; font-weight: bold;">( ຊ່າງ: <?php echo $mechanic_display; ?> )</p>
+            <p style="font-size: 11px; color: #666; margin: 2px 0 0;">ຮ້ານ ມິດ ການຊ່າງ</p>
+        </div>
+
+        <div style="width: 190px;">
+            <p style="font-weight: bold; margin-bottom: 5px; font-size: 13px;">ພະນັກງານອອກບິນ</p>
+            <div style="height: 40px; border-bottom: 1px solid #999; margin-bottom: 5px;"></div>
+            <p style="font-size: 12px; color: #28a745; margin: 0; font-weight: bold;">( ຜູ້ອອກບິນ: <?php echo $current_logged_in_staff; ?> )</p>
+            <p style="font-size: 11px; color: #666; margin: 2px 0 0;">ຮ້ານ ມິດ ການຊ່າງ</p>
         </div>
     </div>
     
-    <p style="text-align: center; margin-top: 20px; font-size: 11px; color: #999; border-top: 1px solid #eee; padding-top: 12px;">
+    <p style="text-align: center; margin-top: 25px; font-size: 11px; color: #999; border-top: 1px solid #eee; padding-top: 12px;">
         * ຂອບໃຈທີ່ເລືອກໃຊ້ບໍລິການກັບພວກເຮົາ. ອາໄຫຼ່ທີ່ປ່ຽນທຸກຊິ້ນມີການຮັບປະກັນເປັນເວລາ 30 ວັນ *
     </p>
 </div>

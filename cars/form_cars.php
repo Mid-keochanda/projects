@@ -20,7 +20,7 @@ include("../cennect_dbstock.php"); ?>
         :root { --bg-body: #f1f5f9; --primary: #4361ee; }
         body { background-color: var(--bg-body); font-family: 'Noto Sans Lao', sans-serif; color: #334155; }
         .custom-card { border: none; border-radius: 1.25rem; box-shadow: 0 10px 15px -3px rgba(104, 44, 169, 0.05); background: #fff; }
-        .table thead th { background-color: #4361ee; color: #f1f3f5; font-weight: 700; padding: 0,5rem; border-bottom: 2px solid #f1f5f9; white-space: nowrap; }
+        .table thead th { background-color: #4361ee; color: #f1f3f5; font-weight: 700; padding: 0.5rem; border-bottom: 2px solid #f1f5f9; white-space: nowrap; }
         .plate-badge { background: #fff; border: 2px solid #cbd5e1; color: #1e293b; font-weight: 800; padding: 4px 12px; border-radius: 8px; display: inline-block; min-width: 95px; font-size: 0.85rem; }
         .btn-action { width: 34px; height: 34px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s; border: none; }
         .btn-edit { background-color: #ecfdf5; color: #059669; }
@@ -59,6 +59,9 @@ include("../cennect_dbstock.php"); ?>
                         <th>ຍີ່ຫໍ້</th>
                         <th>ລຸ້ນ</th>
                         <th>ສີ</th>
+                        <th>ເລກຖັງ</th>
+                        <th>ເລກຈັກ</th>
+                        <th>ປີ</th>
                         <th class="text-start">ເຈົ້າຂອງລົດ</th>
                         <th>ເບີໂທ</th>
                         <th>ໝາຍເຫດ</th>
@@ -83,38 +86,38 @@ include("../cennect_dbstock.php"); ?>
                         <td class="fw-bold text-dark small"><?= $row['car_brand'] ?></td>
                         <td class="text-muted fw-bold small"><?= $row['car_model'] ?></td>
                         <td><span class="badge fw-bold bg-light text-dark border small fw-normal"><?= $row['car_color'] ?></span></td>
-
+                        <td class="small"><?= $row['chassis_no'] ?></td>
+                        <td class="small"><?= $row['engine_no'] ?></td>
+                        <td class="small fw-bold"><?= $row['car_year'] ?></td>
                         <td class="text-start fw-bold small"><?= $row['cust_name'].' '.$row['cust_surname'] ?></td>
                         <td><span class="text-primary fw-bold small"><?= $row['tel'] ?></span></td>
                         <td class="fw-bold text-dark small"><?= $row['remark'] ?></td>
                         <td>
-    <div class="small text-muted" style="font-size: 0.85rem;">
-        <i class="far fa-calendar-plus me-1 text-success"></i>
-        <?= date('d/m/Y', strtotime($row["created_at"])) ?>
-        <span class="d-block text-dark fw-bold" style="font-size: 0.7rem;">
-            <i class="far fa-clock me-1 text-muted"></i><?= date('H:i', strtotime($row["created_at"])) ?>
-        </span>
-    </div>
-</td>
-
-<td>
-    <div class="small text-muted" style="font-size: 0.85rem;">
-        <?php if(!empty($row['updated_at']) && $row['updated_at'] != '0000-00-00 00:00:00'): ?>
-            <i class="fas fa-history me-1 text-warning"></i>
-            <?= date('d/m/Y', strtotime($row["updated_at"])) ?>
-            <span class="d-block text-dark fw-bold" style="font-size: 0.7rem;">
-                <i class="far fa-clock me-1 text-muted"></i><?= date('H:i', strtotime($row["updated_at"])) ?>
-            </span>
-        <?php else: ?>
-            <span class="text-muted small">-</span>
-        <?php endif; ?>
-    </div>
-</td>
-
+                            <div class="small text-muted" style="font-size: 0.85rem;">
+                                <i class="far fa-calendar-plus me-1 text-success"></i>
+                                <?= date('d/m/Y', strtotime($row["created_at"])) ?>
+                                <span class="d-block text-dark fw-bold" style="font-size: 0.7rem;">
+                                    <i class="far fa-clock me-1 text-muted"></i><?= date('H:i', strtotime($row["created_at"])) ?>
+                                </span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="small text-muted" style="font-size: 0.85rem;">
+                                <?php if(!empty($row['updated_at']) && $row['updated_at'] != '0000-00-00 00:00:00'): ?>
+                                    <i class="fas fa-history me-1 text-warning"></i>
+                                    <?= date('d/m/Y', strtotime($row["updated_at"])) ?>
+                                    <span class="d-block text-dark fw-bold" style="font-size: 0.7rem;">
+                                        <i class="far fa-clock me-1 text-muted"></i><?= date('H:i', strtotime($row["updated_at"])) ?>
+                                    </span>
+                                <?php else: ?>
+                                    <span class="text-muted small">-</span>
+                                <?php endif; ?>
+                            </div>
+                        </td>
                         <td>
                             <div class="d-flex justify-content-center gap-2">
                                 <button class="btn-action btn-edit" 
-                                    onclick="openEditModal('<?= $row['car_id'] ?>','<?= $row['car_plate'] ?>','<?= $row['car_brand'] ?>','<?= $row['car_model'] ?>','<?= $row['car_color'] ?>','<?= $row['cust_id'] ?>','<?= $row['remark'] ?>')">
+                                    onclick="openEditModal('<?= $row['car_id'] ?>','<?= $row['car_plate'] ?>','<?= $row['car_brand'] ?>','<?= $row['car_model'] ?>','<?= $row['car_color'] ?>','<?= $row['cust_id'] ?>','<?= $row['remark'] ?>','<?= $row['chassis_no'] ?>','<?= $row['engine_no'] ?>','<?= $row['car_year'] ?>')">
                                     <i class="fas fa-pen-nib small"></i>
                                 </button>
                                 <a href="delete_cars.php?car_id=<?= $row['car_id'] ?>" class="btn-action btn-delete delete-btn">
@@ -143,7 +146,7 @@ include("../cennect_dbstock.php"); ?>
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label small fw-bold">ເລກທະບຽນ</label>
-                            <input type="text" name="car_plate" id="car_plate" class="form-control form-control-custom" required placeholder="ກກ 1234">
+                            <input type="text" name="car_plate" id="car_plate" class="form-control form-control-custom" required placeholder="ເລກທະບຽນລົດ">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-bold">ເຈົ້າຂອງລົດ</label>
@@ -155,10 +158,34 @@ include("../cennect_dbstock.php"); ?>
                                 ?>
                             </select>
                         </div>
-                        <div class="col-md-4"><label class="form-label small fw-bold">ຍີ່ຫໍ້</label><input type="text" name="car_brand" id="car_brand" class="form-control form-control-custom" placeholder="ຍີ່ຫໍ້"></div>
-                        <div class="col-md-4"><label class="form-label small fw-bold">ລຸ້ນ</label><input type="text" name="car_model" id="car_model" class="form-control form-control-custom" placeholder="ລຸ້ນ"></div>
-                        <div class="col-md-4"><label class="form-label small fw-bold">ສີ</label><input type="text" name="car_color" id="car_color" class="form-control form-control-custom" placeholder="ສີ"></div>
-                        <div class="col-12"><label class="form-label small fw-bold">ໝາຍເຫດ</label><textarea name="remark" id="remark" class="form-control form-control-custom" placeholder="ໝາຍເຫດ" rows="2"></textarea></div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">ຍີ່ຫໍ້</label>
+                            <input type="text" name="car_brand" id="car_brand" class="form-control form-control-custom" placeholder="ຍີ່ຫໍ້ລົດ">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">ລຸ້ນ</label>
+                            <input type="text" name="car_model" id="car_model" class="form-control form-control-custom" placeholder="ລຸ້ນລົດ">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">ສີ</label>
+                            <input type="text" name="car_color" id="car_color" class="form-control form-control-custom" placeholder="ສີລົດ">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">ເລກຖັງ</label>
+                            <input type="text" name="chassis_no" id="chassis_no" class="form-control form-control-custom" placeholder="ເລກຖັງລົດ">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">ເລກຈັກ</label>
+                            <input type="text" name="engine_no" id="engine_no" class="form-control form-control-custom" placeholder="ຈັກລົດ">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">ປີລົດ</label>
+                            <input type="text" name="car_year" id="car_year" class="form-control form-control-custom" placeholder="ປີລົດ">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold">ໝາຍເຫດ</label>
+                            <textarea name="remark" id="remark" class="form-control form-control-custom" rows="2" placeholder="ຂໍ້ມູນເພີ່ມເຕີມ..."></textarea>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer border-0 pb-4 px-4">
@@ -183,7 +210,7 @@ function openAddModal() {
     $('#carModal').modal('show');
 }
 
-function openEditModal(id, plate, brand, model, color, cust, remark) {
+function openEditModal(id, plate, brand, model, color, cust, remark, chassis, engine, year) {
     $('#modalTitle').html('<i class="fas fa-edit text-success me-2"></i>ແກ້ໄຂຂໍ້ມູນລົດ');
     $('#carForm').attr('action', 'save_cars.php');
     $('#car_id').val(id); 
@@ -193,6 +220,9 @@ function openEditModal(id, plate, brand, model, color, cust, remark) {
     $('#car_color').val(color); 
     $('#cust_id').val(cust); 
     $('#remark').val(remark);
+    $('#chassis_no').val(chassis);
+    $('#engine_no').val(engine);
+    $('#car_year').val(year);
     $('#carModal').modal('show');
 }
 

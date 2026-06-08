@@ -24,11 +24,49 @@ mysqli_set_charset($connect, "utf8");
         .btn-action { padding: 0.35rem 0.5rem; border-radius: 8px; font-size: 0.85rem; }
         .swal2-popup { font-family: 'Noto Sans Lao', sans-serif !important; border-radius: 15px !important; }
         .form-control-custom { border-radius: 10px; padding: 0.6rem 1rem; }
+        body { font-family: 'Noto Sans Lao', sans-serif; background-color: #f8fafc; }
+    
+    .custom-card { 
+        border: none; 
+        border-radius: 15px; 
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
+        background: #fff;
+    }
+
+    .table thead th {
+        background-color: #4361ee !important; color: white !important;
+        font-weight: 700;
+        padding: 15px 10px !important;
+        text-transform: uppercase;
+        font-size: 13px;
+        letter-spacing: 0.5px;
+    }
+
+    .table tbody td {
+        padding: 14px 10px !important;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 14px;
+        color: #475569;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: #f8fafc;
+        transition: 0.2s;
+    }
+
+    .btn-action {
+        width: 38px;
+        height: 38px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px !important;
+    }
     </style>
 </head>
 <body>
 
-<div class="container py-5" style="max-width: 900px;">
+<div class="container py-5" style="max-width: 1000px;">
     
     <div class="row mb-4 align-items-center g-3">
         <div class="col-md-5">

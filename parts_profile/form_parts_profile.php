@@ -24,11 +24,49 @@ mysqli_set_charset($connect, "utf8");
         .btn-action { padding: 0.35rem 0.5rem; border-radius: 8px; font-size: 0.85rem; }
         .swal2-popup { font-family: 'Noto Sans Lao', sans-serif !important; border-radius: 15px !important; }
         .form-control-custom { border-radius: 10px; padding: 0.6rem 1rem; }
+    html, body {
+        height: 100%;
+        margin: 0;
+        background-color: #f8fafc;
+    }
+    .custom-card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        background: #ffffff;
+    }
+
+    .table thead th {
+       background-color: #4361ee !important; 
+        color: #f3f5f8 !important;
+        font-weight: 700;
+        padding: 13px 10px !important;
+        white-space: nowrap; 
+    }
+
+    .table tbody td {
+        padding: 10px 10px !important;
+        font-size: 13px;
+        color: #475569;
+    }
+
+    .table-striped tbody tr:nth-of-type(odd) {
+        background-color: #fcfcfc;
+    }
+
+    .btn-action {
+        width: 35px;
+        height: 35px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+    }
     </style>
 </head>
 <body>
 
-<div class="container py-5">
+<div class="container py-2" style="max-width: 7000px;">
     
     <div class="row mb-4 align-items-center g-3">
         <div class="col-md-5">
@@ -47,22 +85,23 @@ mysqli_set_charset($connect, "utf8");
         </div>
     </div>
 
-    <div class="card custom-card p-4">
+    <div class="card custom-card p-2">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0" id="partsTable">
                 <thead class="text-center">
                     <tr>
-                        <th width="50">#</th>
-                        <th width="110">ລະຫັດອາໄຫຼ່</th>
-                        <th class="text-start">ຊື່ອາໄຫຼ່</th>
+                        <th>#</th>
+                        <th>ລະຫັດອາໄຫຼ່</th>
+                        <th>ຮູບ</th>
+                        <th>ຊື່ອາໄຫຼ່</th>
                         <th>ປະເພດ</th>
                         <th>ລາຄາທຶນ</th>
                         <th>ລາຄາຂາຍ</th>
-                        <th width="90">ຈຳນວນ</th>
-                        <th width="100">ສະຖານະ</th>
-                        <th width="140">ວັນທີບັນທຶກ</th> 
-                        <th width="140">ອັບເດດລ່າສຸດ</th> 
-                        <th width="110">ຈັດການ</th>
+                        <th>ຈຳນວນ</th>
+                        <th>ສະຖານະ</th>
+                        <th>ວັນທີບັນທຶກ</th> 
+                        <th>ອັບເດດລ່າສຸດ</th> 
+                        <th>ຈັດການ</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -94,6 +133,15 @@ mysqli_set_charset($connect, "utf8");
                     <tr class="text-center search-row">
                         <td><?= $i++ ?></td>
                         <td><span class="badge bg-secondary part-code"><?= $row['part_code'] ?></span></td>
+                        <td>
+    <?php if(!empty($row['part_image'])): ?>
+        <img src="uploads/<?= $row['part_image'] ?>" class="img-thumbnail" style="width: 50px; height: 50px; object-fit: cover;">
+    <?php else: ?>
+        <div class="bg-light text-muted d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; border-radius: 5px;">
+            <i class="fas fa-image"></i>
+        </div>
+    <?php endif; ?>
+</td>
                         <td class="text-start fw-bold text-dark part-name"><?= $row['part_name'] ?></td>
                         <td class="part-category"><?= $row['category_name'] ? $row['category_name'] : '<span class="text-muted small">ບໍ່ມີປະເພດ</span>' ?></td>
                         <td class="text-end text-muted"><?= number_format($row['cost_price']) ?> ກີບ</td>
@@ -135,8 +183,14 @@ mysqli_set_charset($connect, "utf8");
                 <h5 class="fw-bold"><i class="fas fa-box-open text-primary me-2"></i>ເພີ່ມຂໍ້ມູນອາໄຫຼ່ໃໝ່</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form action="insert_parts_profile.php" method="POST">
+            <form action="insert_parts_profile.php" method="POST" enctype="multipart/form-data">
                 <div class="modal-body p-4 pt-0">
+                
+    <div class="mb-3">
+        <label class="form-label small fw-bold">ຮູບພາບອາໄຫຼ່</label>
+        <input type="file" name="part_image" class="form-control form-control-custom" accept="image/*">
+    </div>
+
                     <div class="mb-3">
                         <label class="form-label small fw-bold">ລະຫັດອາໄຫຼ່ / ບາໂຄດ</label>
                         <input type="text" name="part_code" class="form-control form-control-custom" placeholder="ເຊັ່ນ: P-001 ຫຼື ຍິງບາໂຄດ" required>
@@ -158,11 +212,11 @@ mysqli_set_charset($connect, "utf8");
                     <div class="row">
                         <div class="col-6 mb-3">
                             <label class="form-label small fw-bold">ລາຄາທຶນ (ກີບ)</label>
-                            <input type="number" name="cost_price" class="form-control form-control-custom" value="0" min="0" required>
+                            <input type="text" name="cost_price" class="form-control price-input" value="0" required>
                         </div>
                         <div class="col-6 mb-3">
-                            <label class="form-label small fw-bold">ລາຄາາຍ (ກີບ)</label>
-                            <input type="number" name="sale_price" class="form-control form-control-custom" value="0" min="0" required>
+                            <label class="form-label small fw-bold">ລາຂາຍ (ກີບ)</label>
+                            <input type="text" name="sale_price" class="form-control price-input" value="0" required>
                         </div>
                     </div>
                 </div>
@@ -182,10 +236,14 @@ mysqli_set_charset($connect, "utf8");
                 <h5 class="fw-bold text-dark"><i class="fas fa-edit text-warning me-2"></i>ແກ້ໄຂຂໍ້ມູນອາໄຫຼ່</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form action="update_parts_profile.php" method="POST">
+           <form action="update_parts_profile.php" method="POST" enctype="multipart/form-data">
                 <div class="modal-body p-4 pt-0">
                     <input type="hidden" name="part_id" id="edit_part_id">
                     
+                    <div class="mb-3">
+    <label class="form-label small fw-bold">ປ່ຽນຮູບພາບ (ຖ້າມີ)</label>
+    <input type="file" name="part_image" class="form-control form-control-custom" accept="image/*">
+</div>
                     <div class="mb-3">
                         <label class="form-label small fw-bold">ລະຫັດອາໄຫຼ່ / ບາໂຄດ</label>
                         <input type="text" name="part_code" id="edit_part_code" class="form-control form-control-custom" required>
@@ -206,11 +264,11 @@ mysqli_set_charset($connect, "utf8");
                     <div class="row">
                         <div class="col-6 mb-3">
                             <label class="form-label small fw-bold">ລາຄາທຶນ (ກີບ)</label>
-                            <input type="number" name="cost_price" id="edit_cost_price" class="form-control form-control-custom" required>
+                            <input type="text" name="sale_price" id="edit_sale_price" class="form-control form-control-custom price-input" required>
                         </div>
                         <div class="col-6 mb-3">
-                            <label class="form-label small fw-bold">ລາຄາາຍ (ກີບ)</label>
-                            <input type="number" name="sale_price" id="edit_sale_price" class="form-control form-control-custom" required>
+                            <label class="form-label small fw-bold">ລາຂາຍ (ກີບ)</label>
+                            <input type="text" name="cost_price" id="edit_cost_price" class="form-control form-control-custom price-input" required>
                         </div>
                     </div>
                 </div>
@@ -244,17 +302,37 @@ $(document).ready(function() {
 // ສ່ວນດຶງຂໍ້ມູນຈາກຕາຕະລາງໄປຍັດໃສ່ຟອມແກ້ໄຂ Modal
 const editPartModal = document.getElementById('editPartModal');
 if (editPartModal) {
-    editPartModal.addEventListener('show.bs.modal', function (event) {
-        const button = event.relatedTarget;
-        document.getElementById('edit_part_id').value = button.getAttribute('data-id');
-        document.getElementById('edit_part_code').value = button.getAttribute('data-code');
-        document.getElementById('edit_part_name').value = button.getAttribute('data-name');
-        document.getElementById('edit_category_id').value = button.getAttribute('data-cat');
-        document.getElementById('edit_cost_price').value = button.getAttribute('data-cost');
-        document.getElementById('edit_sale_price').value = button.getAttribute('data-sale');
-    });
+editPartModal.addEventListener('show.bs.modal', function (event) {
+    const button = event.relatedTarget;
+    document.getElementById('edit_part_id').value = button.getAttribute('data-id');
+    document.getElementById('edit_part_code').value = button.getAttribute('data-code');
+    document.getElementById('edit_part_name').value = button.getAttribute('data-name');
+    document.getElementById('edit_category_id').value = button.getAttribute('data-cat');
+    document.getElementById('edit_cost_price').value = button.getAttribute('data-cost');
+    document.getElementById('edit_sale_price').value = button.getAttribute('data-sale');
+});
 }
+$(document).on('keyup', '.price-input', function(e) {
+    let value = $(this).val().replace(/,/g, '');
+    if (!isNaN(value) && value.length > 0) {
+        $(this).val(parseFloat(value).toLocaleString('en-US'));
+    }
+});
 
+// ຟັງຊັນດຶງຂໍ້ມູນເຂົ້າ Modal ແລ້ວໃສ່ຈຸດໃຫ້ອັດຕະໂນມັດ
+editPartModal.addEventListener('show.bs.modal', function (event) {
+    const button = event.relatedTarget;
+    document.getElementById('edit_part_id').value = button.getAttribute('data-id');
+    document.getElementById('edit_part_code').value = button.getAttribute('data-code');
+    document.getElementById('edit_part_name').value = button.getAttribute('data-name');
+    document.getElementById('edit_category_id').value = button.getAttribute('data-cat');
+    
+    // ໃສ່ຈຸດໃຫ້ຂໍ້ມູນທີ່ດຶງມາຈາກ Database
+    let cost = button.getAttribute('data-cost');
+    let sale = button.getAttribute('data-sale');
+    document.getElementById('edit_cost_price').value = parseInt(cost).toLocaleString('en-US');
+    document.getElementById('edit_sale_price').value = parseInt(sale).toLocaleString('en-US');
+});
 // ຟັງຊັນການລຶບແບບ SweetAlert2 ຖາມເພື່ອຄວາມແນ່ໃຈກ່ອນດີດໄປໄຟລ໌ລຶບ
 function confirmDelete(id) {
     Swal.fire({

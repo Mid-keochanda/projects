@@ -65,27 +65,42 @@ if(isset($_GET['car_id'])) {
 
                     <div class="row mb-3">
                         <div class="col-md-4">
-                            <label class="form-label">ຍີ່ຫໍ້</label>
+                            <label class="form-label fw-bold">ຍີ່ຫໍ້</label>
                             <input type="text" name="car_brand" class="form-control" value="<?= $data['car_brand'] ?>">
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">ລຸ້ນ</label>
+                            <label class="form-label fw-bold">ລຸ້ນ</label>
                             <input type="text" name="car_model" class="form-control" value="<?= $data['car_model'] ?>">
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">ສີ</label>
+                            <label class="form-label fw-bold">ສີ</label>
                             <input type="text" name="car_color" class="form-control" value="<?= $data['car_color'] ?>">
                         </div>
                     </div>
 
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">ເລກຖັງ</label>
+                            <input type="text" name="chassis_no" class="form-control" value="<?= $data['chassis_no'] ?>">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">ເລກຈັກ</label>
+                            <input type="text" name="engine_no" class="form-control" value="<?= $data['engine_no'] ?>">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">ປີລົດ</label>
+                            <input type="number" name="car_year" class="form-control" value="<?= $data['car_year'] ?>">
+                        </div>
+                    </div>
+
                     <div class="mb-4">
-                        <label class="form-label">ໝາຍເຫດ</label>
+                        <label class="form-label fw-bold">ໝາຍເຫດ</label>
                         <textarea name="remark" class="form-control" rows="3"><?= $data['remark'] ?></textarea>
                     </div>
 
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-primary px-4">ບັນທຶກການແກ້ໄຂ</button>
-                        <a href="select_cars.php" class="btn btn-light px-4">ຍົກເລີກ</a>
+                        <a href="form_cars.php" class="btn btn-light px-4 border">ຍົກເລີກ</a>
                     </div>
                 </form>
 

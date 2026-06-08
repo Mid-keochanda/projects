@@ -6,6 +6,9 @@ if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
 } else {
     include("cennect_dbstock.php");
 
+    // ✨ ບັນທັດສຳຄັນ: ເປີດການຮອງຮັບພາສາລາວໃນການ Query ຖານຂໍ້ມູນ
+    mysqli_set_charset($connect, "utf8mb4");
+
     // 1. ງົບປະມານຊື້ອາໄຫຼ່ເຂົ້າສະຕັອກທັງໝົດ
     $bamount       = mysqli_query($connect, "SELECT SUM(qty_bought * buyer_price) FROM part_purchases") or die("<b>Error ບ໋ອກຕົ້ນທຶນ:</b> " . mysqli_error($connect));
     $show_bamount  = mysqli_fetch_row($bamount);
@@ -50,14 +53,12 @@ if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
     $profit_today = $today_sales * 0.30; 
 
 
-    // ເພີ່ມສ່ວນການດຶງຂໍ້ມູນຈຳນວນລົດສ້ອມແປງ
-
     // 8. ລົດທີ່ກຳລັງແປງທັງໝົດ
     $sql_pending_total = mysqli_query($connect, "SELECT COUNT(log_id) FROM service_logs WHERE status = 'pending'");
     $row_pending_total = mysqli_fetch_row($sql_pending_total);
     $pending_total     = $row_pending_total[0] ?? 0;
 
-    // 9. ລົດທີ່ກຳລັງແປງມື້ນີ້ (ເປີດບິນມື້ນີ້ ແລະ ຍັງແປງບໍ່ແລ້ວ)
+    // 9. ລົດທີ່ກຳລັງແປງມື້ນີ້
     $sql_pending_today = mysqli_query($connect, "SELECT COUNT(log_id) FROM service_logs WHERE status = 'pending' AND service_date LIKE CONCAT(CURDATE(), '%')");
     $row_pending_today = mysqli_fetch_row($sql_pending_today);
     $pending_today     = $row_pending_today[0] ?? 0;
@@ -71,6 +72,31 @@ if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
     $sql_success_today = mysqli_query($connect, "SELECT COUNT(log_id) FROM service_logs WHERE status = 'success' AND completed_at LIKE CONCAT(CURDATE(), '%')");
     $row_success_today = mysqli_fetch_row($sql_success_today);
     $success_today     = $row_success_today[0] ?? 0;
+
+
+    // ==========================================
+    // ສ່ວນການດຶງຂໍ້ມູນພະນັກງານ (ກວດສອບດ້ວຍພາສາລາວ)
+    // ==========================================
+    
+    // 12. ຈຳນວນພະນັກງານທັງໝົດ
+    $sql_user_total = mysqli_query($connect, "SELECT COUNT(user_id) FROM users") or die("<b>Error ພະນັກງານທັງໝົດ:</b> " . mysqli_error($connect));
+    $row_user_total = mysqli_fetch_row($sql_user_total);
+    $total_users    = $row_user_total[0] ?? 0;
+
+    // 13. ຈຳນວນຜູ້ບໍລິຫານ (ປ່ຽນຈາກ 'ແອັດມິນ' ມາເປັນ 'ຜູ້ບໍລິຫານ')
+    $sql_admin_total = mysqli_query($connect, "SELECT COUNT(user_id) FROM users WHERE status = 'ຜູ້ບໍລິຫານ'") or die("<b>Error ຜູ້ບໍລິຫານ:</b> " . mysqli_error($connect));
+    $row_admin_total = mysqli_fetch_row($sql_admin_total);
+    $total_admins    = $row_admin_total[0] ?? 0;
+
+    // 14. ຈຳນວນພະນັກງານທົ່ວໄປ
+    $sql_staff_total = mysqli_query($connect, "SELECT COUNT(user_id) FROM users WHERE status = 'ພະນັກງານ'") or die("<b>Error ພະນັກງານທົ່ວໄປ:</b> " . mysqli_error($connect));
+    $row_staff_total = mysqli_fetch_row($sql_staff_total);
+    $total_staff     = $row_staff_total[0] ?? 0;
+
+    // 15. จຳນວນຊ່າງແປງລົດ (ປ່ຽນຈາກ 'ຊ່າງ' ມາເປັນ 'ຊ່າງແປງລົດ')
+    $sql_mechanic_total = mysqli_query($connect, "SELECT COUNT(user_id) FROM users WHERE status = 'ຊ່າງແປງລົດ'") or die("<b>Error ຊ່າງແປງລົດ:</b> " . mysqli_error($connect));
+    $row_mechanic_total = mysqli_fetch_row($sql_mechanic_total);
+    $total_mechanics    = $row_mechanic_total[0] ?? 0;
 ?>
 <!DOCTYPE html>
 <html lang="lo">
@@ -92,7 +118,6 @@ if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
             padding: 25px;
         }
 
-        /* ຫົວຂໍ້ໜ້າເວັບ */
         .premium-header {
             background: #ffffff;
             padding: 24px 32px;
@@ -116,7 +141,6 @@ if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
             margin: 4px 0 0 0;
         }
 
-        /* ບ໋ອກກາດ (Dashboard Cards) */
         .dash-card {
             position: relative;
             display: flex;
@@ -168,7 +192,6 @@ if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
             margin-left: 4px;
         }
         
-        /* ວົງມົນໃສ່ໄອຄອນ */
         .dash-card .card-icon-box {
             width: 52px;
             height: 52px;
@@ -180,7 +203,6 @@ if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
             flex-shrink: 0;
         }
         
-        /* ລິ້ງຄ໌ທາງລຸ່ມກາດ */
         .dash-card .card-link {
             display: flex;
             align-items: center;
@@ -198,7 +220,6 @@ if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
             background: #f1f5f9;
         }
 
-        /* ລະບົບສີແຍກແຕ່ລະກາດ */
         .card-cost .card-icon-box { background: #fef3c7; color: #d97706; }
         .card-cost .card-link { color: #d97706; }
 
@@ -232,7 +253,18 @@ if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
         .card-success-td .card-icon-box { background: #eff6ff; color: #2563eb; }
         .card-success-td .card-link { color: #2563eb; }
 
-        /* ໄຟສັນຍານແຈ້ງເຕືອນ Online */
+        .card-users-tot .card-icon-box { background: #e0f2fe; color: #0284c7; }
+        .card-users-tot .card-link { color: #0284c7; }
+
+        .card-admin .card-icon-box { background: #f3e8ff; color: #7e22ce; }
+        .card-admin .card-link { color: #7e22ce; }
+
+        .card-staff .card-icon-box { background: #e2e8f0; color: #475569; }
+        .card-staff .card-link { color: #475569; }
+
+        .card-mechanic .card-icon-box { background: #ffedd5; color: #ea580c; }
+        .card-mechanic .card-link { color: #ea580c; }
+
         .pulse-dot {
             width: 8px;
             height: 8px;
@@ -266,7 +298,7 @@ if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
         </div>
 
         <h5 class="fw-bold mb-3 text-secondary"><i class="fas fa-tools me-2"></i> ສະຖານະການສ້ອມແປງລົດ</h5>
-        <div class="row mb-2">
+        <div class="row mb-4">
             <div class="col-12 col-md-6 col-lg-4 col-xl-3">
                 <div class="dash-card card-pending-tot">
                     <div class="card-body">
@@ -329,8 +361,7 @@ if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
         </div>
 
         <h5 class="fw-bold mb-3 text-secondary"><i class="fas fa-chart-bar me-2"></i> ສະຫຼຸບການເງິນ ແລະ ຄັງສິນຄ້າ</h5>
-        <div class="row">
-            
+        <div class="row mb-4">
             <div class="col-12 col-md-6 col-lg-4 col-xl-3">
                 <div class="dash-card card-cost">
                     <div class="card-body">
@@ -435,8 +466,71 @@ if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
                     </a>
                 </div>
             </div>
-
         </div> 
+
+        <h5 class="fw-bold mb-3 text-secondary"><i class="fas fa-users me-2"></i> ຂໍ້ມູນບຸກຄະລາກອນ ແລະ ພະນັກງານ</h5>
+        <div class="row">
+            <div class="col-12 col-md-6 col-lg-4 col-xl-3">
+                <div class="dash-card card-users-tot">
+                    <div class="card-body">
+                        <div class="card-info-side">
+                            <div class="card-title">ພະນັກງານທັງໝົດ</div>
+                            <div class="card-value"><?= number_format($total_users); ?><span class="currency">ຄົນ</span></div>
+                        </div>
+                        <div class="card-icon-box"><i class="fas fa-users"></i></div>
+                    </div>
+                    <a href="users/from_users.php" class="card-link">
+                        <span>ຈັດການຂໍ້ມູນພະນັກງານ</span> <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-6 col-lg-4 col-xl-3">
+                <div class="dash-card card-admin">
+                    <div class="card-body">
+                        <div class="card-info-side">
+                            <div class="card-title">ແອັດມິນ (Admin)</div>
+                            <div class="card-value"><?= number_format($total_admins); ?><span class="currency">ຄົນ</span></div>
+                        </div>
+                        <div class="card-icon-box"><i class="fas fa-user-shield"></i></div>
+                    </div>
+                    <a href="users/from_users.php?status=ແອັດມິນ" class="card-link">
+                        <span>ເບິ່ງລາຍຊື່ແອັດມິນ</span> <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-6 col-lg-4 col-xl-3">
+                <div class="dash-card card-staff">
+                    <div class="card-body">
+                        <div class="card-info-side">
+                            <div class="card-title">ພະນັກງານທົ່ວໄປ</div>
+                            <div class="card-value"><?= number_format($total_staff); ?><span class="currency">ຄົນ</span></div>
+                        </div>
+                        <div class="card-icon-box"><i class="fas fa-user-tie"></i></div>
+                    </div>
+                    <a href="users/from_users.php?status=ພະນັກງານ" class="card-link">
+                        <span>ເບິ່ງລາຍຊື່ພະນັກງານ</span> <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-6 col-lg-4 col-xl-3">
+                <div class="dash-card card-mechanic">
+                    <div class="card-body">
+                        <div class="card-info-side">
+                            <div class="card-title">ຊ່າງແປງລົດ</div>
+                            <div class="card-value"><?= number_format($total_mechanics); ?><span class="currency">ຄົນ</span></div>
+                        </div>
+                        <div class="card-icon-box"><i class="fas fa-user-cog"></i></div>
+                    </div>
+                    <a href="users/from_users.php?status=ຊ່າງ" class="card-link">
+                        <span>ເບິ່ງລາຍຊື່ຊ່າງແປງລົດ</span> <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
     </div> 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

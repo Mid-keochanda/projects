@@ -16,21 +16,24 @@ include("../cennect_dbstock.php"); ?>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
     <style>
-        :root { --primary-color: #4361ee; --bg-body: #f8f9fc; }
-        body { font-family: 'Noto Sans Lao', sans-serif; background-color: var(--bg-body); color: #2d3436; }
-        .card { border: none; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.04); }
-        .badge-gender { padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; display: inline-block; }
-        .btn-action { width: 35px; height: 35px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; }
-        .search-box { background: #f1f2f6; border-radius: 0 12px 12px 0 !important; border: none; }
-        .input-group-text { background: #f1f2f6; border-radius: 12px 0 0 12px !important; border: none; }
-        .table th { background-color: #4361ee !important; color: white !important; font-weight: 600; }
-        td div.small { 
-            font-size: 0.8rem;
-            white-space: nowrap; 
-        }
-        .bi-calendar-check { color: #2ecc71; } 
-        .bi-clock-history { color: #95a5a6; } 
-    </style>
+    :root { --primary-color: #4361ee; --bg-body: #f8f9fc; }
+    body { font-family: 'Noto Sans Lao', sans-serif; background-color: var(--bg-body); color: #2d3436; }
+    .card { border: none; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.04); }
+    .table { font-size: 0.9rem; }
+    .table thead th { 
+        background-color: #4361ee !important; 
+        color: white !important; 
+        font-weight: 600; 
+        padding: 12px 10px !important;
+        white-space: nowrap;
+    }
+    .table tbody td { padding: 10px !important; }
+    .badge-gender { padding: 4px 10px; border-radius: 8px; font-size: 0.75rem; }
+    .btn-action { width: 32px; height: 32px; border-radius: 8px; }
+    .table-responsive { overflow-x: auto; }
+    .search-box { background: #f1f2f6; border-radius: 0 12px 12px 0 !important; }
+    .input-group-text { background: #f1f2f6; border-radius: 12px 0 0 12px !important; }
+</style>
 </head>
 <body>
 
@@ -54,85 +57,85 @@ include("../cennect_dbstock.php"); ?>
         </div>
 
         <div class="card-body px-2">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle" id="customerTable">
-                    <thead>
-                        <tr class="text-center">
-                            <th width="70">#</th>
-                            <th class="text-start">ຊື່ ແລະ ນາມສະກຸນ</th>
-                            <th width="100">ເພດ</th>
-                            <th>ເບີໂທລະສັບ</th>
-                            <th class="text-start">ທີ່ຢູ່</th>
-                            <th>ວັນທີບັນທຶກ</th> 
-                            <th>ອັບເດດຫຼ້າສຸດ</th> 
-                            <th class="text-start">ໝາຍເຫດ</th>
-                            <th width="110">ຈັດການ</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php
-                        $i = 1;
-                        $sql = mysqli_query($connect, "SELECT *, 
-                                DATE_FORMAT(created_at, '%d/%m/%Y %H:%i') as date_create,
-                                DATE_FORMAT(updated_at, '%d/%m/%Y %H:%i') as date_update 
-                                FROM customers ORDER BY cust_id DESC");
-                        
-                        while($row = mysqli_fetch_array($sql)) {
-                            $color = ($row['gender'] == 'ຊາຍ') ? 'primary' : 'danger';
-                        ?>
-                        <tr>
-                            <td class="text-center fw-bold text-muted"><?= $i++; ?></td>
-                            <td class="fw-bold">
-                                <i class="bi bi-person-badge text-secondary me-2"></i><?= $row['cust_name']." ".$row['cust_surname']; ?>
-                            </td>
-                            <td class="text-center">
-                                <span class="badge-gender bg-<?= $color ?>-subtle text-<?= $color ?>">
-                                    <?= $row['gender']; ?>
-                                </span>
-                            </td>
-                            <td class="text-primary fw-medium">
-                                <i class="bi bi-telephone text-muted me-1"></i><?= $row['tel']; ?>
-                            </td>
-                            <td>
-                                <div class="text-muted small text-truncate" style="max-width: 250px;" title="<?= $row['address']; ?>">
-                                    <i class="bi bi-geo-alt text-danger me-1"></i><?= $row['address']; ?>
-                                </div>
-                            </td>
-                            
-                            <td class="text-center">
-                                <div class="text-success small">
-                                    <i class="bi bi-calendar-check me-1"></i><?= $row['date_create']; ?>
-                                </div>
-                            </td>
+           <div class="table-responsive">
+    <table class="table table-hover align-middle" id="customerTable">
+        <thead>
+            <tr class="text-center">
+                <th width="70">#</th>
+                <th width="100">ລະຫັດ</th> <th class="text-start">ຊື່ ແລະ ນາມສະກຸນ</th>
+                <th width="100">ເພດ</th>
+                <th>ເບີໂທລະສັບ</th>
+                <th class="text-start">ທີ່ຢູ່</th>
+                <th>ວັນທີບັນທຶກ</th> 
+                <th>ອັບເດດຫຼ້າສຸດ</th> 
+                <th class="text-start">ໝາຍເຫດ</th>
+                <th width="110">ຈັດການ</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php
+            $i = 1;
+            $sql = mysqli_query($connect, "SELECT *, 
+                    DATE_FORMAT(created_at, '%d/%m/%Y %H:%i') as date_create,
+                    DATE_FORMAT(updated_at, '%d/%m/%Y %H:%i') as date_update 
+                    FROM customers ORDER BY cust_id DESC");
+            
+            while($row = mysqli_fetch_array($sql)) {
+                $color = ($row['gender'] == 'ຊາຍ') ? 'primary' : 'danger';
+            ?>
+            <tr>
+                <td class="text-center fw-bold text-muted"><?= $i++; ?></td>
+                <td class="text-center fw-bold text-primary"><?= $row['cust_id']; ?></td> <td class="fw-bold">
+                    <i class="bi bi-person-badge text-secondary me-2"></i><?= $row['cust_name']." ".$row['cust_surname']; ?>
+                </td>
+                <td class="text-center">
+                    <span class="badge-gender bg-<?= $color ?>-subtle text-<?= $color ?>">
+                        <?= $row['gender']; ?>
+                    </span>
+                </td>
+                <td class="text-primary fw-medium">
+                    <i class="bi bi-telephone text-muted me-1"></i><?= $row['tel']; ?>
+                </td>
+                <td>
+                    <div class="text-muted small text-truncate" style="max-width: 250px;" title="<?= $row['address']; ?>">
+                        <i class="bi bi-geo-alt text-danger me-1"></i><?= $row['address']; ?>
+                    </div>
+                </td>
+                
+                <td class="text-center">
+                    <div class="text-success small">
+                        <i class="bi bi-calendar-check me-1"></i><?= $row['date_create']; ?>
+                    </div>
+                </td>
 
-                            <td class="text-center">
-                                <div class="text-muted small">
-                                    <i class="bi bi-clock-history me-1"></i><?= $row['date_update']; ?>
-                                </div>
-                            </td>
-                            <td>
-                                <span class="small text-dark">
-                                    <?php if(!empty($row['remark'])) { ?>
-                                        <i class="bi bi-sticky text-warning me-1"></i><?= $row['remark']; ?>
-                                    <?php } else { echo "-"; } ?>
-                                </span>
-                            </td>
+                <td class="text-center">
+                    <div class="text-muted small">
+                        <i class="bi bi-clock-history me-1"></i><?= $row['date_update']; ?>
+                    </div>
+                </td>
+                <td>
+                    <span class="small text-dark">
+                        <?php if(!empty($row['remark'])) { ?>
+                            <i class="bi bi-sticky text-warning me-1"></i><?= $row['remark']; ?>
+                        <?php } else { echo "-"; } ?>
+                    </span>
+                </td>
 
-                            <td class="text-center">
-                                <div class="d-flex justify-content-center gap-1">
-                                    <button class="btn btn-action btn-outline-warning border-0" onclick="openCustomerModal('<?= $row['cust_id']; ?>','<?= $row['cust_name']; ?>','<?= $row['cust_surname']; ?>','<?= $row['gender']; ?>','<?= $row['tel']; ?>','<?= $row['address']; ?>','<?= $row['remark']; ?>')">
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
-                                    <button class="btn btn-action btn-outline-danger border-0 btn-delete" data-cust_id="<?= $row['cust_id']; ?>">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        <?php } ?>
-                    </tbody>
-                </table>
-            </div>
+                <td class="text-center">
+                    <div class="d-flex justify-content-center gap-1">
+                        <button class="btn btn-action btn-outline-warning border-0" onclick="openCustomerModal('<?= $row['cust_id']; ?>','<?= $row['cust_name']; ?>','<?= $row['cust_surname']; ?>','<?= $row['gender']; ?>','<?= $row['tel']; ?>','<?= $row['address']; ?>','<?= $row['remark']; ?>')">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-action btn-outline-danger border-0 btn-delete" data-cust_id="<?= $row['cust_id']; ?>">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            <?php } ?>
+        </tbody>
+    </table>
+</div>
         </div>
     </div>
 </div>
