@@ -217,7 +217,7 @@ $res_logs = mysqli_query($connect, $sql_logs);
             <div class="modal-body p-4" style="background-color: #fff;">
     
                 <div class="mb-3">
-                    <label class="form-label fw-bold text-dark small"><i class="fas fa-id-card text-muted me-1"></i> ປ້ອນລະຫັດລູກຄ້າ (Customer ID)</label>
+                    <label class="form-label fw-bold text-dark small"><i class="fas fa-id-card text-muted me-1"></i> ປ້ອນລະຫັດລູກຄ້າ</label>
                     <div class="input-group">
                         <span class="input-group-text bg-light"><i class="fas fa-search text-muted"></i></span>
                         <input type="text" id="modal_cust_id" class="form-control" placeholder="ພີມລະຫັດລູກຄ້າ..." style="border-radius: 0 12px 12px 0; background: #f8fafc; padding: 0.75rem 1rem;">

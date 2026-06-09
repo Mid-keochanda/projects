@@ -25,7 +25,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'process_sale') {
     if (mysqli_query($connect, $sql_insert_log)) {
         $new_service_id = mysqli_insert_id($connect);
 
-        // 2. ບັນທຶກລາຍການສິນຄ້າ ແລະ ຕັດສະຕັອກ
+        // 2. ບັນທຶກລາຍການສິນຄ້າ (ບໍ່ຕ້ອງຕັດສະຕັອກແລ້ວ ເພາະຕັດໄປແລ້ວຕອນເລືອກ)
         foreach ($_SESSION['pos_cart'] as $item) {
             $p_id = $item['part_id'];
             $qty = $item['qty'];
@@ -33,13 +33,9 @@ if (isset($_GET['action']) && $_GET['action'] == 'process_sale') {
             $total = $item['total'];
             $desc = mysqli_real_escape_string($connect, $item['name']);
 
-            // ບັນທຶກລາຍການ
             $sql_det = "INSERT INTO service_details (service_id, part_id, description, qty, price, total) 
                         VALUES ($new_service_id, $p_id, '$desc', $qty, $price, $total)";
             mysqli_query($connect, $sql_det);
-
-            // ຕັດສະຕັອກ
-            mysqli_query($connect, "UPDATE parts_profile SET qty_stock = qty_stock - $qty WHERE part_id = $p_id");
         }
 
         // 3. ລ້າງກະຕ່າ Session ຖິ້ມ
@@ -53,7 +49,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'process_sale') {
     exit();
 }
 
-// 1. Logic ບັນທຶກລາຍການລົງກະຕ່າ Session
+// 1. Logic ເພີ່ມເຂົ້າກະຕ່າ ແລະ ຕັດສະຕັອກທັນທີ!
 if (isset($_POST['btn_save'])) {
     $part_val = intval($_POST['part_id']);
     $qty = intval($_POST['qty']);
@@ -64,17 +60,11 @@ if (isset($_POST['btn_save'])) {
         $check = mysqli_query($connect, "SELECT qty_stock FROM parts_profile WHERE part_id = $part_val");
         $row = mysqli_fetch_array($check);
         
-        // ກວດສອບວ່າໃນ Session ມີແລ້ວຈັກອັນ ບວກກັບອັນໃໝ່ ເກີນສະຕັອກຫຼືບໍ່
-        $current_qty_in_cart = 0;
-        foreach ($_SESSION['pos_cart'] as $item) {
-            if ($item['part_id'] == $part_val) {
-                $current_qty_in_cart = $item['qty'];
-            }
-        }
-        
-        if (!$row || $row['qty_stock'] < ($qty + $current_qty_in_cart)) {
-            echo "<script>alert('ເຄື່ອງໃນສາງບໍ່ພໍ! ສະຕັອກເຫຼືອຕົວຈິງ: " . ($row['qty_stock'] ?? 0) . "');</script>";
-        } else {
+        if ($row && $row['qty_stock'] >= $qty) {
+            
+            // ຕັດສະຕັອກໃນຖານຂໍ້ມູນທັນທີ
+            mysqli_query($connect, "UPDATE parts_profile SET qty_stock = qty_stock - $qty WHERE part_id = $part_val");
+
             // ເພີ່ມເຂົ້າ Session (ຖ້າມີແລ້ວໃຫ້ບວກຈຳນວນ)
             $found = false;
             foreach ($_SESSION['pos_cart'] as &$item) {
@@ -95,17 +85,26 @@ if (isset($_POST['btn_save'])) {
                     'total'   => $qty * $price
                 ];
             }
+        } else {
+            echo "<script>alert('ເຄື່ອງໃນສາງບໍ່ພໍ! ສະຕັອກເຫຼືອຕົວຈິງ: " . ($row['qty_stock'] ?? 0) . "');</script>";
         }
     }
-    header("Location: " . $_SERVER['PHP_SELF']); // ໂຫຼດໜ້າໃໝ່ (ບໍ່ຕ້ອງມີ ID)
+    header("Location: " . $_SERVER['PHP_SELF']); // ໂຫຼດໜ້າໃໝ່
     exit();
 }
 
-// 2. Logic ລຶບລາຍການອອກຈາກກະຕ່າ Session
+// 2. Logic ລຶບລາຍການອອກຈາກກະຕ່າ ແລະ ຄືນສະຕັອກທັນທີ!
 if (isset($_GET['action']) && $_GET['action'] == 'delete_item') {
     $cart_id = $_GET['cart_id'];
     foreach ($_SESSION['pos_cart'] as $key => $item) {
         if ($item['cart_id'] == $cart_id) {
+            
+            // ຄືນສະຕັອກໃຫ້ສາງ
+            $return_qty = $item['qty'];
+            $return_id = $item['part_id'];
+            mysqli_query($connect, "UPDATE parts_profile SET qty_stock = qty_stock + $return_qty WHERE part_id = $return_id");
+            
+            // ລຶບອອກຈາກກະຕ່າ Session
             unset($_SESSION['pos_cart'][$key]);
             break;
         }
@@ -116,13 +115,12 @@ if (isset($_GET['action']) && $_GET['action'] == 'delete_item') {
 }
 
 // 3. ຄິດໄລ່ຍອດລວມຈາກກະຕ່າ Session
-$sum_parts = 0;
+$grand_total = 0;
 if (!empty($_SESSION['pos_cart'])) {
     foreach ($_SESSION['pos_cart'] as $item) {
-        $sum_parts += $item['total'];
+        $grand_total += $item['total'];
     }
 }
-$grand_total = $sum_parts;
 
 // ດຶງຂໍ້ມູນລາຍການອະໄຫຼ່ທັງໝົດໃນສາງ
 $parts_array = [];
@@ -183,10 +181,10 @@ while ($p = mysqli_fetch_array($res_parts)) {
                 <a href="sale_history.php" class="btn btn-white btn-sm me-3 rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;" title="ກັບຄືນ">
                     <i class="fas fa-arrow-left text-secondary"></i>
                 </a>
-                <h3 class="fw-bold text-dark mb-0">ລະບົບຂາຍອະໄຫຼ່ໜ້າຮ້ານ (POS Sales)</h3>
+                <h3 class="fw-bold text-dark mb-0">ລະບົບຂາຍອະໄຫຼ່ໜ້າຮ້ານ</h3>
             </div>
             <div class="d-flex align-items-center gap-3 ms-5">
-                <span class="badge bg-warning text-dark rounded-pill px-3"><i class="fas fa-shopping-cart me-1"></i> ກຳລັງເລືອກສິນຄ້າ (ຍັງບໍ່ບັນທຶກ)</span>
+                <span class="badge bg-warning text-dark rounded-pill px-3"><i class="fas fa-shopping-cart me-1"></i> ກຳລັງເລືອກສິນຄ້າ (ຍັງບໍ່ບັນທຶກບິນ)</span>
             </div>
         </div>
 
@@ -265,7 +263,7 @@ while ($p = mysqli_fetch_array($res_parts)) {
                                             <td class='text-center'><span class='badge bg-light text-dark border px-2 py-1'>".$item['qty']."</span></td>
                                             <td class='text-end fw-bold text-dark'>".number_format($item['total'])."</td>
                                             <td class='text-center'>
-                                                <a href='?action=delete_item&cart_id=".$item['cart_id']."' class='text-danger' title='ລຶບອອກ'>
+                                                <a href='?action=delete_item&cart_id=".$item['cart_id']."' class='text-danger btn-delete-item' onclick='return confirm(\"ຕ້ອງການລຶບລາຍການນີ້ອອກຈາກກະຕ່າ ແລະ ຄືນສະຕັອກ?\")' title='ລຶບອອກ'>
                                                      <i class='fas fa-trash-alt'></i>
                                                 </a>
                                             </td>
@@ -295,8 +293,23 @@ while ($p = mysqli_fetch_array($res_parts)) {
 const partsStockList = <?php echo json_encode($parts_array); ?>;
 
 $(document).ready(function() {
+    // 1. ແຕ້ມລາຍການອາໄຫຼ່ໃສ່ໜ້າຈໍກ່ອນ
     renderPartsGrid(partsStockList);
 
+    // 2. ກູ້ຄືນຕຳແໜ່ງ Scroll ທີ່ຈື່ໄວ້
+    var savedWindowScroll = sessionStorage.getItem('scroll_window');
+    var savedGridScroll = sessionStorage.getItem('scroll_grid');
+
+    if (savedWindowScroll !== null) {
+        $(window).scrollTop(savedWindowScroll);
+        sessionStorage.removeItem('scroll_window'); // ໃຊ້ແລ້ວລຶບອອກ
+    }
+    if (savedGridScroll !== null) {
+        $('#parts_grid_display').scrollTop(savedGridScroll);
+        sessionStorage.removeItem('scroll_grid'); // ໃຊ້ແລ້ວລຶບອອກ
+    }
+
+    // 3. ເຫດການຄົ້ນຫາອາໄຫຼ່
     $('#part_filter_input').on('keypress', function(e) {
         if (e.which === 13) {
             e.preventDefault();
@@ -305,6 +318,7 @@ $(document).ready(function() {
                 return item.barcode.toLowerCase() === searchVal || String(item.part_id) === searchVal;
             });
             if (matched) {
+                saveScrollPosition(); // ຈື່ຕຳແໜ່ງກ່ອນເພີ່ມສິນຄ້າ
                 autoSubmitPart(matched.part_id, matched.part_name, matched.sale_price);
                 $(this).val('');
             } else {
@@ -322,13 +336,26 @@ $(document).ready(function() {
         renderPartsGrid(filtered);
     });
 
+    // 4. ເວລາກົດເລືອກອາໄຫຼ່ ໃຫ້ຈື່ຕຳແໜ່ງ ແລ້ວຈຶ່ງສົ່ງຂໍ້ມູນ
     $(document).on('click', '.part-item-card', function() {
+        saveScrollPosition(); // ຈື່ຕຳແໜ່ງກ່ອນ
         var id = $(this).data('id');
         var name = $(this).data('name');
         var price = $(this).data('price');
         autoSubmitPart(id, name, price);
     });
+
+    // 5. ເວລາກົດປຸ່ມລຶບອອກຈາກກະຕ່າ ໃຫ້ຈື່ຕຳແໜ່ງເຊັ່ນກັນ
+    $(document).on('click', '.btn-delete-item', function() {
+        saveScrollPosition(); // ຈື່ຕຳແໜ່ງກ່ອນໜ້າຈໍຣີເຟດ
+    });
 });
+
+// ຟັງຊັນຊ່ວຍບັນທຶກຕຳແໜ່ງ Scroll ໄວ້ໃນ Browser
+function saveScrollPosition() {
+    sessionStorage.setItem('scroll_window', $(window).scrollTop());
+    sessionStorage.setItem('scroll_grid', $('#parts_grid_display').scrollTop());
+}
 
 function autoSubmitPart(id, name, price) {
     $('#part_id_hidden').val(id);
@@ -364,7 +391,7 @@ function renderPartsGrid(items) {
     });
 }
 
-// ຟັງຊັນບັນທຶກລົງ Database ແລະ ພິມ
+// ຟັງຊັນບັນທຶກລົງ Database ແລະ ພິມບິນ
 function confirmAndPrintSale() {
     if (!confirm('ຢືນຢັນການຮັບເງິນ ແລະ ປິດບິນຂາຍ?')) return;
     
@@ -374,19 +401,18 @@ function confirmAndPrintSale() {
         dataType: 'json',
         success: function(response) {
             if(response.status === 'success') {
-                // ໄດ້ຮັບ ID ບິນທີ່ຖືກສ້າງໃໝ່ແລ້ວ ໃຫ້ໂຫຼດໜ້າພິມບິນ
                 var iframe = document.getElementById('printFrame');
                 iframe.src = 'print_service_logs.php?id=' + response.service_id;
                 iframe.onload = function() {
                     setTimeout(function() {
                         iframe.contentWindow.focus();
                         iframe.contentWindow.print();
-                        // ພິມແລ້ວໃຫ້ເດັ້ງກັບໜ້າປະຫວັດທັນທີ
-                        window.location.href = 'sale_history.php';
+                        // ພິມແລ້ວເດັ້ງກັບໜ້າປະຫວັດທັນທີ
+                        window.location.href = 'manage_sale.php';
                     }, 300); 
                 };
             } else {
-                alert(response.message); // ແຈ້ງເຕືອນຖ້າບໍ່ມີເຄື່ອງໃນກະຕ່າ
+                alert(response.message);
             }
         },
         error: function() {

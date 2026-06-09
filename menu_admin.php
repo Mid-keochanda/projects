@@ -261,7 +261,7 @@ if (@$_SESSION['checked'] <> 1) {
                   <i class="far fa-circle nav-icon text-warning"></i> <p>ອອກບິນສ້ອມແປງລົດ</p>
                 </a>
                 <a href="service_logs/manage_sale.php" target="frame" class="nav-link">
-                  <i class="far fa-circle nav-icon text-warning"></i> <p>ອອກບິນສ້ອມແປງລົດ</p>
+                  <i class="far fa-circle nav-icon text-warning"></i> <p>ໜ້າຂາຍເຄື່ອງອາໄຫຼ່</p>
                 </a>
               </li>
             </ul>

@@ -48,7 +48,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'clear_labor') {
     }
 }
 
-// 2. Logic ບັນທຶກລາຍການອະໄຫຼ่ (ຖ້າມີການເລືອກຊ້ຳ ຈະລວມກັນທັນທີ)
+// 2. Logic ບັນທຶກລາຍການອະໄຫຼ່ (ຖ້າມີການເລືອກຊ້ຳ ຈະລວມກັນທັນທີ)
 if (isset($_POST['btn_save'])) {
     $part_val = intval($_POST['part_id']);
     $qty = intval($_POST['qty']);
@@ -107,7 +107,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'delete_item') {
         }
         mysqli_query($connect, "DELETE FROM service_details WHERE detail_id = $del_id");
     }
-    header("Location: ?id=$service_id");
+    header("Location: ?id=$service_id#parts_section");
     exit();
 }
 
@@ -198,7 +198,7 @@ while ($p = mysqli_fetch_array($res_parts)) {
                 <a href="form_service_logs.php" class="btn btn-white btn-sm me-3 rounded-circle shadow-sm d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;" title="ກັບຄືນ">
                     <i class="fas fa-arrow-left text-secondary"></i>
                 </a>
-                <h3 class="fw-bold text-dark mb-0">ໜ້າຈັດການລາຍການສ້ອມແປງ (Dashboard)</h3>
+                <h3 class="fw-bold text-dark mb-0">ໜ້າຈັດການລາຍການສ້ອມແປງ</h3>
             </div>
             <div class="d-flex align-items-center gap-3 ms-5">
                 <p class="text-muted mb-0" style="font-size: 14px;">ເລກທີບິນ: <span class="fw-bold text-primary">#<?php echo str_pad($service_id, 5, "0", STR_PAD_LEFT); ?></span></p>
@@ -230,7 +230,7 @@ while ($p = mysqli_fetch_array($res_parts)) {
                     <div class="mb-3">
                         <div class="input-group shadow-sm border rounded">
                             <span class="input-group-text bg-white text-muted border-0"><i class="fas fa-search"></i></span>
-                            <input type="text" id="part_filter_input" class="form-control border-0 ps-0 py-2 fs-6" placeholder="ພިມຄົ້ນຫາຊື່ ຫຼື ຍິງບາໂຄດຢູ່ບ່ອນນີ້..." autocomplete="off">
+                            <input type="text" id="part_filter_input" class="form-control border-0 ps-0 py-2 fs-6" placeholder="ພິມຄົ້ນຫາຊື່ ຫຼື ຍິງບາໂຄດຢູ່ບ່ອນນີ້..." autocomplete="off">
                         </div>
                     </div>
                     
@@ -269,7 +269,7 @@ while ($p = mysqli_fetch_array($res_parts)) {
                                         <i class="fas fa-save"></i>
                                     </button>
                                     <?php if ($labor_cost > 0): ?>
-                                        <a href="?id=<?php echo $service_id; ?>&action=clear_labor" class="btn btn-danger btn-sm w-50 py-1 d-flex align-items-center justify-content-center" onclick="return confirm('ຕ້ອງການຍົກເລີກ ຫຼື ລ້າງຄ່າແຮງງານໃຫ້ເປັນ 0 ແມ່ນບໍ່?')" title="ຍົກເລີກຄ່າແຮງ">
+                                        <a href="?id=<?php echo $service_id; ?>&action=clear_labor" class="btn btn-danger btn-sm w-50 py-1 d-flex align-items-center justify-content-center" onclick="saveScrollPosition(); return confirm('ຕ້ອງການຍົກເລີກ ຫຼື ລ້າງຄ່າແຮງງານໃຫ້ເປັນ 0 ແມ່ນບໍ່?')" title="ຍົກເລີກຄ່າແຮງ">
                                             <i class="fas fa-times"></i>
                                         </a>
                                     <?php else: ?>
@@ -291,6 +291,7 @@ while ($p = mysqli_fetch_array($res_parts)) {
             </div>
 
             <div class="card-custom p-0 overflow-hidden shadow-sm">
+                <div id="parts_section" class="card-custom p-0 overflow-hidden shadow-sm">
                 <div class="p-2 bg-white border-bottom">
                     <h6 class="mb-0 fw-bold text-dark" style="font-size:13px;"><i class="fas fa-file-invoice text-primary me-2"></i>ລາຍການອະໄຫຼ່ໃນບິນນີ້</h6>
                 </div>
@@ -302,7 +303,8 @@ while ($p = mysqli_fetch_array($res_parts)) {
                                 <th>ລາຍການ</th>
                                 <th class="text-center" width="60">ຈຳນວນ</th>
                                 <th class="text-end" width="100">ລວມ (ກີບ)</th>
-                                <th class="text-center" width="40"></th> </tr>
+                                <th class="text-center" width="40"></th> 
+                            </tr>
                         </thead>
                         <tbody>
                             <?php 
@@ -320,7 +322,7 @@ while ($p = mysqli_fetch_array($res_parts)) {
                                             <td class='text-center'>
                                                 <a href='?id=".$service_id."&action=delete_item&del_id=".$d['detail_id']."' 
                                                    class='text-danger' 
-                                                   onclick='return confirm(\"ຕ້ອງການຍົກເລີກລາຍການນີ້?\")' title='ຍົກເລີກ'>
+                                                   onclick='saveScrollPosition(); return confirm(\"ຕ້ອງການຍົກເລີກລາຍການນີ້?\")' title='ຍົກເລີກ'>
                                                      <i class='fas fa-trash-alt'></i>
                                                 </a>
                                             </td>
@@ -334,15 +336,18 @@ while ($p = mysqli_fetch_array($res_parts)) {
                             <tr>
                                 <td colspan="3" class="text-end text-muted">ລວມຄ່າອາໄຫຼ່:</td>
                                 <td class="text-end fw-bold text-secondary"><?php echo number_format($sum_parts); ?></td>
-                                <td></td> </tr>
+                                <td></td> 
+                            </tr>
                             <tr>
                                 <td colspan="3" class="text-end border-0 text-muted">ຄ່າແຮງງານ:</td>
                                 <td class="text-end border-0 fw-bold text-warning">+<?php echo number_format($labor_cost); ?></td>
-                                <td class="border-0"></td> </tr>
+                                <td class="border-0"></td> 
+                            </tr>
                             <tr class="table-primary" style="border-top: 2px solid #0d6efd;">
                                 <td colspan="3" class="text-end fw-bold text-primary">ຍອດລວມທັງໝົດ:</td>
                                 <td class="text-end fw-bold text-primary fs-6"><?php echo number_format($grand_total); ?></td>
-                                <td></td> </tr>
+                                <td></td> 
+                            </tr>
                         </tfoot>
                     </table>
                 </div>
@@ -357,8 +362,33 @@ while ($p = mysqli_fetch_array($res_parts)) {
 <script>
 const partsStockList = <?php echo json_encode($parts_array); ?>;
 
+// --- ຟັງຊັນສຳລັບຈື່ຕຳແໜ່ງ Scroll ---
+function saveScrollPosition() {
+    sessionStorage.setItem('scroll_window', $(window).scrollTop());
+    sessionStorage.setItem('scroll_grid', $('#parts_grid_display').scrollTop());
+}
+
 $(document).ready(function() {
+    // 1. ແຕ້ມອາໄຫຼ່ອອກມາກ່ອນ ເພື່ອໃຫ້ມີລາຍການຢູ່ໃນກ່ອງ
     renderPartsGrid(partsStockList);
+
+    // 2. ກູ້ຄືນຕຳແໜ່ງ Scroll ຫຼັງຈາກທີ່ໜ້າເວັບໂຫຼດ ແລະ ແຕ້ມອາໄຫຼ່ສຳເລັດແລ້ວ
+    var savedWindowScroll = sessionStorage.getItem('scroll_window');
+    var savedGridScroll = sessionStorage.getItem('scroll_grid');
+
+    if (savedWindowScroll !== null || savedGridScroll !== null) {
+        // ໃຊ້ setTimeout ໜ້ອຍໜຶ່ງ ເພື່ອລໍຖ້າໃຫ້ Browser ຈັດໜ້າຈໍສຳເລັດ 100% ກ່ອນເລື່ອນ
+        setTimeout(function() {
+            if (savedWindowScroll !== null) {
+                $(window).scrollTop(savedWindowScroll);
+                sessionStorage.removeItem('scroll_window'); 
+            }
+            if (savedGridScroll !== null) {
+                $('#parts_grid_display').scrollTop(savedGridScroll);
+                sessionStorage.removeItem('scroll_grid'); 
+            }
+        }, 100);
+    }
 
     $('#labor_cost_display').on('input', function() {
         let val = $(this).val().replace(/[^0-9.]/g, '');
@@ -380,6 +410,7 @@ $(document).ready(function() {
                 return item.barcode.toLowerCase() === searchVal || String(item.part_id) === searchVal;
             });
             if (matched) {
+                saveScrollPosition(); // ຈື່ຕຳແໜ່ງກ່ອນ
                 autoSubmitPart(matched.part_id, matched.part_name, matched.sale_price);
                 $(this).val('');
             } else {
@@ -398,7 +429,9 @@ $(document).ready(function() {
         renderPartsGrid(filtered);
     });
 
+    // 3. ເວລາກົດເລືອກອາໄຫຼ່
     $(document).on('click', '.part-item-card', function() {
+        saveScrollPosition(); // ຈື່ຕຳແໜ່ງກ່ອນ
         var id = $(this).data('id');
         var name = $(this).data('name');
         var price = $(this).data('price');
@@ -407,6 +440,7 @@ $(document).ready(function() {
 });
 
 function prepareLaborSubmit() {
+    saveScrollPosition(); // ຈື່ຕຳແໜ່ງເວລາກົດບັນທຶກຄ່າແຮງ
     let rawVal = $('#labor_cost_display').val().replace(/[^0-9.]/g, '');
     $('#labor_cost_real').val(rawVal === '' ? 0 : rawVal);
 }
