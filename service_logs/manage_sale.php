@@ -1,9 +1,14 @@
 <?php
 session_start();
+
+// ກວດສອບ Login ດ້ວຍ SweetAlert2
 if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
-    echo "<script>alert('ກະລຸນາລ໋ອກອິນກ່ອນ');location='index.php';</script>";
+    echo "<!DOCTYPE html><html><head><script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script></head><body><script>
+    Swal.fire({icon: 'error', title: 'ແຈ້ງເຕືອນ', text: 'ກະລຸນາລ໋ອກອິນກ່ອນ', confirmButtonText: 'ຕົກລົງ'}).then(() => { location='index.php'; });
+    </script></body></html>";
     exit();
 }
+
 require_once("../cennect_dbstock.php");
 if (!isset($connect)) { die("Error: ບໍ່ສາມາດເຊື່ອມຕໍ່ຖານຂໍ້ມູນ."); }
 mysqli_set_charset($connect, "utf8");
@@ -25,7 +30,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'process_sale') {
     if (mysqli_query($connect, $sql_insert_log)) {
         $new_service_id = mysqli_insert_id($connect);
 
-        // 2. ບັນທຶກລາຍການສິນຄ້າ (ບໍ່ຕ້ອງຕັດສະຕັອກແລ້ວ ເພາະຕັດໄປແລ້ວຕອນເລືອກ)
+        // 2. ບັນທຶກລາຍການສິນຄ້າ
         foreach ($_SESSION['pos_cart'] as $item) {
             $p_id = $item['part_id'];
             $qty = $item['qty'];
@@ -77,7 +82,7 @@ if (isset($_POST['btn_save'])) {
             }
             if (!$found) {
                 $_SESSION['pos_cart'][] = [
-                    'cart_id' => uniqid(), // ສ້າງ ID ຊົ່ວຄາວສຳລັບແຖວນີ້
+                    'cart_id' => uniqid(),
                     'part_id' => $part_val,
                     'name'    => $description,
                     'qty'     => $qty,
@@ -86,10 +91,11 @@ if (isset($_POST['btn_save'])) {
                 ];
             }
         } else {
-            echo "<script>alert('ເຄື່ອງໃນສາງບໍ່ພໍ! ສະຕັອກເຫຼືອຕົວຈິງ: " . ($row['qty_stock'] ?? 0) . "');</script>";
+            // ເກັບ Error ໄວ້ໃນ Session ເພື່ອໄປສະແດງ SweetAlert ໜ້າ UI
+            $_SESSION['swal_error'] = "ເຄື່ອງໃນສາງບໍ່ພໍ! ສະຕັອກເຫຼືອຕົວຈິງ: " . ($row['qty_stock'] ?? 0);
         }
     }
-    header("Location: " . $_SERVER['PHP_SELF']); // ໂຫຼດໜ້າໃໝ່
+    header("Location: " . $_SERVER['PHP_SELF']);
     exit();
 }
 
@@ -156,6 +162,7 @@ while ($p = mysqli_fetch_array($res_parts)) {
     <title>ໜ້າຂາຍອະໄຫຼ່ (POS)</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     
     <style>
@@ -189,8 +196,8 @@ while ($p = mysqli_fetch_array($res_parts)) {
         </div>
 
         <div>
-            <button type="button" onclick="confirmAndPrintSale()" class="btn btn-primary d-flex align-items-center gap-2 px-4 py-2 shadow-sm fs-5 fw-bold">
-                <i class="fas fa-money-bill-wave"></i> ຮັບເງິນ & ພິມໃບບິນຂາຍ
+            <button type="button" id="btnCheckout" onclick="confirmAndPrintSale()" class="btn btn-primary d-flex align-items-center gap-2 px-4 py-2 shadow-sm fs-5 fw-bold">
+                <i class="fas fa-money-bill-wave"></i> <span id="checkoutText">ຮັບເງິນ & ພິມໃບບິນຂາຍ</span>
             </button>
         </div>
     </div>
@@ -263,7 +270,7 @@ while ($p = mysqli_fetch_array($res_parts)) {
                                             <td class='text-center'><span class='badge bg-light text-dark border px-2 py-1'>".$item['qty']."</span></td>
                                             <td class='text-end fw-bold text-dark'>".number_format($item['total'])."</td>
                                             <td class='text-center'>
-                                                <a href='?action=delete_item&cart_id=".$item['cart_id']."' class='text-danger btn-delete-item' onclick='return confirm(\"ຕ້ອງການລຶບລາຍການນີ້ອອກຈາກກະຕ່າ ແລະ ຄືນສະຕັອກ?\")' title='ລຶບອອກ'>
+                                                <a href='javascript:void(0)' class='text-danger' onclick='confirmDeleteItem(\"".$item['cart_id']."\")' title='ລຶບອອກ'>
                                                      <i class='fas fa-trash-alt'></i>
                                                 </a>
                                             </td>
@@ -289,6 +296,17 @@ while ($p = mysqli_fetch_array($res_parts)) {
 
 <iframe id="printFrame" style="display:none;"></iframe>
 
+<?php if(isset($_SESSION['swal_error'])): ?>
+<script>
+    Swal.fire({
+        icon: 'error',
+        title: 'ແຈ້ງເຕືອນ',
+        text: '<?php echo $_SESSION['swal_error']; ?>',
+        confirmButtonText: 'ຕົກລົງ'
+    });
+</script>
+<?php unset($_SESSION['swal_error']); endif; ?>
+
 <script>
 const partsStockList = <?php echo json_encode($parts_array); ?>;
 
@@ -302,11 +320,11 @@ $(document).ready(function() {
 
     if (savedWindowScroll !== null) {
         $(window).scrollTop(savedWindowScroll);
-        sessionStorage.removeItem('scroll_window'); // ໃຊ້ແລ້ວລຶບອອກ
+        sessionStorage.removeItem('scroll_window'); 
     }
     if (savedGridScroll !== null) {
         $('#parts_grid_display').scrollTop(savedGridScroll);
-        sessionStorage.removeItem('scroll_grid'); // ໃຊ້ແລ້ວລຶບອອກ
+        sessionStorage.removeItem('scroll_grid'); 
     }
 
     // 3. ເຫດການຄົ້ນຫາອາໄຫຼ່
@@ -318,11 +336,18 @@ $(document).ready(function() {
                 return item.barcode.toLowerCase() === searchVal || String(item.part_id) === searchVal;
             });
             if (matched) {
-                saveScrollPosition(); // ຈື່ຕຳແໜ່ງກ່ອນເພີ່ມສິນຄ້າ
+                saveScrollPosition(); 
                 autoSubmitPart(matched.part_id, matched.part_name, matched.sale_price);
                 $(this).val('');
             } else {
-                alert('ບໍ່ພົບລະຫັດອະໄຫຼ່ນີ້ໃນລະບົບສາງ!');
+                // ປ່ຽນ Alert ເປັນ SweetAlert
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'ບໍ່ພົບຂໍ້ມູນ',
+                    text: 'ບໍ່ພົບລະຫັດອະໄຫຼ່ນີ້ໃນລະບົບສາງ!',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
                 $(this).val('');
             }
         }
@@ -336,20 +361,34 @@ $(document).ready(function() {
         renderPartsGrid(filtered);
     });
 
-    // 4. ເວລາກົດເລືອກອາໄຫຼ່ ໃຫ້ຈື່ຕຳແໜ່ງ ແລ້ວຈຶ່ງສົ່ງຂໍ້ມູນ
+    // 4. ເວລາກົດເລືອກອາໄຫຼ່
     $(document).on('click', '.part-item-card', function() {
-        saveScrollPosition(); // ຈື່ຕຳແໜ່ງກ່ອນ
+        saveScrollPosition(); 
         var id = $(this).data('id');
         var name = $(this).data('name');
         var price = $(this).data('price');
         autoSubmitPart(id, name, price);
     });
-
-    // 5. ເວລາກົດປຸ່ມລຶບອອກຈາກກະຕ່າ ໃຫ້ຈື່ຕຳແໜ່ງເຊັ່ນກັນ
-    $(document).on('click', '.btn-delete-item', function() {
-        saveScrollPosition(); // ຈື່ຕຳແໜ່ງກ່ອນໜ້າຈໍຣີເຟດ
-    });
 });
+
+// ຟັງຊັນ SweetAlert ສຳລັບລຶບລາຍການ
+function confirmDeleteItem(cartId) {
+    saveScrollPosition(); 
+    Swal.fire({
+        title: 'ຢືນຢັນການລຶບ?',
+        text: "ທ່ານຕ້ອງການລຶບລາຍການນີ້ອອກຈາກກະຕ່າ ແລະ ຄືນສະຕັອກແທ້ບໍ?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'ລຶບອອກ',
+        cancelButtonText: 'ຍົກເລີກ'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = '?action=delete_item&cart_id=' + cartId;
+        }
+    });
+}
 
 // ຟັງຊັນຊ່ວຍບັນທຶກຕຳແໜ່ງ Scroll ໄວ້ໃນ Browser
 function saveScrollPosition() {
@@ -391,32 +430,55 @@ function renderPartsGrid(items) {
     });
 }
 
-// ຟັງຊັນບັນທຶກລົງ Database ແລະ ພິມບິນ
+// ຟັງຊັນບັນທຶກລົງ Database ແລະ ພິມບິນ (ເພີ່ມ Loading State ແລະ SweetAlert)
 function confirmAndPrintSale() {
-    if (!confirm('ຢືນຢັນການຮັບເງິນ ແລະ ປິດບິນຂາຍ?')) return;
-    
-    $.ajax({
-        url: window.location.pathname + '?action=process_sale',
-        type: 'GET',
-        dataType: 'json',
-        success: function(response) {
-            if(response.status === 'success') {
-                var iframe = document.getElementById('printFrame');
-                iframe.src = 'print_service_logs.php?id=' + response.service_id;
-                iframe.onload = function() {
-                    setTimeout(function() {
-                        iframe.contentWindow.focus();
-                        iframe.contentWindow.print();
-                        // ພິມແລ້ວເດັ້ງກັບໜ້າປະຫວັດທັນທີ
-                        window.location.href = 'manage_sale.php';
-                    }, 300); 
-                };
-            } else {
-                alert(response.message);
-            }
-        },
-        error: function() {
-            alert('ເກີດຂໍ້ຜິດພາດໃນການເຊື່ອມຕໍ່ລະບົບ!');
+    Swal.fire({
+        title: 'ຢືນຢັນການຮັບເງິນ?',
+        text: "ທ່ານຕ້ອງການບັນທຶກການຂາຍ ແລະ ປິດບິນນີ້ແທ້ບໍ?",
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#198754',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'ຢືນຢັນການຂາຍ',
+        cancelButtonText: 'ຍົກເລີກ'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            
+            // ເປີດໃຊ້ Loading State
+            let btn = $('#btnCheckout');
+            btn.prop('disabled', true); // ປິດປຸ່ມກັນກົດຊ້ຳ
+            $('#checkoutText').html('ກຳລັງປະມວນຜົນ <i class="fas fa-spinner fa-spin ms-1"></i>');
+
+            $.ajax({
+                url: window.location.pathname + '?action=process_sale',
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if(response.status === 'success') {
+                        var iframe = document.getElementById('printFrame');
+                        iframe.src = 'print_service_logs.php?id=' + response.service_id;
+                        iframe.onload = function() {
+                            setTimeout(function() {
+                                iframe.contentWindow.focus();
+                                iframe.contentWindow.print();
+                                // ພິມແລ້ວເດັ້ງກັບໜ້າປະຫວັດທັນທີ
+                                window.location.href = 'manage_sale.php';
+                            }, 300); 
+                        };
+                    } else {
+                        // ປິດ Loading ຖ້າເກີດ Error
+                        Swal.fire({icon: 'error', title: 'ຜິດພາດ', text: response.message});
+                        btn.prop('disabled', false);
+                        $('#checkoutText').text('ຮັບເງິນ & ພິມໃບບິນຂາຍ');
+                    }
+                },
+                error: function() {
+                    // ປິດ Loading ຖ້າເກີດ Error ຈາກເຊີບເວີ
+                    Swal.fire({icon: 'error', title: 'ຜິດພາດ', text: 'ເກີດຂໍ້ຜິດພາດໃນການເຊື່ອມຕໍ່ລະບົບ!'});
+                    btn.prop('disabled', false);
+                    $('#checkoutText').text('ຮັບເງິນ & ພິມໃບບິນຂາຍ');
+                }
+            });
         }
     });
 }
