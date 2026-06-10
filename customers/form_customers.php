@@ -220,13 +220,40 @@ $(document).ready(function() {
             remark: $("#remark").val()
         };
 
-        if(!data.cust_name || !data.tel) return Swal.fire('ຄຳເຕືອນ', 'ປ້ອນຊື່ ແລະ ເບີໂທ!', 'warning');
+        if(!data.cust_name || !data.tel) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'ຄຳເຕືອນ',
+                text: 'ກະລຸນາປ້ອນ ຊື່ ແລະ ເບີໂທລະສັບ ໃຫ້ຄົບຖ້ວນ!',
+                confirmButtonColor: '#4361ee',
+                confirmButtonText: 'ຕົກລົງ'
+            });
+            return;
+        }
 
-        $.post(data.cust_id ? "save_customers.php" : "insert_customers.php", data, function(res) {
+        // ກວດສອບວ່າເປັນການແກ້ໄຂ ຫຼື ເພີ່ມໃໝ່ ເພື່ອເລືອກ URL ແລະ ຂໍ້ຄວາມ Alert
+        const isEdit = data.cust_id ? true : false;
+        const targetUrl = isEdit ? "save_customers.php" : "insert_customers.php";
+
+        $.post(targetUrl, data, function(res) {
             if(res.trim() === "success") {
-                Swal.fire({ icon:'success', title:'ສຳເລັດ', timer:1000, showConfirmButton:false }).then(() => location.reload());
+                Swal.fire({ 
+                    icon: 'success', 
+                    title: isEdit ? 'ອັບເດດສຳເລັດ!' : 'ບັນທຶກສຳເລັດ!', 
+                    text: isEdit ? 'ແກ້ໄຂຂໍ້ມູນລູກຄ້າຮຽບຮ້ອຍແລ້ວ.' : 'ເພີ່ມຂໍ້ມູນລູກຄ້າໃໝ່ຮຽບຮ້ອຍແລ້ວ.',
+                    confirmButtonColor: '#4361ee',
+                    confirmButtonText: 'OK'
+                }).then(() => {
+                    location.reload();
+                });
             } else {
-                Swal.fire('ຜິດພາດ', res, 'error');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'ເກີດຂໍ້ຜິດພາດ!',
+                    text: res,
+                    confirmButtonColor: '#ef233c',
+                    confirmButtonText: 'ປິດ'
+                });
             }
         });
     });
