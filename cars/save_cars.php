@@ -40,12 +40,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </head>
         <body>
             <script>
-                Swal.fire({
+                  Swal.fire({
                     icon: 'success',
-                    title: 'ອັບເດດຂໍ້ມູນສຳເລັດ!',
-                    text: 'ຂໍ້ມູນລົດຂອງທ່ານຖືກແກ້ໄຂຮຽບຮ້ອຍແລ້ວ',
-                    showConfirmButton: false,
-                    timer: 2000
+                    title: 'ອັບເດດສຳເລັດ!',
+                    text: 'ແກ້ໄຂຂໍ້ມູນລົດຮຽບຮ້ອຍແລ້ວ.',
+                    confirmButtonColor: '#4361ee',
+                    confirmButtonText: 'OK'
                 }).then(() => {
                     window.location.href = 'form_cars.php';
                 });

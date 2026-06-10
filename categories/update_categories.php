@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     title: 'ອັບເດດສຳເລັດ!',
                     text: 'ແກ້ໄຂຂໍ້ມູນປະເພດອາໄຫຼ່ຮຽບຮ້ອຍແລ້ວ.',
                     confirmButtonColor: '#4361ee',
-                    confirmButtonText: 'ຕົກລົງ'
+                    confirmButtonText: 'OK'
                 }).then((result) => {
                     if (result.isConfirmed) {
                         window.location.href='form_categories.php';

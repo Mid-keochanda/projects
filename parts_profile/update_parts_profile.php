@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     title: 'ອັບເດດສຳເລັດ!',
                     text: 'ແກ້ໄຂຂໍ້ມູນອາໄຫຼ່ຮຽບຮ້ອຍແລ້ວ.',
                     confirmButtonColor: '#4361ee',
-                    confirmButtonText: 'ຕົກລົງ'
+                    confirmButtonText: 'OK'
                 }).then(() => { window.location.href='form_parts_profile.php'; });
               </script>";
     } else {

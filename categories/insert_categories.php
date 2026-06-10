@@ -22,7 +22,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $check = mysqli_query($connect, "SELECT category_id FROM part_categories WHERE category_name = '$category_name'");
     
     if (mysqli_num_rows($check) > 0) {
-        // แจ้งเตือนเมื่อชื่อซ้ำกัน (ใช้ icon: 'warning')
         echo "<script>
                 Swal.fire({
                     icon: 'warning',
@@ -51,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     title: 'ບັນທຶກສຳເລັດ!',
                     text: 'ເພີ່ມປະເພດອາໄຫຼ່ໃໝ່ເຂົ້າຮຽບຮ້ອຍແລ້ວ.',
                     confirmButtonColor: '#4361ee',
-                    confirmButtonText: 'ຕົກລົງ'
+                    confirmButtonText: 'OK'
                 }).then((result) => {
                     if (result.isConfirmed) {
                         window.location.href='form_categories.php';

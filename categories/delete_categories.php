@@ -28,7 +28,7 @@ if ($category_id > 0) {
                     title: 'ລຶບສຳເລັດ!',
                     text: 'ຂໍ້ມູນປະເພດອາໄຫຼ່ຖືກລຶບອອກຈາກລະບົບແລ້ວ.',
                     confirmButtonColor: '#4361ee',
-                    confirmButtonText: 'ຕົກລົງ'
+                    confirmButtonText: 'OK'
                 }).then((result) => {
                     if (result.isConfirmed) {
                         window.location.href='form_categories.php';

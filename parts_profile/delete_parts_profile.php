@@ -30,7 +30,7 @@ if (isset($_GET['id'])) {
                     title: 'ລຶບອາໄຫຼ່ສຳເລັດ!',
                     text: 'ຂໍ້ມູນອາໄຫຼ່ຖືກລຶບອອກຈາກລະບົບແລ້ວ.',
                     confirmButtonColor: '#4361ee',
-                    confirmButtonText: 'ຕົກລົງ'
+                    confirmButtonText: 'OK'
                 }).then((result) => {
                     window.location.href='form_parts_profile.php';
                 });

@@ -28,16 +28,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </head>
         <body>
             <script>
-                Swal.fire({
+                 Swal.fire({
                     icon: 'success',
-                    title: 'ບັນທຶກຂໍ້ມູນສຳເລັດ!',
-                    text: 'ຂໍ້ມູນລົດຂອງທ່ານໄດ້ຖືກບັນທຶກລົງຖານຂໍ້ມູນຮຽບຮ້ອຍແລ້ວ',
-                    showConfirmButton: false,
-                    timer: 2000,
-                    customClass: {
-                        title: 'noto-sans-lao',
-                        content: 'noto-sans-lao'
-                    }
+                    title: 'ເພີ່ມລົດສຳເລັດ!',
+                    text: 'ເພີ່ມຂໍ້ມູນລົດຮຽບຮ້ອຍແລ້ວ.',
+                    confirmButtonColor: '#4361ee',
+                    confirmButtonText: 'OK'
                 }).then(() => {
                     window.location.href = 'form_cars.php';
                 });

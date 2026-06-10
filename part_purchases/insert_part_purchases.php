@@ -54,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     title: 'ນຳເຂົ້າອາໄຫຼ່ສຳເລັດ!',
                     text: 'ເພີ່ມຈຳນວນອາໄຫຼ່ເຂົ້າຄັງສະຕັອກຮຽບຮ້ອຍແລ້ວ.',
                     confirmButtonColor: '#4361ee',
-                    confirmButtonText: 'ຕົກລົງ'
+                    confirmButtonText: 'OK'
                 }).then((result) => {
                     if (result.isConfirmed) {
                         window.location.href='form_part_purchases.php';
