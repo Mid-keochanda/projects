@@ -1,296 +1,382 @@
-
-<html>
-<style>
-*{font-family:'Phetsarath OT';}
-</style>
-<head>
-
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ລະບົບບໍລິຫານ ສາງສິນຄ້າ (User)</title>
-<link rel="stylesheet" href="icon/css/all.min.css">
-  <!-- Google Font: Source Sans Pro -->
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
-  <!-- Font Awesome -->
-  <link rel="stylesheet" href="plugins/fontawesome-free/css/all.min.css">
-  <!-- Ionicons -->
-  <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
-  <!-- Tempusdominus Bootstrap 4 -->
-  <link rel="stylesheet" href="plugins/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css">
-  <!-- iCheck -->
-  <link rel="stylesheet" href="plugins/icheck-bootstrap/icheck-bootstrap.min.css">
-  <!-- JQVMap -->
-  <link rel="stylesheet" href="plugins/jqvmap/jqvmap.min.css">
-  <!-- Theme style -->
-  <link rel="stylesheet" href="dist/css/adminlte.min.css">
-  <!-- overlayScrollbars -->
-  <link rel="stylesheet" href="plugins/overlayScrollbars/css/OverlayScrollbars.min.css">
-  <!-- Daterange picker -->
-  <link rel="stylesheet" href="plugins/daterangepicker/daterangepicker.css">
-  <!-- summernote -->
-  <link rel="stylesheet" href="plugins/summernote/summernote-bs4.min.css">
-	<script src="../sweetalert/dist/sweetalert2.all.min.js"></script>		
-	<script src="../jquery.js"></script>
-</head>
-<body class="hold-transition sidebar-mini layout-fixed">
 <?php
 session_start();
-if(@$_SESSION['checked']<>1){
-	echo "<script>alert('ລົງຊືີ່ເຂົ້າໃຊ້ກ່ອນ');
-	</script>";
-	}
-else{
+
+// ✨ ປັບປຸງລະບົບກວດສອບ Session ໃຫ້ສະແດງ SweetAlert2 ແບບໜ້າຈໍສະອາດ ບໍ່ໂຫຼດ Layout ດ້ານຫຼັງ
+if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
+    echo "<!DOCTYPE html>
+    <html lang='lo'>
+    <head>
+        <meta charset='utf-8'>
+        <meta name='viewport' content='width=device-width, initial-scale=1'>
+        <script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+        <link rel='stylesheet' href='https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;500;700&display=swap'>
+        <style>
+            body { font-family: 'Noto Sans Lao', sans-serif; background-color: #f1f5f9; }
+            .swal2-popup { font-family: 'Noto Sans Lao', sans-serif !important; border-radius: 20px !important; }
+        </style>
+    </head>
+    <body>
+    <script>
+        Swal.fire({
+            icon: 'error',
+            title: 'ແຈ້ງເຕືອນ!',
+            text: 'ກະລຸນາລົງຊື່ເຂົ້າໃຊ້ກ່ອນ',
+            confirmButtonColor: '#2563eb',
+            confirmButtonText: 'ຕົກລົງ'
+        }).then(() => {
+            location='index.php';
+        });
+    </script>
+    </body>
+    </html>";
+    exit(); 
+}
 ?>
+<!DOCTYPE html>
+<html lang="lo">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Garage & WMS | Admin Management</title>
+
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@300;400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link rel="stylesheet" href="dist/css/adminlte.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/overlayscrollbars/1.13.0/css/OverlayScrollbars.min.css">
+  
+  <style>
+    :root { 
+        --main-bg: #f1f5f9; 
+        --sidebar-bg: #0f172a; 
+        --sidebar-hover: rgba(255, 255, 255, 0.05);
+        --primary-gradient: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    }
+    
+    body { 
+        font-family: 'Noto Sans Lao', sans-serif; 
+        background-color: var(--main-bg); 
+    }
+
+    /* ---------------- Navbar Glassmorphism ---------------- */
+    .main-header {
+        border-bottom: 1px solid rgba(0,0,0,0.05) !important;
+        background: rgba(255, 255, 255, 0.9) !important;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+    }
+    .navbar-nav .nav-link {
+        color: #475569 !important;
+        font-weight: 500;
+    }
+    .navbar-nav .nav-link:hover {
+        color: #2563eb !important;
+    }
+
+    /* ---------------- Sidebar Premium Style ---------------- */
+    .main-sidebar { 
+        background: var(--sidebar-bg) !important; 
+        box-shadow: 4px 0 20px rgba(0,0,0,0.1);
+    }
+    .brand-link {
+        border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+        padding: 1.25rem 1rem !important;
+    }
+    .brand-text {
+        font-weight: 700 !important;
+        letter-spacing: 1.5px;
+        color: #f8fafc;
+        font-size: 1.1rem;
+    }
+    
+    /* Sidebar Menu Items */
+    .nav-sidebar .nav-item {
+        margin-bottom: 2px;
+    }
+    .nav-sidebar .nav-item > .nav-link {
+        border-radius: 10px;
+        margin: 0 12px;
+        color: #cbd5e1;
+        transition: all 0.3s ease;
+        padding: 10px 15px;
+    }
+    
+    .nav-sidebar .nav-item > .nav-link:hover {
+        background: var(--sidebar-hover);
+        color: #ffffff;
+        transform: translateX(4px);
+    }
+    
+    .nav-sidebar .nav-link.active {
+        background: var(--primary-gradient) !important;
+        color: #ffffff !important;
+        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        border-radius: 10px;
+    }
+    
+    .nav-sidebar .nav-icon {
+        font-size: 1.1rem;
+        margin-right: 8px;
+        color: #94a3b8;
+    }
+    .nav-sidebar .nav-link:hover .nav-icon,
+    .nav-sidebar .nav-link.active .nav-icon {
+        color: #ffffff;
+    }
+
+    /* Sub-menu styling */
+    .nav-treeview > .nav-item > .nav-link {
+        margin: 0 12px 0 20px;
+        border-radius: 8px;
+        padding: 8px 15px;
+        font-size: 0.95rem;
+    }
+    .nav-treeview > .nav-item > .nav-link:hover {
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    /* ---------------- Iframe & Content Area ---------------- */
+    .content-wrapper { 
+        padding: 20px; 
+        background: var(--main-bg); 
+    }
+    iframe[name="frame"] {
+        width: 100%;
+        height: calc(100vh - 110px);
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 10px 35px rgba(0,0,0,0.06);
+        background: white;
+        display: block;
+        transition: opacity 0.3s ease;
+    }
+
+    /* ---------------- Logout & User Badge ---------------- */
+    .user-badge {
+        background: #f1f5f9;
+        color: #334155;
+        border: 1px solid #e2e8f0;
+        font-weight: 600;
+        border-radius: 30px;
+        padding: 8px 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.9rem;
+    }
+    
+    .btn-logout {
+        border-radius: 30px;
+        padding: 6px 18px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.3s;
+        border: 1px solid #fee2e2;
+        color: #ef4444;
+        background: #fef2f2;
+    }
+    .btn-logout:hover {
+        background: #ef4444;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+    }
+    
+    /* Footer */
+    .main-footer {
+        background: var(--main-bg);
+        border-top: none;
+        color: #8b6464;
+        padding: 10px 20px;
+    }
+  </style>
+</head>
+
+<body class="hold-transition sidebar-mini layout-fixed">
 <div class="wrapper">
 
-  <!-- Navbar -->
   <nav class="main-header navbar navbar-expand navbar-white navbar-light">
-    <!-- Left navbar links -->
     <ul class="navbar-nav">
       <li class="nav-item">
         <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
       </li>
       <li class="nav-item d-none d-sm-inline-block">
-        <a href="Homepage.php" target="frame" class="nav-link">ໜ້າຫຼັກ</a>
+        <a href="Homepage.php" target="frame" class="nav-link text-primary"><i class="fas fa-home me-1"></i> ໜ້າຫຼັກ</a>
       </li>
-      
     </ul>
 
-    <!-- Right navbar links -->
-    <ul class="navbar-nav ml-auto">
-     
-      <li class="nav-item">
-        <a class="nav-link" data-widget="fullscreen" href="#" role="button">
-		         <i class="fas fa-expand-arrows-alt"></i>
-        
-        </a>
-      </li>   
-	  <li class="nav-item">
-        <a class="nav-link" href="#" role="button">
-		<i class="fas fa-user-clock"></i>
-	<?php
-	echo $_SESSION['fname']." ".$_SESSION['lname'];
-	?>
-        </a>
+    <ul class="navbar-nav ml-auto align-items-center">
+      <li class="nav-item mr-3">
+        <div class="user-badge shadow-sm">
+          <i class="fas fa-user-circle text-primary" style="font-size: 1.2rem;"></i> 
+          <?php echo $_SESSION['fname'] . " " . $_SESSION['lname']; ?>
+        </div>
       </li>
       <li class="nav-item">
-      <a class="nav-link" href="logout.php" 
-      role="button"><button class="btn btn-outline-danger"> 
-       <i class="fa fa-power-off" aria-hidden="true"></i>&ensp;ອອກຈາກລະບົບ
-        </button></a>
-       
+        <a class="nav-link p-0" href="logout.php" style="margin-right: 15px;">
+          <button class="btn btn-logout">
+            <i class="fas fa-sign-out-alt"></i> ອອກຈາກລະບົບ
+          </button>
+        </a>
       </li>
     </ul>
   </nav>
-  <!-- /.navbar -->
 
-  <!-- Main Sidebar Container -->
   <aside class="main-sidebar sidebar-dark-primary elevation-4">
-    <!-- Brand Logo -->
-    <a href="#" class="brand-link">
-      <img src="dist/img/AdminLTELogo.png" alt="AdminLTE Logo" class="brand-image img-circle elevation-3" style="opacity: .8">
-      <span class="brand-text font-weight-light">ລະບົບ ສາງສິນຄ້າ</span>
+    <a href="Homepage.php" target="frame" class="brand-link text-center">
+      <i class="fas fa-tools text-primary mr-2" style="font-size: 1.3rem;"></i>
+      <span class="brand-text">GARAGE MANAGER</span>
     </a>
 
-    <!-- Sidebar -->
     <div class="sidebar">
-      <!-- Sidebar user panel (optional) -->
-
-
-      <!-- SidebarSearch Form -->
-     
-
-      <!-- Sidebar Menu -->
-      <nav class="mt-2">
+      <nav class="mt-0">
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+          
+          <li class="nav-header text-uppercase opacity-50 small" style="letter-spacing: 1px; color: #94a3b8;">ເມນູຫຼັກ</li>
+          
+          <li class="nav-item menu-open">
+            <a href="#" class="nav-link active">
+              <i class="nav-icon fas fa-chart-pie"></i>
+              <p> ແຜງຄວບຄຸມ <i class="right fas fa-angle-left"></i></p>
+            </a>
+            <ul class="nav nav-treeview">
+              <li class="nav-item">
+                <a href="Homepage.php" target="frame" class="nav-link">
+                  <i class="far fa-circle nav-icon text-info"></i> <p>ຍອດການເງິນ & ຄັງສິນຄ້າ</p>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <li class="nav-header text-uppercase opacity-10 small mt-0" style="letter-spacing: 1px; color: #94a3b8;">ລະບົບບໍລິການ</li>
 
           <li class="nav-item">
             <a href="#" class="nav-link">
-              <i class="nav-icon fas fa-th"></i>
-              <p>
-                ສ້າງສິນຄ້າ
-              </p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="#" class="nav-link">	
-              <i class="fas fa-font"></i>
-              <p>
-                ປະເພດສິນຄ້າ
-                <i class="fas fa-angle-left right"></i>
-              </p>
+              <i class="nav-icon fas fa-users"></i>
+              <p>ຈັດການລູກຄ້າ <i class="right fas fa-angle-left"></i></p>
             </a>
             <ul class="nav nav-treeview">
               <li class="nav-item">
-               <!-- ຕໍາແໜງຂອງຟອມບັນທຶກປະເພດສິນຄ້າ -->
-                <a href="categories/form_categorice.php" target="frame" class="nav-link">
-                  <i class="fas fa-plus-circle"></i>
-                  <p>ເພີ່ມປະເພດສິນຄ້າ</p>
-                </a>
-              </li>
-              <li class="nav-item">
-               <!-- ຕໍາແໜງຂອງລາຍງານປະເພດສິນຄ້າ -->
-                <a href="categories/select.php" target="frame" class="nav-link">
-                  <i class="fas fa-eye"></i>
-                  <p>ສະແດງປະເພດສິນຄ້າ</p>
+                <a href="customers/form_customers.php" target="frame" class="nav-link">
+                  <i class="far fa-circle nav-icon text-info"></i> <p>ເພີ່ມຂໍ້ມູນລູກຄ້າ</p>
                 </a>
               </li>
             </ul>
           </li>
+
           <li class="nav-item">
             <a href="#" class="nav-link">
-            <i class="fas fa-users"></i>
-              <p>
-                ຂໍ້ມູນສິນຄ້າ
-                 <i class="fas fa-angle-left right"></i>
-              </p>
+              <i class="nav-icon fas fa-car"></i>
+              <p>ຈັດການລົດລູກຄ້າ <i class="right fas fa-angle-left"></i></p>
             </a>
             <ul class="nav nav-treeview">
               <li class="nav-item">
-               <!-- ຟອມບັນທຶກຂໍ້ມູນສິນຄ້າ -->
-                <a href="products/form_products.php" target="frame" class="nav-link">
-                  <i class="fas fa-plus-circle"></i>
-                  <p>ບັນທຶກຂໍ້ມູນສິນຄ້າ</p>
-                </a>
-              </li>
-              <li class="nav-item">
-               <!-- ຟາຍລາຍງານຂໍ້ມູນສິນຄ້າ -->
-                <a href="products/select_products.php" target="frame" class="nav-link">
-                  <i class="fas fa-eye"></i>
-                  <p>ລາຍງານຂໍ້ມູນສິນຄ້າ</p>
-                </a>
-              </li>
-              <li class="nav-item">
-                <!-- ຟາຍຄົ້ນຫາຂໍ້ມູນສິນຄ້າ -->
-                <a href=# target="frame" class="nav-link">
-                  <i class="fas fa-search"></i>
-                  <p>ຄົ້ນຫາຂໍ້ມູນສິນຄ້າ</p>
+                <a href="cars/form_cars.php" target="frame" class="nav-link">
+                  <i class="far fa-circle nav-icon text-info"></i> <p>ເພີ່ມຂໍ້ມູນລົດ</p>
                 </a>
               </li>
             </ul>
           </li>
+
           <li class="nav-item">
             <a href="#" class="nav-link">
-            <i class="fas fa-cart-arrow-down"></i>
-              <p>
-                ຂໍ້ມູນສິນຄ້ານຳເຂົ້າ
-                 <i class="fas fa-angle-left right"></i>
-              </p>
+              <i class="nav-icon fas fa-file-invoice-dollar"></i>
+              <p>ອອກບິນ & ສ້ອມແປງ <i class="right fas fa-angle-left"></i></p>
             </a>
             <ul class="nav nav-treeview">
               <li class="nav-item">
-               <!-- ຟອມບັນທຶກຂໍ້ມູນສິນຄ້ານຳເຂົ້າ -->
-                <a href="receives/form_receives.php" target="frame" class="nav-link">
-                  <i class="fas fa-plus-circle"></i>
-                  <p>ບັນທຶກຂໍ້ມູນສິນຄ້ານຳເຂົ້າ</p>
-                 <i class="fas fa-angle-left right"></i>
+                <a href="service_logs/form_service_logs.php" target="frame" class="nav-link">
+                  <i class="far fa-circle nav-icon text-warning"></i> <p>ອອກບິນສ້ອມແປງລົດ</p>
                 </a>
-              </li>
-              <li class="nav-item">
-               <!-- ຟາຍລາຍງານຂໍ້ມູນສິນຄ້ານຳເຂົ້າ -->
-                <a href="receives/select_receives.php" target="frame" class="nav-link">
-                  <i class="fas fa-eye"></i>
-                  <p>ສະແດງຂໍ້ມູນສິນຄິນນຳເຂົ້າ</p>
-                 <i class="fas fa-angle-left right"></i>
+                <a href="service_logs/manage_sale.php" target="frame" class="nav-link">
+                  <i class="far fa-circle nav-icon text-warning"></i> <p>ໜ້າຂາຍເຄື່ອງອາໄຫຼ່</p>
                 </a>
               </li>
             </ul>
           </li>
+          
+          <li class="nav-header text-uppercase opacity-10 small mt-0" style="letter-spacing: 1px; color: #94a3b8;">ລະບົບສາງສິນຄ້າ</li>
+
           <li class="nav-item">
             <a href="#" class="nav-link">
-            <i class="fas fa-shopping-cart"></i>
-              <p>
-                ສິນຄ້າຂາຍອອກ
-                 <i class="fas fa-angle-left right"></i>
-              </p>
+              <i class="nav-icon fas fa-tags"></i>
+              <p>ປະເພດອາໄຫຼ່ <i class="right fas fa-angle-left"></i></p>
             </a>
             <ul class="nav nav-treeview">
               <li class="nav-item">
-               <!-- ຟອມບັນທຶກສິນຄ້າຂາຍອອກ -->
-                <a href="orders/form_orders.php" target="frame" class="nav-link">
-                  <i class="fas fa-plus-circle"></i>
-                  <p>ບັນທຶກສິນຄ້າຂາຍອອກ</p>
-                </a>
-              </li>
-              <li class="nav-item">
-               <!-- ຟາຍລາຍງານຂໍ້ມູນສິນຄ້າຂາຍອອກ -->
-                <a href="orders/select_orders.php" target="frame" class="nav-link">
-                  <i class="fas fa-eye"></i>
-                  <p>ສະແດງຂໍ້ມູນຂາຍອອກ</p>
+                <a href="categories/form_categories.php" target="frame" class="nav-link">
+                  <i class="far fa-circle nav-icon text-info"></i> <p>ເພີ່ມຂໍ້ມູນປະເພດອາໄຫຼ່</p>
                 </a>
               </li>
             </ul>
           </li>
+
+          <li class="nav-item">
+            <a href="#" class="nav-link">
+              <i class="nav-icon fas fa-box-open"></i>
+              <p>ລາຍການອາໄຫຼ່ <i class="right fas fa-angle-left"></i></p>
+            </a>
+            <ul class="nav nav-treeview">
+              <li class="nav-item">
+                <a href="parts_profile/form_parts_profile.php" target="frame" class="nav-link">
+                  <i class="far fa-circle nav-icon text-info"></i> <p>ເພີ່ມຂໍ້ມູນອາໄຫຼ່</p>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <li class="nav-item">
+            <a href="#" class="nav-link">
+              <i class="nav-icon fas fa-shopping-cart"></i>
+              <p>ນຳເຄື່ອງອາໄຫຼ່ເຂົ້າສາງ <i class="right fas fa-angle-left"></i></p>
+            </a>
+            <ul class="nav nav-treeview">
+              <li class="nav-item">
+                <a href="part_purchases/form_part_purchases.php" target="frame" class="nav-link">
+                  <i class="far fa-circle nav-icon text-success"></i> <p>ເພີ່ມຂໍ້ມູນນຳອາໄຫຼ່ເຂົ້າ</p>
+                </a>
+              </li>
+            </ul>
+          </li>
+
         </ul>
       </nav>
-      <!-- /.sidebar-menu -->
     </div>
-    <!-- /.sidebar -->
   </aside>
 
-  <!-- Content Wrapper. Contains page content -->
   <div class="content-wrapper">
-
-
-	<iframe width="100%" height="100%" frameborder="0" name="frame" src="Homepage.php"></iframe>
-       
-    <!-- /.content -->
+    <iframe name="frame" src="Homepage.php"></iframe>
   </div>
-  <!-- /.content-wrapper -->
-  <footer class="main-footer">
-   
-    <div class="float-right d-none d-sm-inline-block">
-      <b>Version</b> 1
-    </div>
+
+  <footer class="main-footer text-center py-2 small">
+    <strong>Copyright &copy; 2026 <span class="text-primary font-weight-bold">Garage Management System</span>.</strong> All rights reserved.
   </footer>
-
-  <!-- Control Sidebar -->
-  <aside class="control-sidebar control-sidebar-dark">
-    <!-- Control sidebar content goes here -->
-  </aside>
-  <!-- /.control-sidebar -->
 </div>
-<!-- ./wrapper -->
 
-<!-- jQuery -->
-<script src="plugins/jquery/jquery.min.js"></script>
-<!-- jQuery UI 1.11.4 -->
-<script src="plugins/jquery-ui/jquery-ui.min.js"></script>
-<!-- Resolve conflict in jQuery UI tooltip with Bootstrap tooltip -->
-<script>
-  $.widget.bridge('uibutton', $.ui.button)
-</script>
-<!-- Bootstrap 4 -->
-<script src="plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
-<!-- ChartJS -->
-<script src="plugins/chart.js/Chart.min.js"></script>
-<!-- Sparkline -->
-<script src="plugins/sparklines/sparkline.js"></script>
-<!-- JQVMap -->
-<script src="plugins/jqvmap/jquery.vmap.min.js"></script>
-<script src="plugins/jqvmap/maps/jquery.vmap.usa.js"></script>
-<!-- jQuery Knob Chart -->
-<script src="plugins/jquery-knob/jquery.knob.min.js"></script>
-<!-- daterangepicker -->
-<script src="plugins/moment/moment.min.js"></script>
-<script src="plugins/daterangepicker/daterangepicker.js"></script>
-<!-- Tempusdominus Bootstrap 4 -->
-<script src="plugins/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js"></script>
-<!-- Summernote -->
-<script src="plugins/summernote/summernote-bs4.min.js"></script>
-<!-- overlayScrollbars -->
-<script src="plugins/overlayScrollbars/js/jquery.overlayScrollbars.min.js"></script>
-<!-- AdminLTE App -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/overlayscrollbars/1.13.0/js/jquery.overlayScrollbars.min.js"></script>
 <script src="dist/js/adminlte.js"></script>
-<!-- AdminLTE for demo purposes -->
-<script src="dist/js/demo.js"></script>
-<!-- AdminLTE dashboard demo (This is only for demo purposes) -->
-<script src="dist/js/pages/dashboard.js"></script>
+
+<script>
+  $(document).ready(function() {
+    // ຈັດການການເປີດ/ປິດ Active state ຂອງເມນູໃຫ້ເບິ່ງງາມຂຶ້ນ
+    $('.nav-sidebar .nav-link').on('click', function() {
+      if(!$(this).hasClass('active') && $(this).attr('target') === 'frame'){
+          $('.nav-sidebar .nav-link').removeClass('active');
+          $(this).addClass('active');
+          $(this).closest('.has-treeview').children('.nav-link').addClass('active');
+      }
+    });
+
+    // Effect ຕອນໂຫຼດໜ້າ Iframe (Smooth Loading)
+    $('.nav-link[target="frame"]').on('click', function() {
+      $('iframe[name="frame"]').css({'opacity': '0.3', 'transform': 'scale(0.99)'});
+      setTimeout(function() {
+        $('iframe[name="frame"]').css({'opacity': '1', 'transform': 'scale(1)'});
+      }, 350);
+    });
+  });
+</script>
+
 </body>
 </html>
-
-<?php
- }
-?>
-<!-- update !-->
-
