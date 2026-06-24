@@ -28,7 +28,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'process_sale') {
     // 1. ສ້າງບິນຂາຍໃໝ່ (ກຳນົດເປັນ success ເລີຍ)
     $sql_insert_log = "INSERT INTO service_logs (status, created_at, completed_at) VALUES ('success', NOW(), NOW())";
     if (mysqli_query($connect, $sql_insert_log)) {
-        $new_service_id = mysqli_insert_id($connect);
+        $new_log_id = mysqli_insert_id($connect);
 
         // 2. ບັນທຶກລາຍການສິນຄ້າ
         foreach ($_SESSION['pos_cart'] as $item) {
@@ -38,8 +38,8 @@ if (isset($_GET['action']) && $_GET['action'] == 'process_sale') {
             $total = $item['total'];
             $desc = mysqli_real_escape_string($connect, $item['name']);
 
-            $sql_det = "INSERT INTO service_details (service_id, part_id, description, qty, price, total) 
-                        VALUES ($new_service_id, $p_id, '$desc', $qty, $price, $total)";
+            $sql_det = "INSERT INTO service_details (log_id, part_id, description, qty, price, total) 
+                        VALUES ($new_log_id, $p_id, '$desc', $qty, $price, $total)";
             mysqli_query($connect, $sql_det);
         }
 
@@ -47,7 +47,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'process_sale') {
         unset($_SESSION['pos_cart']);
 
         // ສົ່ງ ID ບິນທີ່ສ້າງສຳເລັດແລ້ວກັບໄປໃຫ້ JavaScript ເພື່ອພິມ
-        echo json_encode(['status' => 'success', 'service_id' => $new_service_id]);
+        echo json_encode(['status' => 'success', 'log_id' => $new_log_id]);
     } else {
         echo json_encode(['status' => 'error', 'message' => 'ບໍ່ສາມາດສ້າງບິນໄດ້']);
     }
@@ -456,7 +456,7 @@ function confirmAndPrintSale() {
                 success: function(response) {
                     if(response.status === 'success') {
                         var iframe = document.getElementById('printFrame');
-                        iframe.src = 'print_service_logs.php?id=' + response.service_id;
+                        iframe.src = 'print_service_logs.php?id=' + response.log_id;
                         iframe.onload = function() {
                             setTimeout(function() {
                                 iframe.contentWindow.focus();

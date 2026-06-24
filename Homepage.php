@@ -19,7 +19,7 @@ if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
     $row_labor_total = mysqli_fetch_row($sql_labor_total);
     $total_labor     = $row_labor_total[0] ?? 0;
 
-    $sql_parts_total = mysqli_query($connect, "SELECT SUM(d.total) FROM service_details d INNER JOIN service_logs l ON d.service_id = l.log_id WHERE l.status = 'success'");
+    $sql_parts_total = mysqli_query($connect, "SELECT SUM(d.total) FROM service_details d INNER JOIN service_logs l ON d.log_id = l.log_id WHERE l.status = 'success'");
     $row_parts_total = mysqli_fetch_row($sql_parts_total);
     $total_parts     = $row_parts_total[0] ?? 0;
 
@@ -30,7 +30,7 @@ if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
     $row_labor_today = mysqli_fetch_row($sql_labor_today);
     $today_labor     = $row_labor_today[0] ?? 0;
 
-    $sql_parts_today = mysqli_query($connect, "SELECT SUM(d.total) FROM service_details d INNER JOIN service_logs l ON d.service_id = l.log_id WHERE l.status = 'success' AND l.completed_at LIKE CONCAT(CURDATE(), '%')");
+    $sql_parts_today = mysqli_query($connect, "SELECT SUM(d.total) FROM service_details d INNER JOIN service_logs l ON d.log_id = l.log_id WHERE l.status = 'success' AND l.completed_at LIKE CONCAT(CURDATE(), '%')");
     $row_parts_today = mysqli_fetch_row($sql_parts_today);
     $today_parts     = $row_parts_today[0] ?? 0;
 
@@ -103,7 +103,7 @@ if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
         $d = date('Y-m-d', strtotime("-$i days"));
         
         // ຍອດອາໄຫຼ່
-        $q_p = mysqli_query($connect, "SELECT SUM(d.total) FROM service_details d INNER JOIN service_logs l ON d.service_id = l.log_id WHERE l.status = 'success' AND l.completed_at LIKE '$d%'");
+        $q_p = mysqli_query($connect, "SELECT SUM(d.total) FROM service_details d INNER JOIN service_logs l ON d.log_id = l.log_id WHERE l.status = 'success' AND l.completed_at LIKE '$d%'");
         $sum_p = mysqli_fetch_row($q_p)[0] ?? 0;
         
         // ຍອດຄ່າແຮງ
@@ -120,7 +120,7 @@ if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
     $q_top = mysqli_query($connect, "
         SELECT p.part_name, SUM(d.qty) as total_qty 
         FROM service_details d 
-        INNER JOIN service_logs l ON d.service_id = l.log_id 
+        INNER JOIN service_logs l ON d.log_id = l.log_id 
         LEFT JOIN parts_profile p ON d.part_id = p.part_id 
         WHERE l.status = 'success' 
         GROUP BY d.part_id 

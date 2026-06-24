@@ -19,10 +19,10 @@ if (empty($current_logged_in_staff)) {
     $current_logged_in_staff = isset($_SESSION['user_name']) ? $_SESSION['user_name'] : 'mid keochanda';
 }
 
-$service_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+$log_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
-if ($service_id <= 0) {
-    die("<h3 style='text-align:center; padding-top:50px; font-family:\"Noto Sans Lao\";'>ບໍ່ພົບຂໍ້ມູນບິນເລກທີ: $service_id</h3>");
+if ($log_id <= 0) {
+    die("<h3 style='text-align:center; padding-top:50px; font-family:\"Noto Sans Lao\";'>ບໍ່ພົບຂໍ້ມູນບິນເລກທີ: $log_id</h3>");
 }
 
 // 🎯 2. ດຶງຂໍ້ມູນຫຼັກແບບ l.* ເພື່ອປ້ອງກັນ Error Unknown Column ໃນ On Clause 100%
@@ -33,13 +33,13 @@ $sql_head = "SELECT
              FROM service_logs l
              LEFT JOIN cars c ON l.car_id = c.car_id
              LEFT JOIN customers cust ON c.cust_id = cust.cust_id
-             WHERE l.log_id = '$service_id'";
+             WHERE l.log_id = '$log_id'";
 
 $res_head = mysqli_query($connect, $sql_head) or die("ຂໍ້ຜິດພາດ SQL: " . mysqli_error($connect));
 $head = mysqli_fetch_array($res_head);
 
 if (!$head) {
-    die("<h3 style='text-align:center; padding-top:50px; font-family:\"Noto Sans Lao\";'>ບໍ່ພົບຂໍ້ມູນບິນເລກທີ: $service_id</h3>");
+    die("<h3 style='text-align:center; padding-top:50px; font-family:\"Noto Sans Lao\";'>ບໍ່ພົບຂໍ້ມູນບິນເລກທີ: $log_id</h3>");
 }
 
 // 🎯 3. ໃຫ້ PHP ກວດຊອກຫາ ID ຫຼື ຊື່ຂອງຊ່າງ ຈາກຕາຕະລາງ service_logs ແບບອັດຕະໂນມັດ
@@ -73,7 +73,7 @@ if ($mechanic_display == '........................' || empty($mechanic_display))
 }
 
 // ຄຳນວນຍອດລວມທັງໝົດກ່ອນເພື່ອໃຊ້ໃນ QR Code
-$res_total = mysqli_query($connect, "SELECT SUM(total) as parts_sum FROM service_details WHERE service_id = '$service_id'");
+$res_total = mysqli_query($connect, "SELECT SUM(total) as parts_sum FROM service_details WHERE log_id = '$log_id'");
 $row_total = mysqli_fetch_array($res_total);
 $total_parts_only = $row_total['parts_sum'] ? floatval($row_total['parts_sum']) : 0;
 $labor_cost = isset($head['labor_cost']) ? floatval($head['labor_cost']) : 0;
@@ -83,7 +83,7 @@ $total_all_bill = $total_parts_only + $labor_cost;
 <html lang="lo">
 <head>
     <meta charset="UTF-8">
-    <title>ໃບບິນສ້ອມແປງ #<?php echo str_pad($service_id, 5, "0", STR_PAD_LEFT); ?></title>
+    <title>ໃບບິນສ້ອມແປງ #<?php echo str_pad($log_id, 5, "0", STR_PAD_LEFT); ?></title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;700&display=swap');
@@ -136,7 +136,7 @@ $total_all_bill = $total_parts_only + $labor_cost;
         </div>
         <div style="text-align: right;">
             <h1 style="margin:0; color: #333; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; font-size: 26px;">ໃບບິນ</h1>
-            <p style="margin:4px 0; font-size: 14px;">ເລກທີ: <b>#<?php echo str_pad($service_id, 5, "0", STR_PAD_LEFT); ?></b></p>
+            <p style="margin:4px 0; font-size: 14px;">ເລກທີ: <b>#<?php echo str_pad($log_id, 5, "0", STR_PAD_LEFT); ?></b></p>
             <p style="margin:0; font-size: 13px; color: #555;">ວັນທີ: <?php echo date('d/m/Y', strtotime($head['service_date'])); ?></p>
         </div>
     </div>
@@ -184,7 +184,7 @@ $total_all_bill = $total_parts_only + $labor_cost;
         </thead>
         <tbody>
             <?php 
-            $res_det = mysqli_query($connect, "SELECT * FROM service_details WHERE service_id = '$service_id'");
+            $res_det = mysqli_query($connect, "SELECT * FROM service_details WHERE log_id = '$log_id'");
             $i = 1;
             if (mysqli_num_rows($res_det) == 0) {
                 echo "<tr><td colspan='5' style='text-align:center; color:#999; padding: 15px;'>ບໍ່ມີລາຍການອາໄຫຼ່ທີ່ປ່ຽນ</td></tr>";
@@ -210,7 +210,7 @@ $total_all_bill = $total_parts_only + $labor_cost;
                 $bank_name = "BCEL MyBank"; 
                 $account_name = "MID KEOCHANDA"; 
                 $account_number = "141122531890"; 
-                $qr_url = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" . urlencode("BANK:$bank_name|ACC:$account_number|NAME:$account_name|AMOUNT:$total_all_bill|BILL:$service_id");
+                $qr_url = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" . urlencode("BANK:$bank_name|ACC:$account_number|NAME:$account_name|AMOUNT:$total_all_bill|BILL:$log_id");
             ?>
             <img src="<?php echo $qr_url; ?>" alt="QR Code Payment">
             <p style="margin: 3px 0 0; font-size: 11px; font-weight: bold; color: #333;"><?php echo $account_name; ?></p>

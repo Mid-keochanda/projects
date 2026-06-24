@@ -12,8 +12,8 @@ require_once("../cennect_dbstock.php");
 if (!isset($connect)) { die("Error: ບໍ່ສາມາດເຊື່ອມຕໍ່ຖານຂໍ້ມູນ."); }
 mysqli_set_charset($connect, "utf8");
 
-$service_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
-if ($service_id <= 0) {
+$log_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+if ($log_id <= 0) {
     echo "<!DOCTYPE html><html><head><script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script></head><body><script>
     Swal.fire({icon: 'error', title: 'ລະບົບບໍ່ພົບ ID ບິນ', confirmButtonText: 'ຕົກລົງ'}).then(() => { window.location='select_service_logs.php'; });
     </script></body></html>";
@@ -25,7 +25,7 @@ $swal_message = ''; // ຕົວປ່ຽນສຳລັບເກັບຂໍ້
 // 🛠️ API ສຳລັບ AJAX ປິດບິນ
 if (isset($_GET['action']) && $_GET['action'] == 'update_status_print') {
     $stmt = $connect->prepare("UPDATE service_logs SET status = 'success', completed_at = NOW() WHERE log_id = ?");
-    $stmt->bind_param("i", $service_id);
+    $stmt->bind_param("i", $log_id);
     if ($stmt->execute()) {
         echo json_encode(['status' => 'success']);
     } else {
@@ -39,9 +39,9 @@ if (isset($_GET['action']) && $_GET['action'] == 'update_status_print') {
 if (isset($_POST['btn_save_labor'])) {
     $labor = floatval($_POST['labor_cost']);
     $stmt = $connect->prepare("UPDATE service_logs SET labor_cost = ? WHERE log_id = ?");
-    $stmt->bind_param("di", $labor, $service_id);
+    $stmt->bind_param("di", $labor, $log_id);
     if ($stmt->execute()) {
-        header("Location: ?id=$service_id");
+        header("Location: ?id=$log_id");
         exit();
     }
     $stmt->close();
@@ -50,9 +50,9 @@ if (isset($_POST['btn_save_labor'])) {
 // 🛠️ Logic ຍົກເລີກ/ລ້າງຄ່າແຮງງານ
 if (isset($_GET['action']) && $_GET['action'] == 'clear_labor') {
     $stmt = $connect->prepare("UPDATE service_logs SET labor_cost = 0 WHERE log_id = ?");
-    $stmt->bind_param("i", $service_id);
+    $stmt->bind_param("i", $log_id);
     if ($stmt->execute()) {
-        header("Location: ?id=$service_id");
+        header("Location: ?id=$log_id");
         exit();
     }
     $stmt->close();
@@ -74,7 +74,6 @@ if (isset($_POST['btn_save'])) {
         $row = $res_check->fetch_assoc();
         
         if (!$row || $row['qty_stock'] < $qty) {
-            // ແທນທີ່ຈະໃຊ້ alert() ກໍເກັບຂໍ້ຄວາມໄວ້ສະແດງຜົນດ້ວຍ SweetAlert2
             $swal_message = "Swal.fire({icon: 'warning', title: 'ສະຕັອກບໍ່ພໍ!', text: 'ໃນສະຕັອກເຫຼືອພຽງ: " . ($row['qty_stock'] ?? 0) . "', confirmButtonText: 'ຕົກລົງ'});";
             $can_save = false;
         }
@@ -85,8 +84,8 @@ if (isset($_POST['btn_save'])) {
     }
 
     if ($can_save) {
-        $stmt_exist = $connect->prepare("SELECT detail_id, qty FROM service_details WHERE service_id = ? AND part_id = ?");
-        $stmt_exist->bind_param("ii", $service_id, $part_val);
+        $stmt_exist = $connect->prepare("SELECT detail_id, qty FROM service_details WHERE log_id = ? AND part_id = ?");
+        $stmt_exist->bind_param("ii", $log_id, $part_val);
         $stmt_exist->execute();
         $res_exist = $stmt_exist->get_result();
         
@@ -101,8 +100,8 @@ if (isset($_POST['btn_save'])) {
             $stmt_up->close();
         } else {
             $total = $qty * $price;
-            $stmt_in = $connect->prepare("INSERT INTO service_details (service_id, part_id, description, qty, price, total) VALUES (?, ?, ?, ?, ?, ?)");
-            $stmt_in->bind_param("iisidd", $service_id, $part_val, $description, $qty, $price, $total);
+            $stmt_in = $connect->prepare("INSERT INTO service_details (log_id, part_id, description, qty, price, total) VALUES (?, ?, ?, ?, ?, ?)");
+            $stmt_in->bind_param("iisidd", $log_id, $part_val, $description, $qty, $price, $total);
             $stmt_in->execute();
             $stmt_in->close();
         }
@@ -113,7 +112,7 @@ if (isset($_POST['btn_save'])) {
         $stmt_stock->execute();
         $stmt_stock->close();
 
-        header("Location: ?id=$service_id");
+        header("Location: ?id=$log_id");
         exit();
     }
 }
@@ -145,26 +144,27 @@ if (isset($_GET['action']) && $_GET['action'] == 'delete_item') {
     }
     $stmt_item->close();
     
-    header("Location: ?id=$service_id#parts_section");
+    header("Location: ?id=$log_id#parts_section");
     exit();
 }
 
-// 4. ດຶງຂໍ້ມູນສະແດງຜົນ 
-$stmt_sum = $connect->prepare("SELECT SUM(total) as sum_parts FROM service_details WHERE service_id = ?");
-$stmt_sum->bind_param("i", $service_id);
+// 4. ດຶງຂໍ້ມູນສະແດງຜົນ (ລວມຄ່າແຮງ ແລະ ຄ່າອາໄຫຼ່)
+$stmt_sum = $connect->prepare("SELECT SUM(total) as sum_parts FROM service_details WHERE log_id = ?");
+$stmt_sum->bind_param("i", $log_id);
 $stmt_sum->execute();
 $total_data = $stmt_sum->get_result()->fetch_assoc();
-$sum_parts = $total_data['sum_parts'] ?? 0;
+$sum_parts = floatval($total_data['sum_parts'] ?? 0); // ແນ່ໃຈວ່າເປັນຕົວເລກ float
 $stmt_sum->close();
 
 $stmt_log = $connect->prepare("SELECT labor_cost, status FROM service_logs WHERE log_id = ?");
-$stmt_log->bind_param("i", $service_id);
+$stmt_log->bind_param("i", $log_id);
 $stmt_log->execute();
 $log_data = $stmt_log->get_result()->fetch_assoc();
-$labor_cost = $log_data['labor_cost'] ?? 0;
+$labor_cost = floatval($log_data['labor_cost'] ?? 0); // ແນ່ໃຈວ່າເປັນຕົວເລກ float
 $current_status = $log_data['status'] ?? 'pending';
 $stmt_log->close();
 
+// 💡 ຈຸດສຳຄັນ: ບວກຄ່າອາໄຫຼ່ ແລະ ຄ່າແຮງງານເຂົ້າກັນ
 $grand_total = $sum_parts + $labor_cost;
 
 $parts_array = [];
@@ -187,7 +187,7 @@ while ($p = mysqli_fetch_array($res_parts)) {
         'part_id'    => $p['part_id'],
         'barcode'    => strval($barcode_key),
         'part_name'  => $p['part_name'], 
-        'sale_price' => $p['sale_price'],
+        'sale_price' => floatval($p['sale_price']),
         'part_image' => $part_image_path,
         'qty_stock'  => intval($p['qty_stock'])
     ];
@@ -198,7 +198,7 @@ while ($p = mysqli_fetch_array($res_parts)) {
 <html lang="lo">
 <head>
     <meta charset="UTF-8">
-    <title>ຈັດການບິນ #<?php echo str_pad($service_id, 5, "0", STR_PAD_LEFT); ?></title>
+    <title>ຈັດການບິນ #<?php echo str_pad($log_id, 5, "0", STR_PAD_LEFT); ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -233,7 +233,7 @@ while ($p = mysqli_fetch_array($res_parts)) {
                 <h3 class="fw-bold text-dark mb-0">ໜ້າຈັດການລາຍການສ້ອມແປງ</h3>
             </div>
             <div class="d-flex align-items-center gap-3 ms-5">
-                <p class="text-muted mb-0" style="font-size: 14px;">ເລກທີບິນ: <span class="fw-bold text-primary">#<?php echo str_pad($service_id, 5, "0", STR_PAD_LEFT); ?></span></p>
+                <p class="text-muted mb-0" style="font-size: 14px;">ເລກທີບິນ: <span class="fw-bold text-primary">#<?php echo str_pad($log_id, 5, "0", STR_PAD_LEFT); ?></span></p>
                 <?php if($current_status == 'pending'): ?>
                     <span class="badge bg-warning text-dark rounded-pill px-3"><i class="fas fa-spinner fa-spin me-1"></i> ກຳລັງສ້ອມແປງ</span>
                 <?php else: ?>
@@ -242,7 +242,7 @@ while ($p = mysqli_fetch_array($res_parts)) {
             </div>
         </div>
         <div>
-            <button type="button" id="btn_print" onclick="printInvoice(<?php echo $service_id; ?>)" class="btn btn-success d-flex align-items-center gap-2 px-4 py-2 shadow-sm fs-5 fw-bold">
+            <button type="button" id="btn_print" onclick="printInvoice(<?php echo $log_id; ?>)" class="btn btn-success d-flex align-items-center gap-2 px-4 py-2 shadow-sm fs-5 fw-bold">
                 <i class="fas fa-print"></i> ພິມໃບບິນ & ປິດບິນ
             </button>
         </div>
@@ -252,7 +252,7 @@ while ($p = mysqli_fetch_array($res_parts)) {
         <div class="col-lg-8 col-xl-8">
             <div class="card-custom p-4 shadow-sm h-100">
                 <h5 class="fw-bold text-primary mb-3"><i class="fas fa-boxes me-2"></i> ຄລີກເລືອກອະໄຫຼ່ລົດສ້ອມແປງ</h5>
-                <form method="POST" action="?id=<?php echo htmlspecialchars($service_id, ENT_QUOTES, 'UTF-8'); ?>" id="part_form">
+                <form method="POST" action="?id=<?php echo htmlspecialchars($log_id, ENT_QUOTES, 'UTF-8'); ?>" id="part_form">
                     <input type="hidden" name="btn_save" value="1">
                     <input type="hidden" name="part_id" id="part_id_hidden" required>
                     <div class="mb-3">
@@ -277,35 +277,37 @@ while ($p = mysqli_fetch_array($res_parts)) {
             <div class="row mb-4 g-3">
                 <div class="col-12">
                     <div class="card-custom p-3 h-100 d-flex align-items-center">
-                        <form method="POST" action="?id=<?php echo htmlspecialchars($service_id, ENT_QUOTES, 'UTF-8'); ?>" class="w-100" id="labor_form">
-                            <div class="row align-items-center g-2">
-                                <div class="col-sm-3">
-                                    <label class="form-label mb-0 fw-bold text-secondary" style="font-size:13px;"><i class="fas fa-tools text-warning me-1"></i> ຄ່າແຮງ</label>
-                                </div>
-                                <div class="col-sm-5">
-                                    <div class="input-group input-group-sm">
-                                        <span class="input-group-text bg-light border-end-0">₭</span>
-                                        <input type="text" id="labor_cost_display" class="form-control border-start-0 ps-0 fw-bold text-end" value="<?php echo number_format($labor_cost); ?>" required placeholder="0">
-                                        <input type="hidden" name="labor_cost" id="labor_cost_real" value="<?php echo $labor_cost; ?>">
-                                    </div>
-                                </div>
-                                <div class="col-sm-4 d-flex gap-1">
-                                    <button type="submit" name="btn_save_labor" id="btn_labor" class="btn btn-warning btn-sm w-50 fw-bold py-1">
-                                        <i class="fas fa-save"></i>
-                                    </button>
-                                    
-                                    <?php if ($labor_cost > 0): ?>
-                                        <a href="?id=<?php echo $service_id; ?>&action=clear_labor" 
-                                           class="btn btn-danger btn-sm w-50 py-1 d-flex align-items-center justify-content-center swal-confirm" 
-                                           data-text="ຕ້ອງການລ້າງຄ່າແຮງງານໃຫ້ເປັນ 0 ແທ້ບໍ?">
-                                            <i class="fas fa-times"></i>
-                                        </a>
-                                    <?php else: ?>
-                                        <button type="button" class="btn btn-secondary btn-sm w-50 py-1" disabled><i class="fas fa-times"></i></button>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-                        </form>
+                        <form method="POST" action="?id=<?php echo htmlspecialchars($log_id, ENT_QUOTES, 'UTF-8'); ?>" class="w-100" id="labor_form">
+    <input type="hidden" name="btn_save_labor" value="1">
+
+    <div class="row align-items-center g-2">
+        <div class="col-sm-3">
+            <label class="form-label mb-0 fw-bold text-secondary" style="font-size:13px;"><i class="fas fa-tools text-warning me-1"></i> ຄ່າແຮງ</label>
+        </div>
+        <div class="col-sm-5">
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-light border-end-0">₭</span>
+                <input type="text" id="labor_cost_display" class="form-control border-start-0 ps-0 fw-bold text-end" value="<?php echo number_format($labor_cost); ?>" required placeholder="0">
+                <input type="hidden" name="labor_cost" id="labor_cost_real" value="<?php echo $labor_cost; ?>">
+            </div>
+        </div>
+        <div class="col-sm-4 d-flex gap-1">
+            <button type="submit" id="btn_labor" class="btn btn-warning btn-sm w-50 fw-bold py-1">
+                <i class="fas fa-save"></i>
+            </button>
+            
+            <?php if ($labor_cost > 0): ?>
+                <a href="?id=<?php echo $log_id; ?>&action=clear_labor" 
+                   class="btn btn-danger btn-sm w-50 py-1 d-flex align-items-center justify-content-center swal-confirm" 
+                   data-text="ຕ້ອງການລ້າງຄ່າແຮງງານໃຫ້ເປັນ 0 ແທ້ບໍ?">
+                    <i class="fas fa-times"></i>
+                </a>
+            <?php else: ?>
+                <button type="button" class="btn btn-secondary btn-sm w-50 py-1" disabled><i class="fas fa-times"></i></button>
+            <?php endif; ?>
+        </div>
+    </div>
+</form>
                     </div>
                 </div>
                 <div class="col-12">
@@ -333,8 +335,8 @@ while ($p = mysqli_fetch_array($res_parts)) {
                         </thead>
                         <tbody>
                             <?php 
-                            $stmt_det = $connect->prepare("SELECT d.*, p.part_name FROM service_details d LEFT JOIN parts_profile p ON d.part_id = p.part_id WHERE d.service_id = ?");
-                            $stmt_det->bind_param("i", $service_id);
+                            $stmt_det = $connect->prepare("SELECT d.*, p.part_name FROM service_details d LEFT JOIN parts_profile p ON d.part_id = p.part_id WHERE d.log_id = ?");
+                            $stmt_det->bind_param("i", $log_id);
                             $stmt_det->execute();
                             $res_det = $stmt_det->get_result();
 
@@ -350,7 +352,7 @@ while ($p = mysqli_fetch_array($res_parts)) {
                                             <td class='text-center'><span class='badge bg-light text-dark border px-2 py-1'>".$d['qty']."</span></td>
                                             <td class='text-end fw-bold text-dark'>".number_format($d['total'])."</td>
                                             <td class='text-center'>
-                                                <a href='?id=".$service_id."&action=delete_item&del_id=".$d['detail_id']."' 
+                                                <a href='?id=".$log_id."&action=delete_item&del_id=".$d['detail_id']."' 
                                                    class='text-danger swal-confirm' 
                                                    data-text='ຕ້ອງການຍົກເລີກລາຍການ: ".$safe_name." ແທ້ບໍ່?'>
                                                      <i class='fas fa-trash-alt'></i>
@@ -400,9 +402,11 @@ function saveScrollPosition() {
 $(document).ready(function() {
     renderPartsGrid(partsStockList);
 
-    // ກວດສອບຂໍ້ຄວາມແຈ້ງເຕືອນຈາກ PHP ແລ້ວສະແດງຜົນຜ່ານ SweetAlert2
+    // ແກ້ໄຂ: ໃຊ້ setTimeout ເພື່ອໃຫ້ Swal.fire ເຮັດວຽກໄດ້ຖືກຕ້ອງ ຫຼັງຈາກ DOM ໂຫຼດແລ້ວ
     <?php if(!empty($swal_message)): ?>
-        <?php echo $swal_message; ?>
+        setTimeout(function() {
+            <?php echo $swal_message; ?>
+        }, 100);
     <?php endif; ?>
 
     var savedWindowScroll = sessionStorage.getItem('scroll_window');
@@ -427,7 +431,7 @@ $(document).ready(function() {
         }
     });
 
-    // ດັກຈັບການ Submit ບັນທຶກຄ່າແຮງ (ເພີ່ມ Loading State)
+    // ດັກຈັບການ Submit ບັນທຶກຄ່າແຮງ
     $('#labor_form').on('submit', function() {
         saveScrollPosition();
         let rawVal = $('#labor_cost_display').val().replace(/[^0-9.]/g, '');
@@ -437,7 +441,7 @@ $(document).ready(function() {
         $btn.html('<i class="fas fa-spinner fa-spin"></i>').prop('disabled', true);
     });
 
-    // ດັກຈັບການຄລີກຍົກເລີກ/ລຶບ (ໃຊ້ SweetAlert ແທນ confirm ປົກກະຕິ)
+    // ດັກຈັບການຄລີກຍົກເລີກ/ລຶບ
     $(document).on('click', '.swal-confirm', function(e) {
         e.preventDefault();
         let url = $(this).attr('href');
@@ -471,7 +475,6 @@ $(document).ready(function() {
                 saveScrollPosition();
                 autoSubmitPart(matched.part_id, matched.part_name, matched.sale_price);
             } else {
-                // ປ່ຽນຈາກ alert ມາເປັນ SweetAlert
                 Swal.fire({ icon: 'error', title: 'ບໍ່ພົບຂໍ້ມູນ', text: 'ບໍ່ພົບລະຫັດອະໄຫຼ່ນີ້ໃນລະບົບ!', confirmButtonText: 'ຕົກລົງ' });
                 $(this).val('');
             }
@@ -487,7 +490,6 @@ $(document).ready(function() {
     // ເລືອກອະໄຫຼ່ຈາກລາຍການ
     $(document).on('click', '.part-item-card', function() {
         saveScrollPosition();
-        // ສະແດງ Loading ທັນທີທີ່ກົດເລືອກ ເພື່ອບໍ່ໃຫ້ຜູ້ໃຊ້ກົດຊ້ຳ
         Swal.fire({
             title: 'ກຳລັງເພີ່ມລາຍການ...',
             allowOutsideClick: false,
@@ -561,5 +563,3 @@ function printInvoice(serviceId) {
 </script>
 </body>
 </html>
-<?php
-?>
