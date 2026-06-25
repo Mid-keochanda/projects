@@ -8,7 +8,7 @@ if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
 include("../cennect_dbstock.php");
 mysqli_set_charset($connect, "utf8"); 
 
-// 🎯 1. ດຶງຊື່ພະນັກງານລ໋ອກອິນປະຈຸບັນ (mid keochanda)
+// 🎯 1. ດຶງຊື່ພະນັກງານລ໋ອກອິນປະຈຸບັນ
 $current_logged_in_staff = '';
 if (isset($_SESSION['fname']) || isset($_SESSION['lname'])) {
     $f = isset($_SESSION['fname']) ? $_SESSION['fname'] : '';
@@ -29,10 +29,12 @@ if ($log_id <= 0) {
 $sql_head = "SELECT 
                 l.*, 
                 c.car_plate, c.car_brand, c.car_model, 
-                cust.cust_name, cust.tel
+                cust.cust_name, cust.tel,
+                inv.payment_status, inv.payment_type
              FROM service_logs l
              LEFT JOIN cars c ON l.car_id = c.car_id
              LEFT JOIN customers cust ON c.cust_id = cust.cust_id
+             LEFT JOIN invoices inv ON l.log_id = inv.log_id
              WHERE l.log_id = '$log_id'";
 
 $res_head = mysqli_query($connect, $sql_head) or die("ຂໍ້ຜິດພາດ SQL: " . mysqli_error($connect));
@@ -46,7 +48,6 @@ if (!$head) {
 $mechanic_display = '........................'; 
 $found_mechanic_id = 0;
 
-// ກວດເຊັກວ່າໃນຕາຕະລາງ service_logs ໃຊ້ຄໍລຳໃດເກັບ ID ຊ່າງ
 if (isset($head['mechanic_id']) && !empty($head['mechanic_id'])) {
     $found_mechanic_id = intval($head['mechanic_id']);
 } elseif (isset($head['user_id']) && !empty($head['user_id'])) {
@@ -55,7 +56,6 @@ if (isset($head['mechanic_id']) && !empty($head['mechanic_id'])) {
     $found_mechanic_id = intval($head['staff_id']);
 }
 
-// ຖ້າພົບ ID ຊ່າງ ໃຫ້ໄປດຶງຊື່ fname + lname ຈາກຕາຕະລາງ users
 if ($found_mechanic_id > 0) {
     $sql_mech = "SELECT fname, lname FROM users WHERE user_id = '$found_mechanic_id'";
     $res_mech = mysqli_query($connect, $sql_mech);
@@ -63,7 +63,6 @@ if ($found_mechanic_id > 0) {
         $mechanic_display = trim($mech['fname'] . " " . $mech['lname']);
     }
 } 
-// ກໍລະນີສຸກເສີນ: ຖ້າບໍ່ມີ ID ແຕ່ເກັບເປັນຊື່ຂໍ້ຄວາມໄວ້ໃນຄໍລຳ mechanic ເລີຍ
 if ($mechanic_display == '........................' || empty($mechanic_display)) {
     if (isset($head['mechanic']) && !empty($head['mechanic'])) {
         $mechanic_display = $head['mechanic'];
@@ -72,7 +71,7 @@ if ($mechanic_display == '........................' || empty($mechanic_display))
     }
 }
 
-// ຄຳນວນຍອດລວມທັງໝົດກ່ອນເພື່ອໃຊ້ໃນ QR Code
+// ຄຳນວນຍອດລວມທັງໝົດ
 $res_total = mysqli_query($connect, "SELECT SUM(total) as parts_sum FROM service_details WHERE log_id = '$log_id'");
 $row_total = mysqli_fetch_array($res_total);
 $total_parts_only = $row_total['parts_sum'] ? floatval($row_total['parts_sum']) : 0;
@@ -110,6 +109,10 @@ $total_all_bill = $total_parts_only + $labor_cost;
         .row-total { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; border-bottom: 1px dashed #eee; }
         .grand-total { border-top: 2px solid #333; border-bottom: none; margin-top: 8px; padding-top: 10px; font-weight: bold; font-size: 20px; color: #d9534f; }
         
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; }
+        .badge-success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .badge-danger { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        
         @page { size: A4; margin: 0; }
         @media print { 
             body * { visibility: hidden !important; }
@@ -142,8 +145,6 @@ $total_all_bill = $total_parts_only + $labor_cost;
     </div>
 
     <table class="info-table">
-
-    
         <tr>
             <td><strong>ຜູ້ອອກບິນ:</strong></td>
             <td><span style="color: #28a745; font-weight: bold;"><i class="fa fa-user-check"></i> <?php echo $current_logged_in_staff; ?></span></td>
@@ -153,7 +154,7 @@ $total_all_bill = $total_parts_only + $labor_cost;
         
         <tr>
             <td width="15%"><strong>#ຊື່ລູກຄ້າ:</strong></td>
-            <td width="40%"><?php echo $head['cust_name'] ?? '---'; ?></td>
+            <td width="40%"><?php echo $head['cust_name'] ?? 'ລູກຄ້າໜ້າຮ້ານ (POS)'; ?></td>
             <td width="15%"><strong>ທະບຽນລົດ:</strong></td>
             <td width="30%"><span style="background: #333; color:#fff; padding: 2px 8px; border-radius: 4px; font-weight: bold;"><?php echo $head['car_plate'] ?? '---'; ?></span></td>
         </tr>
@@ -164,12 +165,33 @@ $total_all_bill = $total_parts_only + $labor_cost;
             <td><strong>ຍີ່ຫໍ້/ລຸ້ນ:</strong></td>
             <td><?php echo (!empty($head['car_brand']) || !empty($head['car_model'])) ? trim($head['car_brand'] . " " . $head['car_model']) : '---'; ?></td>
         </tr>
-        <tr>
-            <td style="vertical-align: top; padding-top: 8px;"><strong>ອາການລົດ:</strong></td>
+
+      <tr>
+            <td><strong>ວິທີການຊຳລະ:</strong></td>
+            <td>
+                <span style="font-weight: 500; color: #555;">
+                    <?php 
+                    // ດຶງຂໍ້ມູນວິທີການຊຳລະຈາກຕາຕະລາງ invoices
+                    $pay_method = isset($head['payment_type']) ? trim($head['payment_type']) : '';
+                    $pay_method_lower = strtolower($pay_method);
+                    
+                    if ($pay_method_lower == 'cash' || $pay_method == 'ເງິນສົດ') {
+                        echo '<i class="fa fa-money-bill-wave" style="color: #28a745;"></i> ເງິນສົດ';
+                    } elseif ($pay_method_lower == 'transfer' || $pay_method == 'ໂອນ' || $pay_method == 'bcel' || $pay_method == 'qr' || $pay_method == 'ເງິນໂອນ') {
+                        echo '<i class="fa fa-mobile-alt" style="color: #17a2b8;"></i> ໂອນຜ່ານທະນາຄານ';
+                    } else {
+                        echo !empty($pay_method) ? $pay_method : '---';
+                    }
+                    ?>
+                </span>
+            </td>
+
+              <td style="vertical-align: top; padding-top: 8px;"><strong>ອາການລົດ:</strong></td>
             <td colspan="3" style="color: #d9534f; padding-top: 8px; font-weight: 500;">
-                <?php echo !empty($head['symptoms']) ? $head['symptoms'] : 'ບໍ່ໄດ້ລະບຸອາການ'; ?>
+                <?php echo !empty($head['symptoms']) ? $head['symptoms'] : 'ບໍ່ໄດ້ລະບຸອາການ (ຊື້ອະໄຫຼ່ໜ້າຮ້ານ)'; ?>
             </td>
         </tr>
+
     </table>
 
     <table class="item-table">
@@ -230,6 +252,17 @@ $total_all_bill = $total_parts_only + $labor_cost;
                 <span>ຍອດລວມສຸດທິ:</span>
                 <span><?php echo number_format($total_all_bill); ?> ກີບ</span>
             </div>
+
+            <?php if(isset($_GET['received']) && isset($_GET['change'])): ?>
+            <div class="row-total" style="margin-top: 5px;">
+                <span>ຮັບເງິນມາ (ເງິນສົດ):</span>
+                <span style="font-weight: bold; color: #28a745;"><?php echo number_format(floatval($_GET['received'])); ?> ກີບ</span>
+            </div>
+            <div class="row-total">
+                <span>ເງິນທອນ:</span>
+                <span style="font-weight: bold; color: #d9534f;"><?php echo number_format(floatval($_GET['change'])); ?> ກີບ</span>
+            </div>
+            <?php endif; ?>
         </div>
     </div>
 

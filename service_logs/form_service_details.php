@@ -1,6 +1,6 @@
 <?php
 session_start();
-// ກວດສອບການເຂົ້າເຖິງດ້ວຍ SweetAlert2 ແທນ alert()
+// ກວດສອບການເຂົ້າເຖິງດ້ວຍ SweetAlert2
 if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
     echo "<!DOCTYPE html><html><head><script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script></head><body><script>
     Swal.fire({icon: 'error', title: 'ກະລຸນາລ໋ອກອິນກ່ອນ', confirmButtonText: 'ຕົກລົງ'}).then(() => { location='index.php'; });
@@ -20,18 +20,41 @@ if ($log_id <= 0) {
     exit();
 }
 
-$swal_message = ''; // ຕົວປ່ຽນສຳລັບເກັບຂໍ້ຄວາມແຈ້ງເຕືອນ SweetAlert
+$swal_message = '';
 
 // 🛠️ API ສຳລັບ AJAX ປິດບິນ
-if (isset($_GET['action']) && $_GET['action'] == 'update_status_print') {
+if (isset($_POST['action']) && $_POST['action'] == 'update_status_print') {
+    $p_log_id = intval($_POST['id']);
+    $pay_status = $_POST['payment_status']; 
+    $pay_type = $_POST['payment_type']; 
+    $total = floatval($_POST['total_amount']);
+    
+    // 1. ອັບເດດສະຖານະໃຫ້ service_logs
     $stmt = $connect->prepare("UPDATE service_logs SET status = 'success', completed_at = NOW() WHERE log_id = ?");
-    $stmt->bind_param("i", $log_id);
-    if ($stmt->execute()) {
-        echo json_encode(['status' => 'success']);
-    } else {
-        echo json_encode(['status' => 'error', 'message' => 'Database error']);
-    }
+    $stmt->bind_param("i", $p_log_id);
+    $stmt->execute();
     $stmt->close();
+
+    // 2. ບັນທຶກການຊຳລະເງິນລົງໃນ invoices
+    $stmt_chk = $connect->prepare("SELECT inv_id FROM invoices WHERE log_id = ?");
+    $stmt_chk->bind_param("i", $p_log_id);
+    $stmt_chk->execute();
+    $res_chk = $stmt_chk->get_result();
+    
+    if($res_chk->num_rows == 0) {
+        $inv_no = "INV" . date('Ymd') . str_pad($p_log_id, 4, "0", STR_PAD_LEFT);
+        $stmt_inv = $connect->prepare("INSERT INTO invoices (inv_no, log_id, inv_date, total_amount, net_amount, payment_status, payment_type) VALUES (?, ?, CURDATE(), ?, ?, ?, ?)");
+        $stmt_inv->bind_param("siddds", $inv_no, $p_log_id, $total, $total, $pay_status, $pay_type);
+        $stmt_inv->execute();
+        $stmt_inv->close();
+    } else {
+        $stmt_inv = $connect->prepare("UPDATE invoices SET payment_status = ?, payment_type = ?, total_amount = ?, net_amount = ? WHERE log_id = ?");
+        $stmt_inv->bind_param("ssdii", $pay_status, $pay_type, $total, $total, $p_log_id);
+        $stmt_inv->execute();
+        $stmt_inv->close();
+    }
+    
+    echo json_encode(['status' => 'success']);
     exit();
 }
 
@@ -148,24 +171,32 @@ if (isset($_GET['action']) && $_GET['action'] == 'delete_item') {
     exit();
 }
 
-// 4. ດຶງຂໍ້ມູນສະແດງຜົນ (ລວມຄ່າແຮງ ແລະ ຄ່າອາໄຫຼ່)
+// 4. ດຶງຂໍ້ມູນສະແດງຜົນ
 $stmt_sum = $connect->prepare("SELECT SUM(total) as sum_parts FROM service_details WHERE log_id = ?");
 $stmt_sum->bind_param("i", $log_id);
 $stmt_sum->execute();
 $total_data = $stmt_sum->get_result()->fetch_assoc();
-$sum_parts = floatval($total_data['sum_parts'] ?? 0); // ແນ່ໃຈວ່າເປັນຕົວເລກ float
+$sum_parts = floatval($total_data['sum_parts'] ?? 0); 
 $stmt_sum->close();
 
 $stmt_log = $connect->prepare("SELECT labor_cost, status FROM service_logs WHERE log_id = ?");
 $stmt_log->bind_param("i", $log_id);
 $stmt_log->execute();
 $log_data = $stmt_log->get_result()->fetch_assoc();
-$labor_cost = floatval($log_data['labor_cost'] ?? 0); // ແນ່ໃຈວ່າເປັນຕົວເລກ float
+$labor_cost = floatval($log_data['labor_cost'] ?? 0); 
 $current_status = $log_data['status'] ?? 'pending';
 $stmt_log->close();
 
-// 💡 ຈຸດສຳຄັນ: ບວກຄ່າອາໄຫຼ່ ແລະ ຄ່າແຮງງານເຂົ້າກັນ
 $grand_total = $sum_parts + $labor_cost;
+
+// 5. ດຶງຂໍ້ມູນການຊຳລະເງິນເກົ່າ (ຖ້າມີ) ເພື່ອໄປສະແດງໃນ Modal
+$stmt_inv = $connect->prepare("SELECT payment_status, payment_type FROM invoices WHERE log_id = ?");
+$stmt_inv->bind_param("i", $log_id);
+$stmt_inv->execute();
+$inv_data = $stmt_inv->get_result()->fetch_assoc();
+$curr_pay_status = $inv_data['payment_status'] ?? 'Paid';
+$curr_pay_type = $inv_data['payment_type'] ?? 'ເງິນໂອນ';
+$stmt_inv->close();
 
 $parts_array = [];
 $res_parts = mysqli_query($connect, "SELECT * FROM parts_profile");
@@ -242,7 +273,7 @@ while ($p = mysqli_fetch_array($res_parts)) {
             </div>
         </div>
         <div>
-            <button type="button" id="btn_print" onclick="printInvoice(<?php echo $log_id; ?>)" class="btn btn-success d-flex align-items-center gap-2 px-4 py-2 shadow-sm fs-5 fw-bold">
+            <button type="button" class="btn btn-success d-flex align-items-center gap-2 px-4 py-2 shadow-sm fs-5 fw-bold" data-bs-toggle="modal" data-bs-target="#paymentModal">
                 <i class="fas fa-print"></i> ພິມໃບບິນ & ປິດບິນ
             </button>
         </div>
@@ -278,42 +309,41 @@ while ($p = mysqli_fetch_array($res_parts)) {
                 <div class="col-12">
                     <div class="card-custom p-3 h-100 d-flex align-items-center">
                         <form method="POST" action="?id=<?php echo htmlspecialchars($log_id, ENT_QUOTES, 'UTF-8'); ?>" class="w-100" id="labor_form">
-    <input type="hidden" name="btn_save_labor" value="1">
-
-    <div class="row align-items-center g-2">
-        <div class="col-sm-3">
-            <label class="form-label mb-0 fw-bold text-secondary" style="font-size:13px;"><i class="fas fa-tools text-warning me-1"></i> ຄ່າແຮງ</label>
-        </div>
-        <div class="col-sm-5">
-            <div class="input-group input-group-sm">
-                <span class="input-group-text bg-light border-end-0">₭</span>
-                <input type="text" id="labor_cost_display" class="form-control border-start-0 ps-0 fw-bold text-end" value="<?php echo number_format($labor_cost); ?>" required placeholder="0">
-                <input type="hidden" name="labor_cost" id="labor_cost_real" value="<?php echo $labor_cost; ?>">
-            </div>
-        </div>
-        <div class="col-sm-4 d-flex gap-1">
-            <button type="submit" id="btn_labor" class="btn btn-warning btn-sm w-50 fw-bold py-1">
-                <i class="fas fa-save"></i>
-            </button>
-            
-            <?php if ($labor_cost > 0): ?>
-                <a href="?id=<?php echo $log_id; ?>&action=clear_labor" 
-                   class="btn btn-danger btn-sm w-50 py-1 d-flex align-items-center justify-content-center swal-confirm" 
-                   data-text="ຕ້ອງການລ້າງຄ່າແຮງງານໃຫ້ເປັນ 0 ແທ້ບໍ?">
-                    <i class="fas fa-times"></i>
-                </a>
-            <?php else: ?>
-                <button type="button" class="btn btn-secondary btn-sm w-50 py-1" disabled><i class="fas fa-times"></i></button>
-            <?php endif; ?>
-        </div>
-    </div>
-</form>
+                            <input type="hidden" name="btn_save_labor" value="1">
+                            <div class="row align-items-center g-2">
+                                <div class="col-sm-3">
+                                    <label class="form-label mb-0 fw-bold text-secondary" style="font-size:13px;"><i class="fas fa-tools text-warning me-1"></i> ຄ່າແຮງ</label>
+                                </div>
+                                <div class="col-sm-5">
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text bg-light border-end-0">₭</span>
+                                        <input type="text" id="labor_cost_display" class="form-control border-start-0 ps-0 fw-bold text-end" value="<?php echo number_format($labor_cost); ?>" required placeholder="0">
+                                        <input type="hidden" name="labor_cost" id="labor_cost_real" value="<?php echo $labor_cost; ?>">
+                                    </div>
+                                </div>
+                                <div class="col-sm-4 d-flex gap-1">
+                                    <button type="submit" id="btn_labor" class="btn btn-warning btn-sm w-50 fw-bold py-1">
+                                        <i class="fas fa-save"></i>
+                                    </button>
+                                    
+                                    <?php if ($labor_cost > 0): ?>
+                                        <a href="?id=<?php echo $log_id; ?>&action=clear_labor" 
+                                           class="btn btn-danger btn-sm w-50 py-1 d-flex align-items-center justify-content-center swal-confirm" 
+                                           data-text="威胁: ຕ້ອງການລ້າງຄ່າແຮງງານໃຫ້ເປັນ 0 ແທ້ບໍ?">
+                                            <i class="fas fa-times"></i>
+                                        </a>
+                                    <?php else: ?>
+                                        <button type="button" class="btn btn-secondary btn-sm w-50 py-1" disabled><i class="fas fa-times"></i></button>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </form>
                     </div>
                 </div>
                 <div class="col-12">
                     <div class="summary-box d-flex flex-column justify-content-center align-items-center text-center shadow-sm">
                         <span class="text-white-50 small text-uppercase mb-1">ຍອດລວມສຸດທິທັງໝົດ</span>
-                        <h4 class="fw-bold mb-0 text-white"><?php echo number_format($grand_total); ?> ກີບ</h4>
+                        <h4 class="fw-bold mb-0 text-white" id="grand_total_text"><?php echo number_format($grand_total); ?> ກີບ</h4>
                     </div>
                 </div>
             </div>
@@ -374,7 +404,7 @@ while ($p = mysqli_fetch_array($res_parts)) {
                             <tr>
                                 <td colspan="3" class="text-end border-0 text-muted">ຄ່າແຮງງານ:</td>
                                 <td class="text-end border-0 fw-bold text-warning">+<?php echo number_format($labor_cost); ?></td>
-                                <td class="border-0"></td> 
+                                <td></td> 
                             </tr>
                             <tr class="table-primary" style="border-top: 2px solid #0d6efd;">
                                 <td colspan="3" class="text-end fw-bold text-primary">ຍອດລວມທັງໝົດ:</td>
@@ -389,10 +419,83 @@ while ($p = mysqli_fetch_array($res_parts)) {
     </div>
 </div>
 
+<div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow" style="border-radius: 15px; border: none;">
+            <div class="modal-header text-white" style="background: linear-gradient(135deg, #198754 0%, #20c997 100%); border-radius: 15px 15px 0 0;">
+                <h5 class="modal-title fw-bold" id="paymentModalLabel"><i class="fas fa-money-bill-wave me-2"></i> ຢືນຢັນການຊຳລະເງິນ</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <p class="text-muted mb-1">ຍອດລວມທີ່ຕ້ອງຊຳລະ:</p>
+                <h3 class="text-danger fw-bold mb-4"><?php echo number_format($grand_total); ?> ກີບ</h3>
+                
+                <div class="mb-3 text-start">
+                    <label class="form-label fw-bold"><i class="fas fa-info-circle text-primary me-1"></i> ສະຖານະການຈ່າຍເງິນ</label>
+                    <select id="pay_status_select" class="form-select form-select-lg" style="border-radius: 10px;">
+                        <option value="Paid" <?php echo ($curr_pay_status == 'Paid') ? 'selected' : ''; ?>>✅ ຈ່າຍແລ້ວ (Paid)</option>
+                        <option value="Pending" <?php echo ($curr_pay_status == 'Pending') ? 'selected' : ''; ?>>⏳ ຍັງບໍ່ຈ່າຍ (ຕິດໜີ້)</option>
+                    </select>
+                </div>
+                
+                <div class="mb-3 text-start">
+                    <label class="form-label fw-bold"><i class="fas fa-wallet text-success me-1"></i> ວິທີຊຳລະເງິນ</label>
+                    <select id="pay_type_select" class="form-select form-select-lg" style="border-radius: 10px;">
+                        <option value="ເງິນໂອນ" <?php echo ($curr_pay_type == 'ເງິນໂອນ') ? 'selected' : ''; ?>>📱 ເງິນໂອນ (Transfer)</option>
+                        <option value="ເງິນສົດ" <?php echo ($curr_pay_type == 'ເງິນສົດ') ? 'selected' : ''; ?>>💵 ເງິນສົດ (Cash)</option>
+                    </select>
+                </div>
+
+                <div id="cash_calc_block" class="mb-4 text-start" style="display: none;">
+                    <div class="p-3 bg-light rounded border border-warning" style="border-radius:10px;">
+                        <label class="form-label fw-bold"><i class="fas fa-hand-holding-usd text-warning me-1"></i> ຮັບເງິນມາ (ກີບ)</label>
+                        <div class="input-group mb-2">
+                            <input type="text" id="received_amount_display" class="form-control form-control-lg text-end fw-bold text-success" placeholder="ປ້ອນຈຳນວນເງິນທີ່ຮັບມາ...">
+                            <input type="hidden" id="received_amount_real" value="0">
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                            <span class="fw-bold text-secondary">ເງິນທອນ:</span>
+                            <span id="change_amount_display" class="fw-bold fs-5 text-danger">0 ກີບ</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="qr_code_block" class="mb-4 text-center" style="display: none;">
+    <div class="p-3 bg-light rounded border border-primary" style="border-radius:10px;">
+        <p class="fw-bold text-primary mb-2"><i class="fas fa-qrcode me-1"></i> ສະແກນ QR Code ເພື່ອໂອນເງິນ</p>
+        
+        <?php 
+            // ດຶງຂໍ້ມູນບັນຊີຂອງທ່ານ ແລະ ສ້າງ QR Code ອັດຕະໂນມັດ (ອ້າງອີງຈາກໂຄ້ດໃບບິນເກົ່າ)
+            $bank_name = "BCEL"; 
+            $account_name = "MID KEOCHANDA"; 
+            $account_number = "141122531890"; 
+            $qr_url = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" . urlencode("BANK:$bank_name|ACC:$account_number|NAME:$account_name|AMOUNT:$grand_total|BILL:$log_id");
+        ?>
+        
+        <img src="<?php echo $qr_url; ?>" alt="QR Code ຮັບເງິນ" class="img-fluid border rounded p-2 bg-white shadow-sm" style="max-width: 200px;">
+        
+        <p class="small text-muted mt-2 mb-0 fw-bold">
+            ຊື່ບັນຊີ: <span class="text-dark fs-6"><?php echo $account_name; ?></span> <br>
+            ເລກບັນຊີ: <span class="text-dark font-monospace fs-6"><?php echo $account_number; ?></span>
+        </p>
+    </div>
+</div>
+                
+                <button type="button" id="btn_confirm_print" onclick="confirmAndPrint()" class="btn btn-success w-100 py-3 fw-bold fs-5 shadow-sm mt-2" style="border-radius: 10px;">
+                    <i class="fas fa-check-circle me-2"></i> ຢືນຢັນ & ພິມບິນ
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <iframe id="printFrame" style="display:none;"></iframe>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
 const partsStockList = <?php echo json_encode($parts_array); ?>;
+const grandTotal = <?php echo $grand_total; ?>;
 
 function saveScrollPosition() {
     sessionStorage.setItem('scroll_window', $(window).scrollTop());
@@ -402,11 +505,8 @@ function saveScrollPosition() {
 $(document).ready(function() {
     renderPartsGrid(partsStockList);
 
-    // ແກ້ໄຂ: ໃຊ້ setTimeout ເພື່ອໃຫ້ Swal.fire ເຮັດວຽກໄດ້ຖືກຕ້ອງ ຫຼັງຈາກ DOM ໂຫຼດແລ້ວ
     <?php if(!empty($swal_message)): ?>
-        setTimeout(function() {
-            <?php echo $swal_message; ?>
-        }, 100);
+        setTimeout(function() { <?php echo $swal_message; ?> }, 100);
     <?php endif; ?>
 
     var savedWindowScroll = sessionStorage.getItem('scroll_window');
@@ -418,7 +518,6 @@ $(document).ready(function() {
         }, 100);
     }
 
-    // ແປງຄ່າເງິນໃຫ້ມີຈຸດ
     $('#labor_cost_display').on('input', function() {
         let val = $(this).val().replace(/[^0-9.]/g, '');
         if (val !== '') {
@@ -431,17 +530,13 @@ $(document).ready(function() {
         }
     });
 
-    // ດັກຈັບການ Submit ບັນທຶກຄ່າແຮງ
     $('#labor_form').on('submit', function() {
         saveScrollPosition();
         let rawVal = $('#labor_cost_display').val().replace(/[^0-9.]/g, '');
         $('#labor_cost_real').val(rawVal === '' ? 0 : rawVal);
-        
-        let $btn = $('#btn_labor');
-        $btn.html('<i class="fas fa-spinner fa-spin"></i>').prop('disabled', true);
+        $('#btn_labor').html('<i class="fas fa-spinner fa-spin"></i>').prop('disabled', true);
     });
 
-    // ດັກຈັບການຄລີກຍົກເລີກ/ລຶບ
     $(document).on('click', '.swal-confirm', function(e) {
         e.preventDefault();
         let url = $(this).attr('href');
@@ -465,7 +560,6 @@ $(document).ready(function() {
         });
     });
 
-    // ຄົ້ນຫາອະໄຫຼ່
     $('#part_filter_input').on('keypress', function(e) {
         if (e.which === 13) {
             e.preventDefault();
@@ -487,16 +581,64 @@ $(document).ready(function() {
         renderPartsGrid(filtered);
     });
 
-    // ເລືອກອະໄຫຼ່ຈາກລາຍການ
     $(document).on('click', '.part-item-card', function() {
         saveScrollPosition();
-        Swal.fire({
-            title: 'ກຳລັງເພີ່ມລາຍການ...',
-            allowOutsideClick: false,
-            didOpen: () => { Swal.showLoading(); }
-        });
+        Swal.fire({ title: 'ກຳລັງເພີ່ມລາຍການ...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
         autoSubmitPart($(this).data('id'), $(this).data('name'), $(this).data('price'));
     });
+
+    // -----------------------------------------------------
+    // Logic: ສະຫຼັບ ບ໋ອກເງິນສົດ / QR Code ແລະ ຄຳນວນເງິນ
+    // -----------------------------------------------------
+    $('#pay_type_select').on('change', function() {
+        let val = $(this).val();
+        if (val === 'ເງິນສົດ') {
+            $('#cash_calc_block').slideDown();
+            $('#qr_code_block').slideUp();
+            checkCashPayment(); 
+        } else {
+            $('#cash_calc_block').slideUp();
+            $('#qr_code_block').slideDown();
+            $('#btn_confirm_print').prop('disabled', false); // ຖ້າໂອນເງິນ ໃຫ້ກົດປິດບິນໄດ້ເລີຍ
+        }
+    });
+
+    // ເມື່ອພິມຈຳນວນເງິນຮັບມາ
+    $('#received_amount_display').on('input', function() {
+        let val = $(this).val().replace(/[^0-9]/g, ''); 
+        if (val !== '') {
+            let num = parseInt(val);
+            $(this).val(num.toLocaleString('en-US'));
+            $('#received_amount_real').val(num);
+        } else {
+            $(this).val('');
+            $('#received_amount_real').val(0);
+        }
+        checkCashPayment();
+    });
+
+    // ຟັງຊັນກວດສອບ ແລະ ຄຳນວນເງິນທອນ
+    function checkCashPayment() {
+        if ($('#pay_type_select').val() === 'ເງິນສົດ') {
+            let received = parseFloat($('#received_amount_real').val()) || 0;
+            let change = received - grandTotal;
+            
+            if (change >= 0) {
+                $('#change_amount_display').text(change.toLocaleString('en-US') + ' ກີບ').removeClass('text-danger').addClass('text-success');
+                $('#btn_confirm_print').prop('disabled', false); 
+            } else {
+                $('#change_amount_display').text('ຍັງຂາດ ' + Math.abs(change).toLocaleString('en-US') + ' ກີບ').removeClass('text-success').addClass('text-danger');
+                $('#btn_confirm_print').prop('disabled', true); 
+            }
+        } else {
+            $('#btn_confirm_print').prop('disabled', false);
+        }
+    }
+    
+    // ເອີ້ນເຮັດວຽກຄັ້ງທຳອິດຕອນໂຫຼດ Modal
+    setTimeout(function() {
+        $('#pay_type_select').trigger('change');
+    }, 200);
 });
 
 function autoSubmitPart(id, name, price) {
@@ -533,19 +675,40 @@ function renderPartsGrid(items) {
     });
 }
 
-function printInvoice(serviceId) {
-    let $btn = $('#btn_print');
+function confirmAndPrint() {
+    let payStatus = $('#pay_status_select').val();
+    let payType = $('#pay_type_select').val();
+    let totalAmt = grandTotal; 
+    
+    let $btn = $('#btn_confirm_print');
     let originalHtml = $btn.html();
     $btn.html('<i class="fas fa-spinner fa-spin"></i> ກຳລັງປະມວນຜົນ...').prop('disabled', true);
     
     $.ajax({
-        url: window.location.pathname + '?id=' + serviceId + '&action=update_status_print',
-        type: 'GET',
+        // 👇 ປ່ຽນມາໃຊ້ href ເພື່ອໃຫ້ມັນດຶງເອົາ ?id=... ໄປນຳ
+        url: window.location.href, 
+        type: 'POST', 
         dataType: 'json',
+        data: {
+            action: 'update_status_print',
+            id: <?php echo $log_id; ?>,
+            payment_status: payStatus,
+            payment_type: payType,
+            total_amount: totalAmt
+        },
         success: function(response) {
             if(response.status === 'success') {
+                $('#paymentModal').modal('hide');
                 var iframe = document.getElementById('printFrame');
-                iframe.src = 'print_service_logs.php?id=' + serviceId;
+                
+                let printUrl = 'print_service_logs.php?id=<?php echo $log_id; ?>';
+                if (payType === 'ເງິນສົດ') {
+                    let received = $('#received_amount_real').val();
+                    let change = received - totalAmt;
+                    printUrl += '&received=' + received + '&change=' + change;
+                }
+
+                iframe.src = printUrl;
                 iframe.onload = function() {
                     setTimeout(function() { iframe.contentWindow.focus(); iframe.contentWindow.print(); window.location.reload(); }, 300); 
                 };
@@ -554,7 +717,9 @@ function printInvoice(serviceId) {
                 $btn.html(originalHtml).prop('disabled', false);
             }
         },
-        error: function() {
+        error: function(xhr, status, error) {
+            // ຖ້າຍັງມີບັນຫາ ໃຫ້ເບິ່ງໃນ Console ຂອງໂປຣແກຣມທ່ອງເວັບ
+            console.error("AJAX Error:", xhr.responseText);
             Swal.fire({ icon: 'error', title: 'ຜິດພາດ', text: 'ບໍ່ສາມາດເຊື່ອມຕໍ່ກັບເຊີບເວີໄດ້' });
             $btn.html(originalHtml).prop('disabled', false);
         }

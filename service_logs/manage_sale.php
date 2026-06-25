@@ -18,11 +18,20 @@ if (!isset($_SESSION['pos_cart'])) {
     $_SESSION['pos_cart'] = [];
 }
 
-// 🛠️ API ສຳລັບ AJAX ບັນທຶກບິນຕົວຈິງ ແລະ ພິມບິນ
-if (isset($_GET['action']) && $_GET['action'] == 'process_sale') {
+// 🛠️ API ສຳລັບ AJAX ບັນທຶກບິນຕົວຈິງ ແລະ ພິມບິນ (ປ່ຽນມາຮັບແບບ POST ເພື່ອຮັບຄ່າການຈ່າຍເງິນ)
+if (isset($_POST['action']) && $_POST['action'] == 'process_sale') {
     if (empty($_SESSION['pos_cart'])) {
         echo json_encode(['status' => 'error', 'message' => 'ບໍ່ມີສິນຄ້າໃນກະຕ່າ! ກະລຸນາເລືອກສິນຄ້າກ່ອນ.']);
         exit();
+    }
+
+    $pay_status = $_POST['payment_status'] ?? 'Paid';
+    $pay_type = $_POST['payment_type'] ?? 'ເງິນສົດ';
+    
+    // ຄຳນວນຍອດລວມອີກຮອບເພື່ອຄວາມຊົວ
+    $total_amount = 0;
+    foreach ($_SESSION['pos_cart'] as $item) {
+        $total_amount += $item['total'];
     }
 
     // 1. ສ້າງບິນຂາຍໃໝ່ (ກຳນົດເປັນ success ເລີຍ)
@@ -43,13 +52,20 @@ if (isset($_GET['action']) && $_GET['action'] == 'process_sale') {
             mysqli_query($connect, $sql_det);
         }
 
-        // 3. ລ້າງກະຕ່າ Session ຖິ້ມ
+        // 3. ບັນທຶກລົງຕາຕະລາງ Invoices
+        $inv_no = "INV" . date('Ymd') . str_pad($new_log_id, 4, "0", STR_PAD_LEFT);
+        $stmt_inv = $connect->prepare("INSERT INTO invoices (inv_no, log_id, inv_date, total_amount, net_amount, payment_status, payment_type) VALUES (?, ?, CURDATE(), ?, ?, ?, ?)");
+        $stmt_inv->bind_param("siddds", $inv_no, $new_log_id, $total_amount, $total_amount, $pay_status, $pay_type);
+        $stmt_inv->execute();
+        $stmt_inv->close();
+
+        // 4. ລ້າງກະຕ່າ Session ຖິ້ມ
         unset($_SESSION['pos_cart']);
 
         // ສົ່ງ ID ບິນທີ່ສ້າງສຳເລັດແລ້ວກັບໄປໃຫ້ JavaScript ເພື່ອພິມ
         echo json_encode(['status' => 'success', 'log_id' => $new_log_id]);
     } else {
-        echo json_encode(['status' => 'error', 'message' => 'ບໍ່ສາມາດສ້າງບິນໄດ້']);
+        echo json_encode(['status' => 'error', 'message' => 'ບໍ່ສາມາດສ້າງບິນໄດ້: ' . mysqli_error($connect)]);
     }
     exit();
 }
@@ -148,7 +164,7 @@ while ($p = mysqli_fetch_array($res_parts)) {
         'part_id'    => $p['part_id'],
         'barcode'    => strval($barcode_key),
         'part_name'  => $p['part_name'],
-        'sale_price' => $p['sale_price'],
+        'sale_price' => floatval($p['sale_price']),
         'part_image' => $part_image_path,
         'qty_stock'  => intval($p['qty_stock'])
     ];
@@ -196,7 +212,7 @@ while ($p = mysqli_fetch_array($res_parts)) {
         </div>
 
         <div>
-            <button type="button" id="btnCheckout" onclick="confirmAndPrintSale()" class="btn btn-primary d-flex align-items-center gap-2 px-4 py-2 shadow-sm fs-5 fw-bold">
+            <button type="button" onclick="openPaymentModal()" class="btn btn-primary d-flex align-items-center gap-2 px-4 py-2 shadow-sm fs-5 fw-bold" <?php if(empty($_SESSION['pos_cart'])) echo 'disabled'; ?>>
                 <i class="fas fa-money-bill-wave"></i> <span id="checkoutText">ຮັບເງິນ & ພິມໃບບິນຂາຍ</span>
             </button>
         </div>
@@ -294,7 +310,68 @@ while ($p = mysqli_fetch_array($res_parts)) {
     </div>
 </div>
 
+<div class="modal fade" id="paymentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow" style="border-radius: 15px; border: none;">
+            <div class="modal-header text-white" style="background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%); border-radius: 15px 15px 0 0;">
+                <h5 class="modal-title fw-bold"><i class="fas fa-cash-register me-2"></i> ຢືນຢັນການຂາຍ ແລະ ຊຳລະເງິນ</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <p class="text-muted mb-1">ຍອດລວມທີ່ຕ້ອງຊຳລະ:</p>
+                <h3 class="text-danger fw-bold mb-4"><?php echo number_format($grand_total); ?> ກີບ</h3>
+                
+                <div class="mb-3 text-start">
+                    <label class="form-label fw-bold"><i class="fas fa-wallet text-success me-1"></i> ວິທີຊຳລະເງິນ</label>
+                    <select id="pay_type_select" class="form-select form-select-lg" style="border-radius: 10px;">
+                        <option value="ເງິນສົດ">💵 ເງິນສົດ (Cash)</option>
+                        <option value="ເງິນໂອນ">📱 ເງິນໂອນ (Transfer)</option>
+                    </select>
+                </div>
+
+                <div id="cash_calc_block" class="mb-4 text-start">
+                    <div class="p-3 bg-light rounded border border-warning" style="border-radius:10px;">
+                        <label class="form-label fw-bold"><i class="fas fa-hand-holding-usd text-warning me-1"></i> ຮັບເງິນມາ (ກີບ)</label>
+                        <div class="input-group mb-2">
+                            <input type="text" id="received_amount_display" class="form-control form-control-lg text-end fw-bold text-success" placeholder="ປ້ອນຈຳນວນເງິນທີ່ຮັບມາ...">
+                            <input type="hidden" id="received_amount_real" value="0">
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                            <span class="fw-bold text-secondary">ເງິນທອນ:</span>
+                            <span id="change_amount_display" class="fw-bold fs-5 text-danger">0 ກີບ</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="qr_code_block" class="mb-4 text-center" style="display: none;">
+                    <div class="p-3 bg-light rounded border border-primary" style="border-radius:10px;">
+                        <p class="fw-bold text-primary mb-2"><i class="fas fa-qrcode me-1"></i> ສະແກນ QR Code ເພື່ອໂອນເງິນ</p>
+                        <?php 
+                            // ສ້າງ QR Code ຕາມຍອດລວມ (ບໍ່ມີເລກບິນ ເພາະຍັງບໍ່ບັນທຶກ)
+                            $bank_name = "BCEL"; 
+                            $account_name = "MID KEOCHANDA"; 
+                            $account_number = "141122531890"; 
+                            $qr_url = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" . urlencode("BANK:$bank_name|ACC:$account_number|NAME:$account_name|AMOUNT:$grand_total|BILL:POS");
+                        ?>
+                        <img src="<?php echo $qr_url; ?>" alt="QR Code ຮັບເງິນ" class="img-fluid border rounded p-2 bg-white shadow-sm" style="max-width: 200px;">
+                        <p class="small text-muted mt-2 mb-0 fw-bold">
+                            ຊື່ບັນຊີ: <span class="text-dark fs-6"><?php echo $account_name; ?></span> <br>
+                            ເລກບັນຊີ: <span class="text-dark font-monospace fs-6"><?php echo $account_number; ?></span>
+                        </p>
+                    </div>
+                </div>
+                
+                <button type="button" id="btn_confirm_print" onclick="confirmAndPrintSale()" class="btn btn-primary w-100 py-3 fw-bold fs-5 shadow-sm mt-2" style="border-radius: 10px;">
+                    <i class="fas fa-check-circle me-2"></i> ຢືນຢັນ & ພິມບິນ
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <iframe id="printFrame" style="display:none;"></iframe>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <?php if(isset($_SESSION['swal_error'])): ?>
 <script>
@@ -309,12 +386,11 @@ while ($p = mysqli_fetch_array($res_parts)) {
 
 <script>
 const partsStockList = <?php echo json_encode($parts_array); ?>;
+const grandTotal = <?php echo $grand_total; ?>;
 
 $(document).ready(function() {
-    // 1. ແຕ້ມລາຍການອາໄຫຼ່ໃສ່ໜ້າຈໍກ່ອນ
     renderPartsGrid(partsStockList);
 
-    // 2. ກູ້ຄືນຕຳແໜ່ງ Scroll ທີ່ຈື່ໄວ້
     var savedWindowScroll = sessionStorage.getItem('scroll_window');
     var savedGridScroll = sessionStorage.getItem('scroll_grid');
 
@@ -327,7 +403,6 @@ $(document).ready(function() {
         sessionStorage.removeItem('scroll_grid'); 
     }
 
-    // 3. ເຫດການຄົ້ນຫາອາໄຫຼ່
     $('#part_filter_input').on('keypress', function(e) {
         if (e.which === 13) {
             e.preventDefault();
@@ -340,7 +415,6 @@ $(document).ready(function() {
                 autoSubmitPart(matched.part_id, matched.part_name, matched.sale_price);
                 $(this).val('');
             } else {
-                // ປ່ຽນ Alert ເປັນ SweetAlert
                 Swal.fire({
                     icon: 'warning',
                     title: 'ບໍ່ພົບຂໍ້ມູນ',
@@ -361,7 +435,6 @@ $(document).ready(function() {
         renderPartsGrid(filtered);
     });
 
-    // 4. ເວລາກົດເລືອກອາໄຫຼ່
     $(document).on('click', '.part-item-card', function() {
         saveScrollPosition(); 
         var id = $(this).data('id');
@@ -369,9 +442,70 @@ $(document).ready(function() {
         var price = $(this).data('price');
         autoSubmitPart(id, name, price);
     });
+
+    // -----------------------------------------------------
+    // Logic: ສະຫຼັບ ບ໋ອກເງິນສົດ / QR Code ແລະ ຄຳນວນເງິນ
+    // -----------------------------------------------------
+    $('#pay_type_select').on('change', function() {
+        let val = $(this).val();
+        if (val === 'ເງິນສົດ') {
+            $('#cash_calc_block').slideDown();
+            $('#qr_code_block').slideUp();
+            checkCashPayment(); 
+        } else {
+            $('#cash_calc_block').slideUp();
+            $('#qr_code_block').slideDown();
+            $('#btn_confirm_print').prop('disabled', false); // ໂອນເງິນ ກົດປິດບິນໄດ້ເລີຍ
+        }
+    });
+
+    // ເມື່ອພິມຈຳນວນເງິນຮັບມາ
+    $('#received_amount_display').on('input', function() {
+        let val = $(this).val().replace(/[^0-9]/g, ''); 
+        if (val !== '') {
+            let num = parseInt(val);
+            $(this).val(num.toLocaleString('en-US'));
+            $('#received_amount_real').val(num);
+        } else {
+            $(this).val('');
+            $('#received_amount_real').val(0);
+        }
+        checkCashPayment();
+    });
+
+    // ເອີ້ນເຮັດວຽກຄັ້ງທຳອິດຕອນໂຫຼດ
+    setTimeout(function() {
+        $('#pay_type_select').trigger('change');
+    }, 200);
 });
 
-// ຟັງຊັນ SweetAlert ສຳລັບລຶບລາຍການ
+// ກວດສອບ ແລະ ຄຳນວນເງິນທອນ
+function checkCashPayment() {
+    if ($('#pay_type_select').val() === 'ເງິນສົດ') {
+        let received = parseFloat($('#received_amount_real').val()) || 0;
+        let change = received - grandTotal;
+        
+        if (change >= 0) {
+            $('#change_amount_display').text(change.toLocaleString('en-US') + ' ກີບ').removeClass('text-danger').addClass('text-success');
+            $('#btn_confirm_print').prop('disabled', false); 
+        } else {
+            $('#change_amount_display').text('ຍັງຂາດ ' + Math.abs(change).toLocaleString('en-US') + ' ກີບ').removeClass('text-success').addClass('text-danger');
+            $('#btn_confirm_print').prop('disabled', true); 
+        }
+    } else {
+        $('#btn_confirm_print').prop('disabled', false);
+    }
+}
+
+// ເປີດ Modal ຖ້າມີສິນຄ້າໃນກະຕ່າ
+function openPaymentModal() {
+    if (grandTotal <= 0) {
+        Swal.fire({icon: 'warning', title: 'ກະຕ່າວ່າງເປົ່າ', text: 'ກະລຸນາເລືອກສິນຄ້າກ່ອນຊຳລະເງິນ'});
+        return;
+    }
+    $('#paymentModal').modal('show');
+}
+
 function confirmDeleteItem(cartId) {
     saveScrollPosition(); 
     Swal.fire({
@@ -390,7 +524,6 @@ function confirmDeleteItem(cartId) {
     });
 }
 
-// ຟັງຊັນຊ່ວຍບັນທຶກຕຳແໜ່ງ Scroll ໄວ້ໃນ Browser
 function saveScrollPosition() {
     sessionStorage.setItem('scroll_window', $(window).scrollTop());
     sessionStorage.setItem('scroll_grid', $('#parts_grid_display').scrollTop());
@@ -430,55 +563,52 @@ function renderPartsGrid(items) {
     });
 }
 
-// ຟັງຊັນບັນທຶກລົງ Database ແລະ ພິມບິນ (ເພີ່ມ Loading State ແລະ SweetAlert)
+// ຟັງຊັນບັນທຶກລົງ Database ແລະ ພິມບິນຜ່ານ Modal
 function confirmAndPrintSale() {
-    Swal.fire({
-        title: 'ຢືນຢັນການຮັບເງິນ?',
-        text: "ທ່ານຕ້ອງການບັນທຶກການຂາຍ ແລະ ປິດບິນນີ້ແທ້ບໍ?",
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#198754',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'ຢືນຢັນການຂາຍ',
-        cancelButtonText: 'ຍົກເລີກ'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            
-            // ເປີດໃຊ້ Loading State
-            let btn = $('#btnCheckout');
-            btn.prop('disabled', true); // ປິດປຸ່ມກັນກົດຊ້ຳ
-            $('#checkoutText').html('ກຳລັງປະມວນຜົນ <i class="fas fa-spinner fa-spin ms-1"></i>');
+    let payStatus = $('#pay_status_select').val();
+    let payType = $('#pay_type_select').val();
+    let btn = $('#btn_confirm_print');
+    let originalHtml = btn.html();
+    
+    btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin ms-1"></i> ກຳລັງປະມວນຜົນ...');
 
-            $.ajax({
-                url: window.location.pathname + '?action=process_sale',
-                type: 'GET',
-                dataType: 'json',
-                success: function(response) {
-                    if(response.status === 'success') {
-                        var iframe = document.getElementById('printFrame');
-                        iframe.src = 'print_service_logs.php?id=' + response.log_id;
-                        iframe.onload = function() {
-                            setTimeout(function() {
-                                iframe.contentWindow.focus();
-                                iframe.contentWindow.print();
-                                // ພິມແລ້ວເດັ້ງກັບໜ້າປະຫວັດທັນທີ
-                                window.location.href = 'manage_sale.php';
-                            }, 300); 
-                        };
-                    } else {
-                        // ປິດ Loading ຖ້າເກີດ Error
-                        Swal.fire({icon: 'error', title: 'ຜິດພາດ', text: response.message});
-                        btn.prop('disabled', false);
-                        $('#checkoutText').text('ຮັບເງິນ & ພິມໃບບິນຂາຍ');
-                    }
-                },
-                error: function() {
-                    // ປິດ Loading ຖ້າເກີດ Error ຈາກເຊີບເວີ
-                    Swal.fire({icon: 'error', title: 'ຜິດພາດ', text: 'ເກີດຂໍ້ຜິດພາດໃນການເຊື່ອມຕໍ່ລະບົບ!'});
-                    btn.prop('disabled', false);
-                    $('#checkoutText').text('ຮັບເງິນ & ພິມໃບບິນຂາຍ');
+    $.ajax({
+        url: window.location.href.split('?')[0], // ຍິງເຂົ້າໄຟລ໌ຕົວມັນເອງ
+        type: 'POST',
+        dataType: 'json',
+        data: {
+            action: 'process_sale',
+            payment_status: payStatus,
+            payment_type: payType
+        },
+        success: function(response) {
+            if(response.status === 'success') {
+                $('#paymentModal').modal('hide');
+                var iframe = document.getElementById('printFrame');
+                
+                let printUrl = 'print_service_logs.php?id=' + response.log_id;
+                if (payType === 'ເງິນສົດ') {
+                    let received = $('#received_amount_real').val();
+                    let change = received - grandTotal;
+                    printUrl += '&received=' + received + '&change=' + change;
                 }
-            });
+
+                iframe.src = printUrl;
+                iframe.onload = function() {
+                    setTimeout(function() {
+                        iframe.contentWindow.focus();
+                        iframe.contentWindow.print();
+                        window.location.href = 'form_service_logs.php'; // ພິມແລ້ວກັບໄປໜ້າປະຫວັດທັນທີ
+                    }, 300); 
+                };
+            } else {
+                Swal.fire({icon: 'error', title: 'ຜິດພາດ', text: response.message});
+                btn.prop('disabled', false).html(originalHtml);
+            }
+        },
+        error: function() {
+            Swal.fire({icon: 'error', title: 'ຜິດພາດ', text: 'ເກີດຂໍ້ຜິດພາດໃນການເຊື່ອມຕໍ່ລະບົບ!'});
+            btn.prop('disabled', false).html(originalHtml);
         }
     });
 }
