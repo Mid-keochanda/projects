@@ -431,14 +431,6 @@ while ($p = mysqli_fetch_array($res_parts)) {
                 <h3 class="text-danger fw-bold mb-4"><?php echo number_format($grand_total); ?> ກີບ</h3>
                 
                 <div class="mb-3 text-start">
-                    <label class="form-label fw-bold"><i class="fas fa-info-circle text-primary me-1"></i> ສະຖານະການຈ່າຍເງິນ</label>
-                    <select id="pay_status_select" class="form-select form-select-lg" style="border-radius: 10px;">
-                        <option value="Paid" <?php echo ($curr_pay_status == 'Paid') ? 'selected' : ''; ?>>✅ ຈ່າຍແລ້ວ (Paid)</option>
-                        <option value="Pending" <?php echo ($curr_pay_status == 'Pending') ? 'selected' : ''; ?>>⏳ ຍັງບໍ່ຈ່າຍ (ຕິດໜີ້)</option>
-                    </select>
-                </div>
-                
-                <div class="mb-3 text-start">
                     <label class="form-label fw-bold"><i class="fas fa-wallet text-success me-1"></i> ວິທີຊຳລະເງິນ</label>
                     <select id="pay_type_select" class="form-select form-select-lg" style="border-radius: 10px;">
                         <option value="ເງິນໂອນ" <?php echo ($curr_pay_type == 'ເງິນໂອນ') ? 'selected' : ''; ?>>📱 ເງິນໂອນ (Transfer)</option>
@@ -461,25 +453,24 @@ while ($p = mysqli_fetch_array($res_parts)) {
                 </div>
 
                 <div id="qr_code_block" class="mb-4 text-center" style="display: none;">
-    <div class="p-3 bg-light rounded border border-primary" style="border-radius:10px;">
-        <p class="fw-bold text-primary mb-2"><i class="fas fa-qrcode me-1"></i> ສະແກນ QR Code ເພື່ອໂອນເງິນ</p>
-        
-        <?php 
-            // ດຶງຂໍ້ມູນບັນຊີຂອງທ່ານ ແລະ ສ້າງ QR Code ອັດຕະໂນມັດ (ອ້າງອີງຈາກໂຄ້ດໃບບິນເກົ່າ)
-            $bank_name = "BCEL"; 
-            $account_name = "MID KEOCHANDA"; 
-            $account_number = "141122531890"; 
-            $qr_url = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" . urlencode("BANK:$bank_name|ACC:$account_number|NAME:$account_name|AMOUNT:$grand_total|BILL:$log_id");
-        ?>
-        
-        <img src="<?php echo $qr_url; ?>" alt="QR Code ຮັບເງິນ" class="img-fluid border rounded p-2 bg-white shadow-sm" style="max-width: 200px;">
-        
-        <p class="small text-muted mt-2 mb-0 fw-bold">
-            ຊື່ບັນຊີ: <span class="text-dark fs-6"><?php echo $account_name; ?></span> <br>
-            ເລກບັນຊີ: <span class="text-dark font-monospace fs-6"><?php echo $account_number; ?></span>
-        </p>
-    </div>
-</div>
+                    <div class="p-3 bg-light rounded border border-primary" style="border-radius:10px;">
+                        <p class="fw-bold text-primary mb-2"><i class="fas fa-qrcode me-1"></i> ສະແກນ QR Code ເພື່ອໂອນເງິນ</p>
+                        
+                        <?php 
+                            $bank_name = "BCEL"; 
+                            $account_name = "MID KEOCHANDA"; 
+                            $account_number = "141122531890"; 
+                            $qr_url = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" . urlencode("BANK:$bank_name|ACC:$account_number|NAME:$account_name|AMOUNT:$grand_total|BILL:$log_id");
+                        ?>
+                        
+                        <img src="<?php echo $qr_url; ?>" alt="QR Code ຮັບເງິນ" class="img-fluid border rounded p-2 bg-white shadow-sm" style="max-width: 200px;">
+                        
+                        <p class="small text-muted mt-2 mb-0 fw-bold">
+                            ຊື່ບັນຊີ: <span class="text-dark fs-6"><?php echo $account_name; ?></span> <br>
+                            ເລກບັນຊີ: <span class="text-dark font-monospace fs-6"><?php echo $account_number; ?></span>
+                        </p>
+                    </div>
+                </div>
                 
                 <button type="button" id="btn_confirm_print" onclick="confirmAndPrint()" class="btn btn-success w-100 py-3 fw-bold fs-5 shadow-sm mt-2" style="border-radius: 10px;">
                     <i class="fas fa-check-circle me-2"></i> ຢືນຢັນ & ພິມບິນ
@@ -582,6 +573,7 @@ $(document).ready(function() {
     });
 
     $(document).on('click', '.part-item-card', function() {
+        if($(this).hasClass('opacity-50')) return; // ກັນບໍ່ໃຫ້ກົດອະໄຫຼ່ທີ່ໝົດສະຕັອກ
         saveScrollPosition();
         Swal.fire({ title: 'ກຳລັງເພີ່ມລາຍການ...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
         autoSubmitPart($(this).data('id'), $(this).data('name'), $(this).data('price'));
@@ -590,6 +582,15 @@ $(document).ready(function() {
     // -----------------------------------------------------
     // Logic: ສະຫຼັບ ບ໋ອກເງິນສົດ / QR Code ແລະ ຄຳນວນເງິນ
     // -----------------------------------------------------
+    // ເປີດມາໃຫ້ສະແດງຕາມຄ່າເລີ່ມຕົ້ນ
+    if ($('#pay_type_select').val() === 'ເງິນໂອນ') {
+        $('#qr_code_block').show();
+        $('#cash_calc_block').hide();
+    } else {
+        $('#qr_code_block').hide();
+        $('#cash_calc_block').show();
+    }
+
     $('#pay_type_select').on('change', function() {
         let val = $(this).val();
         if (val === 'ເງິນສົດ') {
@@ -616,114 +617,112 @@ $(document).ready(function() {
         }
         checkCashPayment();
     });
-
-    // ຟັງຊັນກວດສອບ ແລະ ຄຳນວນເງິນທອນ
-    function checkCashPayment() {
-        if ($('#pay_type_select').val() === 'ເງິນສົດ') {
-            let received = parseFloat($('#received_amount_real').val()) || 0;
-            let change = received - grandTotal;
-            
-            if (change >= 0) {
-                $('#change_amount_display').text(change.toLocaleString('en-US') + ' ກີບ').removeClass('text-danger').addClass('text-success');
-                $('#btn_confirm_print').prop('disabled', false); 
-            } else {
-                $('#change_amount_display').text('ຍັງຂາດ ' + Math.abs(change).toLocaleString('en-US') + ' ກີບ').removeClass('text-success').addClass('text-danger');
-                $('#btn_confirm_print').prop('disabled', true); 
-            }
-        } else {
-            $('#btn_confirm_print').prop('disabled', false);
-        }
-    }
-    
-    // ເອີ້ນເຮັດວຽກຄັ້ງທຳອິດຕອນໂຫຼດ Modal
-    setTimeout(function() {
-        $('#pay_type_select').trigger('change');
-    }, 200);
 });
+
+// ຟັງຊັນຄຳນວນເງິນທອນ
+function checkCashPayment() {
+    let received = parseInt($('#received_amount_real').val()) || 0;
+    let change = received - grandTotal;
+    
+    if (change >= 0) {
+        $('#change_amount_display').text(change.toLocaleString('en-US') + ' ກີບ').removeClass('text-danger').addClass('text-success');
+        $('#btn_confirm_print').prop('disabled', false);
+    } else {
+        $('#change_amount_display').text(change.toLocaleString('en-US') + ' ກີບ').removeClass('text-success').addClass('text-danger');
+        $('#btn_confirm_print').prop('disabled', true);
+    }
+}
+
+// ຟັງຊັນສຳລັບການປິດບິນ
+function confirmAndPrint() {
+    let logId = <?php echo $log_id; ?>;
+    let status = 'Paid'; 
+    let type = $('#pay_type_select').val();
+    let total = grandTotal;
+
+    Swal.fire({
+        title: 'ກຳລັງປິດບິນ...',
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+    });
+
+    $.post('', {
+        action: 'update_status_print',
+        id: logId,
+        payment_status: status,
+        payment_type: type,
+        total_amount: total
+    }, function(res) {
+        try {
+            let response = JSON.parse(res);
+            if (response.status === 'success') {
+                Swal.fire({
+                    title: 'ສຳເລັດ!',
+                    text: 'ປິດບິນສຳເລັດແລ້ວ ກຳລັງສັ່ງພິມ...',
+                    icon: 'success',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+                let printFrame = document.getElementById('printFrame');
+                printFrame.src = 'print_service_logs.php?id=' + logId;
+                printFrame.onload = function() {
+                    printFrame.contentWindow.focus();
+                    printFrame.contentWindow.print();
+                    setTimeout(function() {
+                        window.location.href = 'form_service_logs.php'; 
+                    }, 500);
+                };
+
+            } else {
+                Swal.fire('ຜິດພາດ', 'ບໍ່ສາມາດປິດບິນໄດ້', 'error');
+            }
+        } catch (e) {
+            Swal.fire('ຜິດພາດ', 'ລະບົບຕອບກັບຜິດພາດ', 'error');
+        }
+    });
+}
+
+function renderPartsGrid(data) {
+    let html = '';
+    data.forEach(item => {
+        let stockClass = item.qty_stock <= 0 ? 'opacity-50' : '';
+        let qtyDisplay = item.qty_stock > 0 ? item.qty_stock : 'ໝົດ';
+        
+        // ກຳນົດສີຂອງປ້າຍ (Badge) ຕາມຈຳນວນສະຕັອກ
+        let badgeClass = '';
+        if (item.qty_stock <= 0) {
+            badgeClass = 'bg-danger text-white'; // ສີແດງ: ໝົດສະຕັອກ
+        } else if (item.qty_stock <= 5) {
+            badgeClass = 'bg-warning text-dark'; // ສີສົ້ມ/ເຫຼືອງ: ໃກ້ຈະໝົດ
+        } else {
+            badgeClass = 'bg-success text-white'; // ສີຂຽວ: ມີເຄື່ອງປົກກະຕິ
+        }
+
+        html += `
+            <div class="col">
+                <div class="part-item-card position-relative ${stockClass}" data-id="${item.part_id}" data-name="${item.part_name}" data-price="${item.sale_price}" style="cursor: pointer;">
+                    
+                    <!-- ປ້າຍສະແດງຈຳນວນອາໄຫຼ່ -->
+                    <span class="badge ${badgeClass} position-absolute top-0 end-0 m-1 shadow-sm" style="font-size: 10px;">
+                        ${qtyDisplay}
+                    </span>
+                    
+                    <img src="${item.part_image}" height="80" class="w-100" style="object-fit: contain;">
+                    <div class="p-1 text-center">
+                        <small class="d-block fw-bold text-truncate" style="font-size:11px;" title="${item.part_name}">${item.part_name}</small>
+                        <small class="text-primary fw-bold" style="font-size:11px;">${item.sale_price.toLocaleString()} ກີບ</small>
+                    </div>
+                </div>
+            </div>`;
+    });
+    $('#parts_grid_display').html(html);
+}
 
 function autoSubmitPart(id, name, price) {
     $('#part_id_hidden').val(id);
     $('#description').val(name);
     $('#price').val(price);
-    $('#part_qty').val('1'); 
     $('#part_form').submit();
-}
-
-function renderPartsGrid(items) {
-    var grid = $('#parts_grid_display');
-    grid.empty();
-    if (items.length === 0) {
-        grid.html('<div class="col-12 text-center text-muted py-4"><i class="fas fa-search-minus d-block fs-3 mb-2 text-black-50"></i>ບໍ່ພົບອະໄຫຼ່ທີ່ຄົ້ນຫາ</div>');
-        return;
-    }
-    items.forEach(function(item) {
-        var cardHtml = `
-            <div class="col">
-                <div class="card part-item-card p-2 text-center shadow-sm" data-id="${item.part_id}" data-name="${item.part_name.replace(/"/g, '&quot;')}" data-price="${item.sale_price}">
-                    <div class="ratio ratio-1x1 mb-2 bg-light rounded overflow-hidden">
-                        <img src="${item.part_image}" alt="${item.part_name.replace(/"/g, '&quot;')}" class="img-fluid" onerror="this.src='https://placehold.co/150x150?text=No+Image'">
-                    </div>
-                    <div class="small fw-bold text-dark text-truncate mb-2" style="font-size:12px;" title="${item.part_name.replace(/"/g, '&quot;')}">${item.part_name}</div>
-                    <div class="d-flex justify-content-between align-items-center mt-auto">
-                        <span class="badge bg-primary-subtle text-primary px-2 py-1" style="font-size:11px;">${Number(item.sale_price).toLocaleString()} ₭</span>
-                        <span class="badge bg-danger-subtle text-danger px-2 py-1" style="font-size:11px;">ສາງ: ${item.qty_stock}</span>
-                    </div>
-                </div>
-            </div>
-        `;
-        grid.append(cardHtml);
-    });
-}
-
-function confirmAndPrint() {
-    let payStatus = $('#pay_status_select').val();
-    let payType = $('#pay_type_select').val();
-    let totalAmt = grandTotal; 
-    
-    let $btn = $('#btn_confirm_print');
-    let originalHtml = $btn.html();
-    $btn.html('<i class="fas fa-spinner fa-spin"></i> ກຳລັງປະມວນຜົນ...').prop('disabled', true);
-    
-    $.ajax({
-        // 👇 ປ່ຽນມາໃຊ້ href ເພື່ອໃຫ້ມັນດຶງເອົາ ?id=... ໄປນຳ
-        url: window.location.href, 
-        type: 'POST', 
-        dataType: 'json',
-        data: {
-            action: 'update_status_print',
-            id: <?php echo $log_id; ?>,
-            payment_status: payStatus,
-            payment_type: payType,
-            total_amount: totalAmt
-        },
-        success: function(response) {
-            if(response.status === 'success') {
-                $('#paymentModal').modal('hide');
-                var iframe = document.getElementById('printFrame');
-                
-                let printUrl = 'print_service_logs.php?id=<?php echo $log_id; ?>';
-                if (payType === 'ເງິນສົດ') {
-                    let received = $('#received_amount_real').val();
-                    let change = received - totalAmt;
-                    printUrl += '&received=' + received + '&change=' + change;
-                }
-
-                iframe.src = printUrl;
-                iframe.onload = function() {
-                    setTimeout(function() { iframe.contentWindow.focus(); iframe.contentWindow.print(); window.location.reload(); }, 300); 
-                };
-            } else { 
-                Swal.fire({ icon: 'error', title: 'ຜິດພາດ', text: 'ເກີດຂໍ້ຜິດພາດ: ' + response.message });
-                $btn.html(originalHtml).prop('disabled', false);
-            }
-        },
-        error: function(xhr, status, error) {
-            // ຖ້າຍັງມີບັນຫາ ໃຫ້ເບິ່ງໃນ Console ຂອງໂປຣແກຣມທ່ອງເວັບ
-            console.error("AJAX Error:", xhr.responseText);
-            Swal.fire({ icon: 'error', title: 'ຜິດພາດ', text: 'ບໍ່ສາມາດເຊື່ອມຕໍ່ກັບເຊີບເວີໄດ້' });
-            $btn.html(originalHtml).prop('disabled', false);
-        }
-    });
 }
 </script>
 </body>

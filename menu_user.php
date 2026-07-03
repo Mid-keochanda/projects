@@ -1,34 +1,7 @@
 <?php
 session_start();
-
-// ✨ ປັບປຸງລະບົບກວດສອບ Session ໃຫ້ສະແດງ SweetAlert2 ແບບໜ້າຈໍສະອາດ ບໍ່ໂຫຼດ Layout ດ້ານຫຼັງ
-if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
-    echo "<!DOCTYPE html>
-    <html lang='lo'>
-    <head>
-        <meta charset='utf-8'>
-        <meta name='viewport' content='width=device-width, initial-scale=1'>
-        <script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
-        <link rel='stylesheet' href='https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;500;700&display=swap'>
-        <style>
-            body { font-family: 'Noto Sans Lao', sans-serif; background-color: #f1f5f9; }
-            .swal2-popup { font-family: 'Noto Sans Lao', sans-serif !important; border-radius: 20px !important; }
-        </style>
-    </head>
-    <body>
-    <script>
-        Swal.fire({
-            icon: 'error',
-            title: 'ແຈ້ງເຕືອນ!',
-            text: 'ກະລຸນາລົງຊື່ເຂົ້າໃຊ້ກ່ອນ',
-            confirmButtonColor: '#2563eb',
-            confirmButtonText: 'ຕົກລົງ'
-        }).then(() => {
-            location='index.php';
-        });
-    </script>
-    </body>
-    </html>";
+if (@$_SESSION['checked'] <> 1) {
+    echo "<script>alert('ກະລຸນາລົງຊື່ເຂົ້າໃຊ້ກ່ອນ'); location='index.php';</script>";
     exit(); 
 }
 ?>
@@ -338,6 +311,8 @@ if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
             </ul>
           </li>
 
+          
+
         </ul>
       </nav>
     </div>
@@ -361,6 +336,7 @@ if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
   $(document).ready(function() {
     // ຈັດການການເປີດ/ປິດ Active state ຂອງເມນູໃຫ້ເບິ່ງງາມຂຶ້ນ
     $('.nav-sidebar .nav-link').on('click', function() {
+      // ຖ້າກົດເມນູຍ່ອຍ ໃຫ້ປ່ຽນສີພື້ນຫຼັງ
       if(!$(this).hasClass('active') && $(this).attr('target') === 'frame'){
           $('.nav-sidebar .nav-link').removeClass('active');
           $(this).addClass('active');

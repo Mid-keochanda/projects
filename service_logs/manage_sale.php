@@ -537,30 +537,42 @@ function autoSubmitPart(id, name, price) {
     $('#part_form').submit();
 }
 
-function renderPartsGrid(items) {
-    var grid = $('#parts_grid_display');
-    grid.empty();
-    if (items.length === 0) {
-        grid.html('<div class="col-12 text-center text-muted py-4"><i class="fas fa-search-minus d-block fs-3 mb-2 text-black-50"></i>ບໍ່ພົບອະໄຫຼ່ສິນຄ້າທີ່ຄົ້ນຫາ</div>');
-        return;
-    }
-    items.forEach(function(item) {
-        var cardHtml = `
+function renderPartsGrid(data) {
+    let html = '';
+    data.forEach(item => {
+        let stockClass = item.qty_stock <= 0 ? 'opacity-50' : '';
+        
+        let qtyDisplay = item.qty_stock > 0 ? item.qty_stock : 'ໝົດ';
+        
+        // ກຳນົດສີຂອງປ້າຍ (Badge) ຕາມຈຳນວນສະຕັອກ
+        let badgeClass = '';
+        if (item.qty_stock <= 0) {
+            badgeClass = 'bg-danger text-white'; // ສີແດງ: ໝົດສະຕັອກ
+        } else if (item.qty_stock <= 5) {
+            // ສາມາດປ່ຽນເລກ 5 ເປັນຈຳນວນອື່ນໄດ້ຕາມທີ່ຕ້ອງການໃຫ້ແຈ້ງເຕືອນວ່າໃກ້ໝົດ
+            badgeClass = 'bg-warning text-dark'; // ສີສົ້ມ/ເຫຼືອງ: ໃກ້ຈະໝົດ
+        } else {
+            badgeClass = 'bg-success text-white'; // ສີຂຽວ: ມີເຄື່ອງປົກກະຕິ
+        }
+
+        html += `
             <div class="col">
-                <div class="card part-item-card p-2 text-center shadow-sm" data-id="${item.part_id}" data-name="${item.part_name}" data-price="${item.sale_price}">
-                    <div class="ratio ratio-1x1 mb-2 bg-light rounded overflow-hidden">
-                        <img src="${item.part_image}" alt="${item.part_name}" class="img-fluid" onerror="this.src='https://placehold.co/150x150?text=No+Image'">
-                    </div>
-                    <div class="small fw-bold text-dark text-truncate mb-2" style="font-size:12px; padding: 0 2px;" title="${item.part_name}">${item.part_name}</div>
-                    <div class="d-flex justify-content-between align-items-center mt-auto">
-                        <span class="badge bg-primary-subtle text-primary px-2 py-1" style="font-size:11px; font-weight:600;">${Number(item.sale_price).toLocaleString()} ₭</span>
-                        <span class="badge bg-danger-subtle text-danger px-2 py-1" style="font-size:11px; font-weight:600;">ສາງ: ${item.qty_stock}</span>
+                <div class="part-item-card position-relative ${stockClass}" data-id="${item.part_id}" data-name="${item.part_name}" data-price="${item.sale_price}" style="cursor: pointer;">
+                    
+                    <!-- ປ້າຍສະແດງຈຳນວນອາໄຫຼ່ -->
+                    <span class="badge ${badgeClass} position-absolute top-0 end-0 m-1 shadow-sm" style="font-size: 10px;">
+                        ${qtyDisplay}
+                    </span>
+                    
+                    <img src="${item.part_image}" height="80" class="w-100" style="object-fit: contain;">
+                    <div class="p-1 text-center">
+                        <small class="d-block fw-bold text-truncate" style="font-size:11px;" title="${item.part_name}">${item.part_name}</small>
+                        <small class="text-primary fw-bold" style="font-size:11px;">${item.sale_price.toLocaleString()} ກີບ</small>
                     </div>
                 </div>
-            </div>
-        `;
-        grid.append(cardHtml);
+            </div>`;
     });
+    $('#parts_grid_display').html(html);
 }
 
 // ຟັງຊັນບັນທຶກລົງ Database ແລະ ພິມບິນຜ່ານ Modal

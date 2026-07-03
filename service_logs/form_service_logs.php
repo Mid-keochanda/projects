@@ -149,9 +149,9 @@ $res_logs = mysqli_query($connect, $sql_logs);
                             
                             <td class="text-center">
                                 <?php if($row['status'] == 'pending'): ?>
-                                    <span class="badge badge-pending rounded-pill"><i class="fas fa-spinner fa-spin me-1"></i> ກຳລັງສ້ອມແປງ</span>
+                                    <span class="badge badge-pending rounded-pill"><i class="fas fa-spinner fa-spin me 1"></i> ສ້ອມແປງ</span>
                                 <?php else: ?>
-                                    <span class="badge badge-success rounded-pill"><i class="fas fa-check-circle me-1"></i> ສຳເລັດແລ້ວ</span>
+                                    <span class="badge badge-success rounded-pill"><i class="fas fa-check-circle me 1"></i> ສຳເລັດ</span>
                                 <?php endif; ?>
                             </td>
 
