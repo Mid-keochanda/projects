@@ -44,7 +44,6 @@ if (isset($_POST['action']) && $_POST['action'] == 'get_customer_cars' && isset(
 // =========================================================================
 
 // --- ຈັດລຽງ SQL ---
-// ສັງເກດ: ປ່ຽນ service_id ເປັນ service_details.log_id ເພື່ອໃຫ້ກົງກັບຖານຂໍ້ມູນໃໝ່
 $sql_logs = "SELECT l.*, c.car_plate, cust.cust_name, u.fname, u.lname,
             (SELECT SUM(total) FROM service_details WHERE service_details.log_id = l.log_id) as total_parts
             FROM service_logs l
@@ -89,6 +88,10 @@ $res_logs = mysqli_query($connect, $sql_logs);
         .modal-header-custom { background: linear-gradient(135deg, #4e73df 0%, #224abe 100%); padding: 1.5rem; border: none; }
         .input-group-text { border-radius: 12px 0 0 12px; border-right: none; }
         .input-group .form-control { border-radius: 0 12px 12px 0; border-left: none; }
+        
+        /* Search Box Style */
+        .search-box-container { max-width: 450px; width: 100%; }
+        @media (max-width: 768px) { .search-box-container { max-width: 100%; } }
     </style>
 </head>
 <body>
@@ -100,6 +103,16 @@ $res_logs = mysqli_query($connect, $sql_logs);
                 <h4 class="text-primary fw-bold mb-1"><i class="fas fa-tools me-2"></i> ລະບົບຈັດການການສ້ອມແປງ</h4>
                 <p class="text-muted mb-0 small">ຕາຕະລາງຕິດຕາມ ແລະ ເປີດບິນແປງລົດຂອງລູກຄ້າ</p>
             </div>
+            
+            <div class="search-box-container mx-auto mx-md-0">
+                <div class="input-group shadow-sm">
+                    <span class="input-group-text bg-white text-muted border-end-0" style="border-radius: 10px 0 0 10px;">
+                        <i class="fas fa-search"></i>
+                    </span>
+                    <input type="text" id="searchInvoice" class="form-control border-start-0 bg-white" placeholder="ຄົ້ນຫາ: ເລກບິນ, ທะບຽນ, ຊື່ລູກຄ້າ, ຊ່າງ..." style="border-radius: 0 10px 10px 0; padding: 0.6rem 1rem;">
+                </div>
+            </div>
+
             <button type="button" class="btn btn-primary fw-bold px-4 py-2 shadow-sm d-flex align-items-center gap-2" 
                     data-bs-toggle="modal" data-bs-target="#openServiceModal" style="border-radius: 10px;">
                 <i class="fas fa-plus-circle"></i> ເປີດບິນສ້ອມແປງໃໝ່
@@ -117,7 +130,7 @@ $res_logs = mysqli_query($connect, $sql_logs);
                             <th>ທະບຽນລົດ</th>
                             <th class="text-nowrap">ເຈົ້າຂອງລົດ</th>
                             <th>ຊ່າງຜູ້ຮັບຜິດຊອບ</th>
-                            <th>ອາການເບື້ອງຕົ້ນ</th>
+                            <th>...</th>
                             <th class="text-end">ຍອດລວມ</th>
                             <th class="text-center" width="130">ສະຖານະ</th>
                             <th>ເວລາເປີດບິນ</th>
@@ -125,7 +138,7 @@ $res_logs = mysqli_query($connect, $sql_logs);
                             <th class="text-center" width="120">ຈັດການ</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="invoiceTableBody">
                         <?php 
                         while($row = mysqli_fetch_array($res_logs)) { 
                             $parts_cost = $row['total_parts'] ?? 0;
@@ -149,9 +162,9 @@ $res_logs = mysqli_query($connect, $sql_logs);
                             
                             <td class="text-center">
                                 <?php if($row['status'] == 'pending'): ?>
-                                    <span class="badge badge-pending rounded-pill"><i class="fas fa-spinner fa-spin me 1"></i> ສ້ອມແປງ</span>
+                                    <span class="badge badge-pending rounded-pill"><i class="fas fa-spinner fa-spin me-1"></i> ສ້ອມແປງ</span>
                                 <?php else: ?>
-                                    <span class="badge badge-success rounded-pill"><i class="fas fa-check-circle me 1"></i> ສຳເລັດ</span>
+                                    <span class="badge badge-success rounded-pill"><i class="fas fa-check-circle me-1"></i> ສຳເລັດ</span>
                                 <?php endif; ?>
                             </td>
 
@@ -177,7 +190,7 @@ $res_logs = mysqli_query($connect, $sql_logs);
                         </tr>
                         <?php } 
                         if(mysqli_num_rows($res_logs) == 0) { ?>
-                        <tr>
+                        <tr id="noDataRow">
                             <td colspan="10" class="text-center text-muted py-5">
                                 <i class="fas fa-folder-open fs-3 d-block mb-2 text-black-50"></i>
                                 ບໍ່ມີຂໍ້ມູນບິນສ້ອມແປງໃນລະບົບ
@@ -214,7 +227,7 @@ $res_logs = mysqli_query($connect, $sql_logs);
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label fw-bold text-dark small"><i class="fas fa-car text-muted me-1"></i> ເລືອກທະບຽນລົດຂອງລູກຄ້າ</label>
+                    <label class="form-label fw-bold text-dark small"><i class="fas fa-car text-muted me-1"></i> ເᱞືອກທະບຽນລົດຂອງລູກຄ້າ</label>
                     <div id="modal_car_display">
                         <div class="form-control bg-light text-muted" style="border-radius: 12px; padding: 0.75rem 1rem;">
                             ກະລຸນາພິມລະຫັດລູກຄ້າກ່ອນ...
@@ -227,7 +240,7 @@ $res_logs = mysqli_query($connect, $sql_logs);
                         <i class="fas fa-user-gear text-muted me-1"></i> ຊ່າງຜູ້ຮັບຜິດຊອບ
                     </label>
                     <select name="user_id" class="form-select bg-light shadow-sm" style="padding: 0.75rem 1rem;" required>
-                        <option value="">-- ເລືອກຊ່າງແປງລົດ --</option>
+                        <option value="">-- ເເລືອກຊ່າງແປງລົດ --</option>
                         <?php 
                         $users = mysqli_query($connect, "SELECT user_id, fname, lname FROM users WHERE status = 'ช่างแปลงรถ' OR status = 'ຊ່າງແປງລົດ' ORDER BY fname ASC");
                         if (mysqli_num_rows($users) > 0) {
@@ -272,8 +285,35 @@ $res_logs = mysqli_query($connect, $sql_logs);
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 $(document).ready(function() {
+    // 🌟 ຟັງຊັນຄົ້ນຫາຂໍ້ມູນໃນຕາຕະລາງ (Real-time Filter)
+    $("#searchInvoice").on("keyup", function() {
+        var value = $(this).val().toLowerCase().trim();
+        var visibleRows = 0;
+
+        $("#invoiceTableBody tr").each(function() {
+            if ($(this).attr('id') === 'noDataRow') return; // ຂ້າມແຖວແຈ້ງເຕືອນບໍ່ມີຂໍ້ມູນ
+            
+            var text = $(this).text().toLowerCase();
+            if (text.indexOf(value) > -1) {
+                $(this).show();
+                visibleRows++;
+            } else {
+                $(this).hide();
+            }
+        });
+
+        // ຖ້າຄົ້ນຫາແລ້ວບໍ່ພົບຂໍ້ມູນເລີຍ ໃຫ້ສະແດງຂໍ້ຄວາມແຈ້ງເຕືອນ
+        if (visibleRows === 0) {
+            if ($("#searchNoData").length === 0) {
+                $("#invoiceTableBody").append('<tr id="searchNoData"><td colspan="10" class="text-center text-muted py-4"><i class="fas fa-search-minus fs-4 d-block mb-2"></i>ບໍ່ພົບຂໍ້ມູນທີ່ທ່ານຄົ້ນຫາ</td></tr>');
+            }
+        } else {
+            $("#searchNoData").remove();
+        }
+    });
+
     var typingTimer;
-    var doneTypingInterval = 400; // ໜ່ວງເວລາພິມໜ້ອຍໜຶ່ງເພື່ອລົດພາລະ Server
+    var doneTypingInterval = 400;
 
     $('#modal_cust_id').on('input', function() {
         clearTimeout(typingTimer);
@@ -301,10 +341,8 @@ $(document).ready(function() {
             dataType: 'json',
             success: function(response) {
                 if (response.status === 'success') {
-                    // ສະແດງຊື່ລູກຄ້າ
                     nameDisplay.html('<span class="text-success"><i class="fas fa-check-circle"></i> ເຈົ້າຂອງລົດ: ' + response.customer.cust_name + '</span>');
                     
-                    // ສ້າງ Dropdown ໃຫ້ເລືອກລົດ (ຮອງຮັບກໍລະນີລູກຄ້າມີລົດຫຼາຍຄັນ)
                     if (response.cars.length > 0) {
                         var selectHTML = '<select name="car_id" class="form-select border-primary shadow-sm" style="border-radius: 12px; padding: 0.75rem 1rem;" required>';
                         if(response.cars.length > 1) {

@@ -31,10 +31,10 @@ if (!isset($connect)) {
         /* Custom Header */
         .page-header {
             background: #fff;
-            padding: 10px;
-            border-radius: 10px;
+            padding: 15px 20px;
+            border-radius: 12px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            margin-bottom: 10px;
+            margin-bottom: 15px;
             border: 1px solid #edf2f7;
         }
 
@@ -58,7 +58,7 @@ if (!isset($connect)) {
             text-transform: uppercase;
             font-size: 0.8rem;
             letter-spacing: 0.5px;
-            padding: 10px;
+            padding: 12px 10px;
             color: #64748b;
             border: none;
         }
@@ -81,6 +81,7 @@ if (!isset($connect)) {
             padding: 10px 24px;
             font-weight: 500;
             transition: 0.3s;
+            white-space: nowrap;
         }
         .btn-add:hover { background: var(--secondary-color); color: white; transform: translateY(-2px); }
 
@@ -114,24 +115,49 @@ if (!isset($connect)) {
             box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.1);
             border-color: var(--primary-color);
         }
+
+        /* Search Box */
+        .search-container .input-group-text {
+            border-radius: 12px 0 0 12px;
+            background-color: #fff;
+            border-right: none;
+            color: #94a3b8;
+        }
+        .search-container .form-control {
+            border-radius: 0 12px 12px 0;
+            border-left: none;
+            padding: 10px 15px;
+        }
+        .search-container .form-control:focus {
+            box-shadow: none;
+            border-color: #dee2e6;
+        }
     </style>
 </head>
 <body>
 
-<div class="container py-2">
-    <div class="page-header d-flex flex-column flex-md-row justify-content-between align-items-center">
-        <div class="header-title text-center text-md-start mb-3 mb-md-0">
-            <h2 class="mb-0"><i class="fas fa-map-marked-alt me-2"></i> ຂໍ້ມູນແຂວງ</h2>
-            <p class="text-muted mb-0">ຈັດການ ແລະ ຕິດຕາມລາຍຊື່ແຂວງທັງໝົດໃນລະບົບ</p>
+<div class="container py-3">
+    <div class="page-header d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+        <div class="header-title text-center text-md-start">
+            <h2 class="mb-0 fs-4"><i class="fas fa-map-marked-alt me-2"></i> ຂໍ້ມູນແຂວງ</h2>
+            <p class="text-muted mb-0 small">ຈັດການ ແລະ ຕິດຕາມລາຍຊື່ແຂວງທັງໝົດໃນລະບົບ</p>
         </div>
-        <button class="btn btn-add shadow" data-bs-toggle="modal" data-bs-target="#addModal">
+        
+        <div class="search-container flex-grow-1 mx-md-4" style="max-width: 400px; width: 100%;">
+            <div class="input-group shadow-sm">
+                <span class="input-group-text border-end-0"><i class="fas fa-search"></i></span>
+                <input type="text" id="searchInput" class="form-control border-start-0" placeholder="ຄົ້ນຫາ: ຊື່ແຂວງ, ໝາຍເຫດ...">
+            </div>
+        </div>
+
+        <button class="btn btn-add shadow-sm" data-bs-toggle="modal" data-bs-target="#addModal">
             <i class="fas fa-plus me-2"></i> ເພີ່ມແຂວງໃໝ່
         </button>
     </div>
 
     <div id="show_script"></div>
 
-    <div class="card card-table">
+    <div class="card card-table mt-2">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead>
@@ -142,7 +168,7 @@ if (!isset($connect)) {
                         <th width="150" class="text-center">ຈັດການ</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="tableBody">
                     <?php 
                     $sql = mysqli_query($connect, "SELECT * FROM provinces ORDER BY pro_id DESC");
                     $i = 1; 
@@ -170,6 +196,14 @@ if (!isset($connect)) {
                             <a href="delete.php?pro_id=<?= $row['pro_id']; ?>" class="btn-action btn-delete-soft btn-delete" title="ລຶບ">
                                 <i class="fas fa-trash-can"></i>
                             </a>
+                        </td>
+                    </tr>
+                    <?php } 
+                    if(mysqli_num_rows($sql) == 0) { ?>
+                    <tr>
+                        <td colspan="4" class="text-center text-muted py-5">
+                            <i class="fas fa-folder-open fs-3 d-block mb-2 text-black-50"></i>
+                            ຍັງບໍ່ມີຂໍ້ມູນແຂວງໃນລະບົບ
                         </td>
                     </tr>
                     <?php } ?>
@@ -236,6 +270,33 @@ if (!isset($connect)) {
 
 <script>
     $(function(){
+        // 🌟 ລະບົບຄົ້ນຫາຂໍ້ມູນ (Real-time Search Filter) 🌟
+        $("#searchInput").on("keyup", function() {
+            var value = $(this).val().toLowerCase().trim();
+            var visibleRows = 0;
+
+            $("#tableBody tr").each(function() {
+                if ($(this).attr('id') === 'noDataRow') return; // ຂ້າມແຖວແຈ້ງເຕືອນບໍ່ມີຂໍ້ມູນ
+
+                var text = $(this).text().toLowerCase();
+                if (text.indexOf(value) > -1) {
+                    $(this).show();
+                    visibleRows++;
+                } else {
+                    $(this).hide();
+                }
+            });
+
+            // ຖ້າຄົ້ນຫາແລ້ວບໍ່ພົບຂໍ້ມູນ ໃຫ້ສະແດງຂໍ້ຄວາມ
+            if (visibleRows === 0) {
+                if ($("#searchNoData").length === 0) {
+                    $("#tableBody").append('<tr id="searchNoData"><td colspan="4" class="text-center text-muted py-4"><i class="fas fa-search-minus fs-4 d-block mb-2"></i>ບໍ່ພົບຂໍ້ມູນແຂວງທີ່ທ່ານຄົ້ນຫາ</td></tr>');
+                }
+            } else {
+                $("#searchNoData").remove();
+            }
+        });
+
         // Insert
         $('#btn_save').click(function(){
             var pro_name = $('#pro_name').val().trim();

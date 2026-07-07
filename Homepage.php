@@ -325,7 +325,7 @@ if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
                         </div>
                         <div class="card-icon-box"><i class="fas fa-chart-line"></i></div>
                     </div>
-                    <a href="#" class="card-link"><span>ລາຍງານກຳໄລ</span> <i class="fas fa-arrow-right"></i></a>
+                    <a href="service_logs/form_service_logs.php?filter=today" class="card-link"><span>ລາຍງານກຳໄລ</span> <i class="fas fa-arrow-right"></i></a>
                 </div>
             </div>
 
@@ -338,7 +338,7 @@ if (!isset($_SESSION['checked']) || $_SESSION['checked'] != 1) {
                         </div>
                         <div class="card-icon-box"><i class="fas fa-chart-pie"></i></div>
                     </div>
-                    <a href="#" class="card-link"><span>ລາຍງານກຳໄລມື້ນີ້</span> <i class="fas fa-arrow-right"></i></a>
+                    <a href="service_logs/form_service_logs.php?filter=today" class="card-link"><span>ລາຍງານກຳໄລມື້ນີ້</span> <i class="fas fa-arrow-right"></i></a>
                 </div>
             </div>
 

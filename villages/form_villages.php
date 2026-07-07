@@ -14,19 +14,63 @@
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@300;400;700&display=swap');
         body { background-color: #f0f4f8; font-family: 'Noto Sans Lao', sans-serif; padding: 10px 0; }
         .card { border: none; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); background: white; }
-        .main-header { background: white; padding: 15px; border-radius: 20px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-        .btn-custom { border-radius: 12px; padding: 10px 20px; font-weight: 600; transition: 0.3s; border: none; }
+        
+        .main-header { 
+            background: white; 
+            padding: 15px 20px; 
+            border-radius: 20px; 
+            margin-bottom: 15px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
+        
+        .btn-custom { border-radius: 12px; padding: 10px 20px; font-weight: 600; transition: 0.3s; border: none; white-space: nowrap; }
         .btn-add { background: linear-gradient(120deg, #4facfe 0%, #00f2fe 100%); color: white; }
+        .btn-add:hover { box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4); color: white; }
+
+        /* Search Box */
+        .search-container .input-group-text {
+            border-radius: 12px 0 0 12px;
+            background-color: #f8f9fc;
+            border-right: none;
+            color: #94a3b8;
+            border: 1px solid #e2e8f0;
+        }
+        .search-container .form-control {
+            border-radius: 0 12px 12px 0;
+            border-left: none;
+            padding: 10px 15px;
+            background-color: #f8f9fc;
+            border: 1px solid #e2e8f0;
+        }
+        .search-container .form-control:focus {
+            box-shadow: none;
+            border-color: #4facfe;
+            background-color: #fff;
+        }
+        .search-container .form-control:focus + .input-group-text {
+            background-color: #fff;
+            border-color: #4facfe;
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="main-header shadow-sm">
-        <div>
+<div class="container pb-4">
+    <div class="main-header shadow-sm flex-column flex-md-row gap-3">
+        <div class="text-center text-md-start">
             <h4 class="fw-bold mb-0 text-primary"><i class="bi bi-house-door-fill me-2"></i>ຈັດການຂໍ້ມູນບ້ານ</h4>
             <p class="text-muted small mb-0">ບໍລິຫານຈັດການຂໍ້ມູນ ບ້ານ, ເມືອງ ແລະ ແຂວງ</p>
         </div>
+
+        <div class="search-container flex-grow-1 mx-md-4" style="max-width: 450px; width: 100%;">
+            <div class="input-group">
+                <span class="input-group-text border-end-0"><i class="fas fa-search"></i></span>
+                <input type="text" id="searchInput" class="form-control border-start-0" placeholder="ຄົ້ນຫາ: ແຂວງ, ເມືອງ, ຊື່ບ້ານ, ໝາຍເຫດ...">
+            </div>
+        </div>
+
         <button class="btn btn-add btn-custom" data-bs-toggle="modal" data-bs-target="#villageModal" id="btn_open_add">
             <i class="fas fa-plus-circle me-2"></i> ເພີ່ມບ້ານໃໝ່
         </button>
@@ -45,7 +89,7 @@
                         <th width="150">ຈັດການ</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="tableBody">
                     <?php
                         $query = "SELECT a.pro_name, a.pro_id, b.dis_name, b.dis_id, c.* FROM provinces AS a 
                                   INNER JOIN districts AS b ON a.pro_id = b.pro_id 
@@ -53,16 +97,17 @@
                                   ORDER BY c.vill_id DESC";
                         $sql = mysqli_query($connect, $query);
                         $i = 1;
-                        while($form = mysqli_fetch_array($sql)){
+                        if(mysqli_num_rows($sql) > 0) {
+                            while($form = mysqli_fetch_array($sql)){
                     ?>
                     <tr class="text-center">
                         <td><?= $i++ ?></td>
                         <td><span class="badge bg-info text-dark"><?= $form['pro_name']; ?></span></td>
                         <td><span class="badge bg-success text-white"><?= $form['dis_name']; ?></span></td>
-                        <td class="fw-bold"><?= $form['vill_name']; ?></td>
-                        <td><?= $form['remark'] ?: '-'; ?></td>
+                        <td class="fw-bold text-start"><?= $form['vill_name']; ?></td>
+                        <td class="text-start text-muted small"><?= $form['remark'] ?: '-'; ?></td>
                         <td>
-                            <button class="btn btn-light btn-sm edit-btn" 
+                            <button class="btn btn-light btn-sm edit-btn border shadow-sm" 
                                     data-id="<?= $form['vill_id'] ?>"
                                     data-pro="<?= $form['pro_id'] ?>"
                                     data-dis="<?= $form['dis_id'] ?>"
@@ -70,9 +115,17 @@
                                     data-remark="<?= $form['remark'] ?>">
                                 <i class="bi bi-pencil text-success"></i>
                             </button>
-                            <a href="delete_villages.php?vill_id=<?= $form['vill_id'];?>" class="btn btn-light btn-sm delete">
+                            <a href="delete_villages.php?vill_id=<?= $form['vill_id'];?>" class="btn btn-light btn-sm delete border shadow-sm ms-1">
                                 <i class="bi bi-trash text-danger"></i>
                             </a>
+                        </td>
+                    </tr>
+                    <?php } 
+                        } else { ?>
+                    <tr id="noDataRow">
+                        <td colspan="6" class="text-center text-muted py-5">
+                            <i class="bi bi-folder2-open fs-1 d-block mb-2 text-black-50"></i>
+                            ຍັງບໍ່ມີຂໍ້ມູນບ້ານໃນລະບົບ
                         </td>
                     </tr>
                     <?php } ?>
@@ -93,9 +146,9 @@
                 <form id="villageForm">
                     <input type="hidden" id="vill_id">
                     <div class="mb-3">
-                        <label class="form-label">ເລືອກແຂວງ</label>
+                        <label class="form-label">ເລືອກແຂວງ <span class="text-danger">*</span></label>
                         <select class="form-select" id="pro_id">
-                            <option value="">-- ເເລືອກແຂວງ --</option>
+                            <option value="">-- ເລືອກແຂວງ --</option>
                             <?php
                                 $select_pro = mysqli_query($connect, "SELECT * FROM provinces");
                                 while($p = mysqli_fetch_array($select_pro)){
@@ -105,18 +158,18 @@
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">ເລືອກເມືອງ</label>
+                        <label class="form-label">ເລືອກເມືອງ <span class="text-danger">*</span></label>
                         <select class="form-select" id="dis_id">
                             <option value="">-- ເລືອກເມືອງ --</option>
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">ຊື່ບ້ານ</label>
+                        <label class="form-label">ຊື່ບ້ານ <span class="text-danger">*</span></label>
                         <input type="text" id="vill_name" class="form-control" placeholder="ປ້ອນຊື່ບ້ານ...">
                     </div>
-                    <div class="mb-3">
+                    <div class="mb-0">
                         <label class="form-label">ໝາຍເຫດ</label>
-                        <textarea id="remark" class="form-control" rows="2"></textarea>
+                        <textarea id="remark" class="form-control" rows="2" placeholder="ລາຍລະອຽດເພີ່ມເຕີມ..."></textarea>
                     </div>
                 </form>
             </div>
@@ -136,6 +189,34 @@
 
 <script>
     $(function(){
+        // 🌟 ລະບົບຄົ້ນຫາຂໍ້ມູນ (Real-time Search Filter) 🌟
+        $("#searchInput").on("keyup", function() {
+            var value = $(this).val().toLowerCase().trim();
+            var visibleRows = 0;
+
+            $("#tableBody tr").each(function() {
+                // ຂ້າມແຖວແຈ້ງເຕືອນຖ້າບໍ່ມີຂໍ້ມູນ
+                if ($(this).attr('id') === 'noDataRow' || $(this).attr('id') === 'searchNoData') return;
+
+                var text = $(this).text().toLowerCase();
+                if (text.indexOf(value) > -1) {
+                    $(this).show();
+                    visibleRows++;
+                } else {
+                    $(this).hide();
+                }
+            });
+
+            // ຖ້າຄົ້ນຫາແລ້ວບໍ່ພົບຂໍ້ມູນເລີຍ ໃຫ້ສະແດງຂໍ້ຄວາມ
+            if (visibleRows === 0) {
+                if ($("#searchNoData").length === 0) {
+                    $("#tableBody").append('<tr id="searchNoData"><td colspan="6" class="text-center text-muted py-4"><i class="bi bi-search fs-3 d-block mb-2"></i>ບໍ່ພົບຂໍ້ມູນທີ່ທ່ານຄົ້ນຫາ</td></tr>');
+                }
+            } else {
+                $("#searchNoData").remove();
+            }
+        });
+
         // ດຶງຂໍ້ມູນເມືອງ
         $("#pro_id").change(function(){
             var pro_id = $(this).val();
@@ -176,36 +257,37 @@
         });
 
         // ປຸ່ມບັນທຶກ (ທັງ Insert ແລະ Update)
-$('#save_btn').click(function(){
-    var btn = $(this);
-    var vill_id = $('#vill_id').val(); // ຖ້າມີ ID ແປວ່າແກ້ໄຂ
-    var data = {
-        vill_id: $('#vill_id').val(),
-        pro_id: $('#pro_id').val(), 
-        dis_id: $('#dis_id').val(),
-        vill_name: $('#vill_name').val(),
-        remark: $('#remark').val()
-    };
+        $('#save_btn').click(function(){
+            var btn = $(this);
+            var vill_id = $('#vill_id').val(); // ຖ້າມີ ID ແປວ່າແກ້ໄຂ
+            var data = {
+                vill_id: $('#vill_id').val(),
+                pro_id: $('#pro_id').val(), 
+                dis_id: $('#dis_id').val(),
+                vill_name: $('#vill_name').val().trim(),
+                remark: $('#remark').val().trim()
+            };
 
-    if(data.dis_id == "" || data.vill_name == ""){
-        Swal.fire('ແຈ້ງເຕືອນ', 'ກະລຸນາປ້ອນຂໍ້ມູນໃຫ້ຄົບ', 'warning');
-        return;
-    }
+            if(data.pro_id == "" || data.dis_id == "" || data.vill_name == ""){
+                Swal.fire('ແຈ້ງເຕືອນ', 'ກະລຸນາປ້ອນຂໍ້ມູນໃຫ້ຄົບຖ້ວນ', 'warning');
+                return;
+            }
 
-    // ສະແດງ Loading ຢູ່ປຸ່ມ
-    btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+            // ສະແດງ Loading ຢູ່ປຸ່ມ
+            btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>ກຳລັງບັນທຶກ...');
 
-    // ເລືອກ URL ຕາມເງື່ອນໄຂ
-    var url = (vill_id == "") ? 'insert_villages.php' : 'save_villages.php';
+            // ເລືອກ URL ຕາມເງື່ອນໄຂ
+            var url = (vill_id == "") ? 'insert_villages.php' : 'save_villages.php';
 
-    $.get(url, data, function(res){
-        $('#show').html(res);
-        btn.prop('disabled', false).html('ບັນທຶກຂໍ້ມູນ');
-    }).fail(function() {
-        Swal.fire('Error', 'ເຊື່ອມຕໍ່ກັບ Server ບໍ່ໄດ້', 'error');
-        btn.prop('disabled', false).html('ບັນທຶກຂໍ້ມູນ');
-    });
-});
+            $.get(url, data, function(res){
+                $('#show').html(res);
+                btn.prop('disabled', false).html('ບັນທຶກຂໍ້ມູນ');
+                $('#villageModal').modal('hide');
+            }).fail(function() {
+                Swal.fire('Error', 'ເຊື່ອມຕໍ່ກັບ Server ບໍ່ໄດ້', 'error');
+                btn.prop('disabled', false).html('ບັນທຶກຂໍ້ມູນ');
+            });
+        });
 
         // ລົບຂໍ້ມູນ
         $(document).on('click', '.delete', function(e){
@@ -213,9 +295,11 @@ $('#save_btn').click(function(){
             const href = $(this).attr('href');
             Swal.fire({
                 title: 'ຢືນຢັນການລົບ?',
-                text: "ຂໍ້ມູນຈະຖືກລົບອອກຈາກລະບົບ",
+                text: "ຂໍ້ມູນຈະຖືກລົບອອກຈາກລະບົບ ແລະ ບໍ່ສາມາດກູ້ຄືນໄດ້",
                 icon: 'warning',
                 showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
                 confirmButtonText: 'ລົບເລີຍ',
                 cancelButtonText: 'ຍົກເລີກ'
             }).then((result) => {

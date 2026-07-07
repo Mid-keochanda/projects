@@ -4,13 +4,19 @@ if (@$_SESSION['checked'] <> 1) {
     echo "<script>alert('ກະລຸນາລົງຊື່ເຂົ້າໃຊ້ກ່ອນ'); location='index.php';</script>";
     exit(); 
 }
+
+// ກວດສອບສິດ (ຖ້າບໍ່ມີສະຖານະ ຖືວ່າເປັນ user ທົ່ວໄປກ່ອນ)
+$is_admin = (isset($_SESSION['status']) && $_SESSION['status'] == 'admin');
+
+// ກຳນົດໜ້າທຳອິດຕາມສິດການໃຊ້ງານ
+$default_page = $is_admin ? "Homepage.php" : "service_logs/form_service_logs.php";
 ?>
 <!DOCTYPE html>
 <html lang="lo">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Garage & WMS | Admin Management</title>
+  <title>Garage & WMS | Management</title>
 
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@300;400;500;600;700&display=swap">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
@@ -173,7 +179,7 @@ if (@$_SESSION['checked'] <> 1) {
         <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
       </li>
       <li class="nav-item d-none d-sm-inline-block">
-        <a href="Homepage.php" target="frame" class="nav-link text-primary"><i class="fas fa-home me-1"></i> ໜ້າຫຼັກ</a>
+        <a href="<?php echo $default_page; ?>" target="frame" class="nav-link text-primary"><i class="fas fa-home me-1"></i> ໜ້າຫຼັກ</a>
       </li>
     </ul>
 
@@ -182,6 +188,7 @@ if (@$_SESSION['checked'] <> 1) {
         <div class="user-badge shadow-sm">
           <i class="fas fa-user-circle text-primary" style="font-size: 1.2rem;"></i> 
           <?php echo $_SESSION['fname'] . " " . $_SESSION['lname']; ?>
+          <?php if($is_admin) echo '<span class="badge bg-danger ms-2">Admin</span>'; ?>
         </div>
       </li>
       <li class="nav-item">
@@ -195,7 +202,7 @@ if (@$_SESSION['checked'] <> 1) {
   </nav>
 
   <aside class="main-sidebar sidebar-dark-primary elevation-4">
-    <a href="Homepage.php" target="frame" class="brand-link text-center">
+    <a href="<?php echo $default_page; ?>" target="frame" class="brand-link text-center">
       <i class="fas fa-tools text-primary mr-2" style="font-size: 1.3rem;"></i>
       <span class="brand-text">GARAGE MANAGER</span>
     </a>
@@ -204,10 +211,11 @@ if (@$_SESSION['checked'] <> 1) {
       <nav class="mt-0">
         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
           
+          <?php if($is_admin): ?>
           <li class="nav-header text-uppercase opacity-50 small" style="letter-spacing: 1px; color: #94a3b8;">ເມນູຫຼັກ</li>
           
-          <li class="nav-item menu-open">
-            <a href="#" class="nav-link active">
+          <li class="nav-item <?php echo $is_admin ? 'menu-open' : ''; ?>">
+            <a href="#" class="nav-link <?php echo $is_admin ? 'active' : ''; ?>">
               <i class="nav-icon fas fa-chart-pie"></i>
               <p> ແຜງຄວບຄຸມ <i class="right fas fa-angle-left"></i></p>
             </a>
@@ -219,6 +227,7 @@ if (@$_SESSION['checked'] <> 1) {
               </li>
             </ul>
           </li>
+          <?php endif; ?>
 
           <li class="nav-header text-uppercase opacity-10 small mt-0" style="letter-spacing: 1px; color: #94a3b8;">ລະບົບບໍລິການ</li>
 
@@ -250,8 +259,8 @@ if (@$_SESSION['checked'] <> 1) {
             </ul>
           </li>
 
-          <li class="nav-item">
-            <a href="#" class="nav-link">
+          <li class="nav-item <?php echo !$is_admin ? 'menu-open' : ''; ?>">
+            <a href="#" class="nav-link <?php echo !$is_admin ? 'active' : ''; ?>">
               <i class="nav-icon fas fa-file-invoice-dollar"></i>
               <p>ອອກບິນ & ສ້ອມແປງ <i class="right fas fa-angle-left"></i></p>
             </a>
@@ -267,6 +276,7 @@ if (@$_SESSION['checked'] <> 1) {
             </ul>
           </li>
           
+          <?php if($is_admin): ?>
           <li class="nav-header text-uppercase opacity-10 small mt-0" style="letter-spacing: 1px; color: #94a3b8;">ລະບົບສາງສິນຄ້າ</li>
 
           <li class="nav-item">
@@ -310,8 +320,7 @@ if (@$_SESSION['checked'] <> 1) {
               </li>
             </ul>
           </li>
-
-          
+          <?php endif; ?>
 
         </ul>
       </nav>
@@ -319,7 +328,7 @@ if (@$_SESSION['checked'] <> 1) {
   </aside>
 
   <div class="content-wrapper">
-    <iframe name="frame" src="Homepage.php"></iframe>
+    <iframe name="frame" src="<?php echo $default_page; ?>"></iframe>
   </div>
 
   <footer class="main-footer text-center py-2 small">
