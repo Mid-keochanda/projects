@@ -53,7 +53,7 @@ if(@$_SESSION['checked'] <> 1){
                 <input type="text" id="searchInput" class="search-input" placeholder="ຄົ້ນຫາຊື່ ຫຼື Username...">
             </div>
             <button class="btn btn-primary rounded-pill px-4" style="background: var(--brand-gradient); border: none;" data-bs-toggle="modal" data-bs-target="#userModal">
-                <i class="bi bi-plus-lg me-2"></i> ເພີ່ມໃໝ່
+                <i class="bi bi-plus-lg me-2"></i> ເພີ່ມຜູ້ນຳໃໍຊ້ໃໝ່
             </button>
         </div>
     </div>
