@@ -785,7 +785,7 @@ $(document).ready(function() {
         renderPartsGrid(filtered);
     });
 
-    // ເຫດການຄລີກເລືອກອະໄຫຼ່ຈາກ Grid
+    // ເຫດການຄລີກເລືອກອະໄຫຼ່
     $(document).on('click', '.part-item-card', function() {
         if($(this).hasClass('opacity-50')) {
             Swal.fire({ icon: 'warning', title: 'ສະຕັອກໝົດ!', text: 'ອະໄຫຼ່ລາຍການນີ້ໝົດສະຕັອກແລ້ວ', confirmButtonText: 'ຕົກລົງ' });

@@ -8,8 +8,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $part_code = mysqli_real_escape_string($connect, $_POST['part_code']);
     $part_name = mysqli_real_escape_string($connect, $_POST['part_name']);
     $category_id = intval($_POST['category_id']);
-    
-    // ສຳຄັນ: ລຶບເຄື່ອງໝາຍຈຸດອອກກ່ອນບັນທຶກ
     $cost_price = floatval(str_replace(',', '', $_POST['cost_price']));
     $sale_price = floatval(str_replace(',', '', $_POST['sale_price']));
 

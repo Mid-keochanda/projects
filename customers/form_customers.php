@@ -200,7 +200,6 @@ function openCustomerModal(id='', n='', s='', g='ຊາຍ', t='', a='', r='') {
 }
 
 $(document).ready(function() {
-    // ຄົ້ນຫາ Real-time
     $("#search").on("keyup", function() {
         var value = $(this).val().toLowerCase();
         $("#customerTable tbody tr").filter(function() {
@@ -231,7 +230,6 @@ $(document).ready(function() {
             return;
         }
 
-        // ກວດສອບວ່າເປັນການແກ້ໄຂ ຫຼື ເພີ່ມໃໝ່ ເພື່ອເລືອກ URL ແລະ ຂໍ້ຄວາມ Alert
         const isEdit = data.cust_id ? true : false;
         const targetUrl = isEdit ? "save_customers.php" : "insert_customers.php";
 
